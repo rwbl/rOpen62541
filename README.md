@@ -37,7 +37,7 @@ Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unifi
 ## Development Info
 This B4R library is:
 - An [open62541](https://open62541.org) protocol stack wrapper using Git-Revision **v1.2-rc1-20-g78a6721b-dirty**.
--	For this rOpen62541 library, the archive [open62541-121-esp32.zip](https://github.com/cmbahadir opcua-esp32) is used to obtain the single-file-release open62541.h and open62541.c.
+-	For this rOpen62541 library, the [open62541-121-esp32](https://github.com/cmbahadir) opcua-esp32 have been used to obtain the single-file-release open62541.h and open62541.c.
 - Written in C++ using Arduino IDE 2.3.10+, Espressif ESP32 Arduino Core V3.x, and the standard B4Rh2xml parsing pipeline.
 - **Mandatory Hardware Constraint:**  
 This library was developed and strictly tested with an **ESP32-S3-N16R8** developer kit (32-bit Xtensa lx7 dual-core chip with 16MB Flash and 8MB PSRAM). Due to memory allocation sizes and dual-core constraints, utilizing this specific hardware class is highly recommended or mandatory.
@@ -266,7 +266,7 @@ void DisableWiFiSleep(B4R::Object* o) {
 ## Credits
 
 - Developers, maintainers, and open-source contributors of the official [open62541 architecture framework](http://open62541.org/), providing an industrial-grade embedded C implementation of OPC UA.
-- Developer of this archive [open62541-121-esp32.zip](https://github.com/cmbahadir opcua-esp32) used for the B4R wrapper.
+- Developer of the [open62541-121-esp32](https://github.com/cmbahadir) opcua-esp32 as used for the B4R wrapper.
 - Anywhere software for the B4X suite of development tools.
 - AI for engineering collaboration.
 
