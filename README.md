@@ -57,10 +57,18 @@ While modern versions introduce advanced enterprise desktop configurations, vers
 - Streamlined Property Configuration: Version 1.2 exposes clean, low-level configuration functions like UA_ServerConfig_setCustomHostname(). Later versions completely refactor these into complex, deeply nested configuration allocation macros that are difficult to manage within an object-oriented B4R C++ wrapper interface.
 - Perfect Functional Match: The v1.2 branch provides 100% of the industrial protocol features required for this proof of concept (including dynamic float, integer, string, and raw binary ByteString node arrays) without any unnecessary software bloat.
 
+---
+
 ## Install
 Download the ropository from [GitHub](https://github.com/rwbl/rOpen62541).
 Copy the folder **rOpen62541** into your B4R **Additional Libraries** folder, keeping the directory structure fully intact.
 The folder **examples** holds several usage examples.
+
+---
+
+## Screenshot Example
+
+![InOut](images/ropen62541-b4j-inout-pybridge.png)
 
 ---
 
