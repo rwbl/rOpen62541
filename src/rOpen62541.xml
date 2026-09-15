@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root>
+    <doclet-version-NOT-library-version>1.00</doclet-version-NOT-library-version>
+    <class>
+        <name>B4R::B4ROPEN62541</name>
+        <shortname>Open62541</shortname>
+        <comment>Open 62541 library stored locally</comment>
+        <event>MethodTriggered ()</event>
+        <property>
+            <name>IsReady</name>
+            <comment>Sets whether the server is running.
+Required by B4R parser to pair with getIsReady.</comment>
+            <returntype>bool</returntype>
+            <parameter>
+                <name>value</name>
+                <type>bool</type>
+            </parameter>
+        </property>
+        <method>
+            <name DesignerName="Initialize">Initialize</name>
+            <comment>Initializes the OPC UA Server engine, builds the network configuration, and registers the B4R callback.
+If Username is empty "", it defaults to anonymous access.
+@param LocalIP The target TCP network IP.
+@param Port The target listening TCP network port (typically 4840).
+@param Username The security access username (use "" for no auth).
+@param Password The security access password (use "" for no auth).
+@param MethodTriggeredSub The B4R Sub to invoke when the remote trigger node is updated.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>LocalIP</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>Port</name>
+                <type>int</type>
+            </parameter>
+            <parameter>
+                <name>Username</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>Password</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>MethodTriggerSub</name>
+                <type>SubVoidArray</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="AddMethodNode">AddMethodNode</name>
+            <comment>Dynamically allocates a new executable RPC Method node inside the Factory Floor folder.
+This allows SCADA/Node-RED clients to execute true industrial method commands natively,
+passing an input data string and awaiting a direct response token back.
+@param MethodName The targeting unique string Node ID for the method (e.g., "ExecuteJob").
+@param DisplayName The human-readable string representation exposed to SCADA clients.
+@param MethodCallSub The function pointer address targeting your B4R method handling subroutine callback.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>MethodName</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>DisplayName</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>MethodCallSub</name>
+                <type>SubVoidArray</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="SetMethodReturnCode">SetMethodReturnCode</name>
+            <comment>Sets the integer execution status return code code for the currently invoked Method node.
+This function must be invoked inside your B4R method callback subroutine to send
+a success (e.g., 100) or fault (e.g., 400) token response back across the network to the client.
+@param code The status code integer to be bundled into the client's output argument packet.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>code</name>
+                <type>int</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="AddFloatNode">AddFloatNode</name>
+            <comment>Dynamically allocates a new floating-point node variable inside the Factory Floor folder.
+@param NodeIdentifier The targeting unique string Node ID (e.g., "Temperature").
+@param DisplayName The human-readable string representation exposed to SCADA clients.
+@param InitialValue The starting float value assigned to the node space on boot.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>DisplayName</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>InitialValue</name>
+                <type>float</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="AddIntNode">AddIntNode</name>
+            <comment>Dynamically allocates a new signed 32-bit integer node variable inside the Factory Floor folder.
+@param NodeIdentifier The targeting unique string Node ID (e.g., "Counter").
+@param DisplayName The human-readable string representation exposed to SCADA clients.
+@param InitialValue The starting integer value assigned to the node space on boot.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>DisplayName</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>InitialValue</name>
+                <type>int</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="AddStringNode">AddStringNode</name>
+            <comment>Dynamically allocates a new string node variable inside the Factory Floor folder.
+@param NodeIdentifier The targeting unique string Node ID (e.g., "Counter").
+@param DisplayName The human-readable string representation exposed to SCADA clients.
+@param InitialValue The starting string value assigned to the node space on boot.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>DisplayName</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>InitialValue</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="AddByteStringNode">AddByteStringNode</name>
+            <comment>Dynamically allocates a new raw ByteString variable node inside the Factory Floor folder.
+Perfect for transferring B4RSerializator binary buffers or plain byte sets.
+@param NodeIdentifier The targeting unique string Node ID (e.g., "BinaryData").
+@param DisplayName The human-readable string representation exposed to SCADA clients.
+@param InitialBytes The starting B4R ArrayByte buffer package payload to assign on boot.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>DisplayName</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>InitialBytes</name>
+                <type>Byte[]</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="AddBooleanNode">AddBooleanNode</name>
+            <comment>Dynamically allocates a new Boolean node variable inside the Factory Floor folder.
+Perfect for switching hardware relays or reading digital state inputs.
+@param NodeIdentifier The targeting unique string Node ID (e.g., "Relay1").
+@param DisplayName The human-readable string representation exposed to SCADA clients.
+@param InitialValue The starting Boolean flag status assigned on boot.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>DisplayName</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>InitialValue</name>
+                <type>bool</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="UpdateNodeValue">UpdateNodeValue</name>
+            <comment>Thread-safely updates an active OPC UA node by automatically resolving its compiled data layout type.
+Supports cross-core type verification for both floating-point and integer structures.
+@param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
+@param NewValue The numerical double representation payload to convert and assign.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>NewValue</name>
+                <type>double</type>
+            </parameter>
+        </method>
+    </class>
+    <version>0.68</version>
+</root>
