@@ -58,19 +58,15 @@ While modern versions introduce advanced enterprise desktop configurations, vers
 
 ---
 
-**Files**
-rOpen62541.zip archive contains the compiled library assets (.h, .cpp, .xml), internal silent pre-compiled source nodes.
-rOpen62541-examples.zip contains multiple complete cross-platform examples.
----
-
 **Screenshot**
 
 
 ---
 
 ## Install
-Copy the [I]rOpen62541[/I] library folder from the ZIP archive into your B4R **Additional Libraries** folder, keeping the directory structure fully intact.
-rOpen62541-Examples holds several usage examples.
+Download the ropository from [GitHub](https://github.com/rwbl/rOpen62541).
+Copy the folder [I]rOpen62541[/I] into your B4R **Additional Libraries** folder, keeping the directory structure fully intact.
+The folder **examples** holds several usage examples.
 
 ---
 

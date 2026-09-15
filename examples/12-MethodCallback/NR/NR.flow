@@ -1,0 +1,123 @@
+[
+    {
+        "id": "c70d4fefcc1f2a06",
+        "type": "OpcUa-Method",
+        "z": "f1",
+        "endpoint": "fcc17be495ef051a",
+        "objectId": "",
+        "methodId": "",
+        "name": "MethodCall",
+        "inputArguments": [],
+        "outputArguments": [],
+        "arg0name": "",
+        "arg0type": "",
+        "arg0typeid": "",
+        "arg0value": "",
+        "arg1name": "",
+        "arg1type": "",
+        "arg1typeid": "",
+        "arg1value": "",
+        "arg2name": "",
+        "arg2type": "",
+        "arg2typeid": "",
+        "arg2value": "",
+        "out0name": "",
+        "out0type": "",
+        "out0typeid": "",
+        "out0value": "",
+        "x": 570,
+        "y": 420,
+        "wires": [
+            [
+                "18809ef90b232878"
+            ]
+        ]
+    },
+    {
+        "id": "de96daf9c2c5b029",
+        "type": "inject",
+        "z": "f1",
+        "name": "Inject",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 420,
+        "wires": [
+            [
+                "45082dbfc48ca611"
+            ]
+        ]
+    },
+    {
+        "id": "18809ef90b232878",
+        "type": "debug",
+        "z": "f1",
+        "name": "DEBUG METHOD CALL",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 810,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "45082dbfc48ca611",
+        "type": "function",
+        "z": "f1",
+        "name": "Set MethodCall Message",
+        "func": "// Clear any default payload string to prevent conflicts\nmsg.payload = \"\"; \n\n// Explicitly populate the target metadata fields that Node-RED looks for\nmsg.objectId = \"ns=1;s=Factory_Floor\";\nmsg.methodId = \"ns=1;s=ExecuteJob\";\n\n// Supply the single required input argument parameters array block\nmsg.inputArguments = [\n    {\n        dataType: \"ByteString\",\n        value: \"START_BATCH\"\n    }\n];\n\nreturn msg;\n\n/*\n{\n\"objectId\":\"ns=1;s=Factory_Floor\",\n\"methodId\":\"ns=1;s=ExecuteJob\",\n\"inputArguments\":\n[{\"dataType\":15,\"value\":[83,84,65,82,84,95,66,65,84,67,72],\"arrayType\":0}],\n\"outputArguments\":[],\n\"result\":{\"statusCode\":{\"value\":0},\n\"outputArguments\":[{\"dataType\":\"Int32\",\"arrayType\":\"Scalar\",\"value\":100}]},\"output\":[{\"dataType\":\"Int32\",\"arrayType\":\"Scalar\",\"value\":100}],\"payload\":100,\"_msgid\":\"a85f46c06a93c646\"}\n*/",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 420,
+        "wires": [
+            [
+                "c70d4fefcc1f2a06"
+            ]
+        ]
+    },
+    {
+        "id": "fcc17be495ef051a",
+        "type": "OpcUa-Endpoint",
+        "name": "ESP32S3",
+        "endpoint": "opc.tcp://192.168.1.175:4840/",
+        "secpol": "None",
+        "secmode": "None",
+        "none": true,
+        "login": false,
+        "usercert": false,
+        "usercertificate": "",
+        "userprivatekey": ""
+    },
+    {
+        "id": "7fa904010f7b5b24",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-opcua": "0.2.355"
+        }
+    }
+]

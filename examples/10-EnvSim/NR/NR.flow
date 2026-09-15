@@ -1,0 +1,160 @@
+[
+    {
+        "id": "f1",
+        "type": "tab",
+        "label": "ESP32 OPC UA Test"
+    },
+    {
+        "id": "n1",
+        "type": "inject",
+        "z": "f1",
+        "name": "2s Tick",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 100,
+        "wires": [
+            [
+                "n2"
+            ]
+        ]
+    },
+    {
+        "id": "n2",
+        "type": "OpcUa-Item",
+        "z": "f1",
+        "item": "ns=1;s=Temperature",
+        "datatype": "Float",
+        "value": "",
+        "name": "Temp Node",
+        "x": 310,
+        "y": 100,
+        "wires": [
+            [
+                "n3"
+            ]
+        ]
+    },
+    {
+        "id": "n3",
+        "type": "OpcUa-Client",
+        "z": "f1",
+        "endpoint": "fcc17be495ef051a",
+        "action": "subscribe",
+        "deadbandtype": "a",
+        "deadbandvalue": 0,
+        "time": 1,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "useTransport": false,
+        "maxChunkCount": "",
+        "maxMessageSize": "",
+        "receiveBufferSize": "",
+        "sendBufferSize": "",
+        "setstatusandtime": false,
+        "keepsessionalive": false,
+        "name": "ESP32 Server",
+        "applicationName": "",
+        "applicationUri": "",
+        "x": 510,
+        "y": 140,
+        "wires": [
+            [
+                "n4"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "n4",
+        "type": "debug",
+        "z": "f1",
+        "name": "Monitor",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 710,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "n5",
+        "type": "inject",
+        "z": "f1",
+        "name": "Click Trigger",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "1",
+        "payloadType": "num",
+        "x": 130,
+        "y": 180,
+        "wires": [
+            [
+                "n6"
+            ]
+        ]
+    },
+    {
+        "id": "n6",
+        "type": "OpcUa-Item",
+        "z": "f1",
+        "item": "ns=1;s=Trigger",
+        "datatype": "Int32",
+        "value": "",
+        "name": "Trigger Node",
+        "x": 310,
+        "y": 180,
+        "wires": [
+            [
+                "n3"
+            ]
+        ]
+    },
+    {
+        "id": "fcc17be495ef051a",
+        "type": "OpcUa-Endpoint",
+        "name": "ESP32S3",
+        "endpoint": "opc.tcp://192.168.1.175:4840/",
+        "secpol": "None",
+        "secmode": "None",
+        "none": true,
+        "login": false,
+        "usercert": false,
+        "usercertificate": "",
+        "userprivatekey": ""
+    },
+    {
+        "id": "0657541544b4b3ee",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-opcua": "0.2.355"
+        }
+    }
+]

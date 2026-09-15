@@ -1,0 +1,211 @@
+﻿Build1=Default,B4RDev
+Group=Default Group
+Library1=rcore
+Library2=ropen62541
+Library3=rrandomaccessfile
+Library4=resp8266wifi
+NumberOfFiles=0
+NumberOfLibraries=4
+NumberOfModules=0
+Version=4
+@EndOfDesignText@
+#Region Project Header
+'==============================================
+' Project:		rOpen6241
+' Brief:		Example in- and output.
+' Date:			2026-09-13
+' Author: 		Robert W.B. Linn
+' License:		MIT — see LICENSE file.
+' Description:	This example uses an LED as output and pushbutton as input.
+'				There are 2 OPC UA nodes: Int and String
+' 				State LED 0=off, 1=on sent to the connected client:
+'				NodeID LedState with values 0 or 1
+'				Trigger received from the client to set LED state:
+'				NodeID Trigger with values 0 or 1
+'				There are 2 scenarios:
+'				Scenario 1
+'				The pushbutton sets the state of the LED on or off.
+'				If the LED state changes, the node with nodeid LedState is updated with 0 = Off, 1 = On.
+'				Scenario 2
+'				The server receives a msg from the connected client with nodeid Trigger.
+'				The value of the msg is used to set the state of the LED, 0 = Off, 1 = On
+'				
+' Hardware:		ESP32-S3-N16R8
+'				Board settings:
+'				Unleash the 8MB Octal PSRAM footprint
+'				Partitionscheme: HUge App
+'				PSRAM: OPI PSRAM
+' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
+'				Arduino Board Manager ESP32 3.3.11.
+' Wiring:		Output
+'				ESP32S3 = LED
+'				IO43 = Signal
+'				GND = GND
+'				Input
+'				ESP32S3 = Pushbutton (DFRobot)
+'				IO4 = Signal
+'				3.3V = VCC
+'				GND = GND
+' Log:
+'==============================================
+#End Region
+
+#Region Project Attributes
+	#AutoFlushLogs: True
+	#CheckArrayBounds: True
+	#StackBufferSize: 600
+#End Region
+'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
+
+Sub Process_Globals
+	Private VERSION 			As String = "rOpen62541 InOutput v20260913"
+
+	' Communication
+	Public Serial1 				As Serial
+	Private WiFi 				As ESP8266WiFi						' Lib rESP8266WiFi
+	Private SSID				As String = "***"
+	Private PW 					As String = "***"
+	
+	' Open62541
+	Private OpcServer			As Open62541						' Lib rOpen62541
+	Private PORT 				As Int = 4840
+	
+	' LED
+	Private LedRedPin As Pin
+	Private LED_RED_PIN_NR As Byte = 42
+	Private LedRedState As Boolean			' Keep the ledred state set by the button or opc
+	Private LED_NODE_ID As String = "LedState"
+	
+	' Buttons
+	Private ButtonPin As Pin
+	Private BUTTON_PIN_NR As Byte = 4
+	
+	'Helper
+	Private FirstTime As Boolean = True
+	Private ByteConv As ByteConverter	'ignore
+End Sub
+
+Sub AppStart
+	Serial1.Initialize(115200)
+	Log(CRLF, "[AppStart] ", VERSION)
+	
+	' Init Input and Output
+	LedRedPin.Initialize(LED_RED_PIN_NR, LedRedPin.MODE_OUTPUT)
+	LedRedState = False
+	LedRedPin.DigitalWrite(LedRedState)
+	ButtonPin.Initialize(BUTTON_PIN_NR, ButtonPin.MODE_INPUT_PULLUP)
+	ButtonPin.AddListener("Button_StateChanged")
+	
+	' Connect to the network first
+	If WiFi.Connect2(SSID, PW) Then
+		Log("[AppStart] WiFi connected > local ip=", WiFi.LocalIP)
+		' [AppStart] WiFi connected. IP=192.168.1.68
+
+		' CRITICAL HARDWARE FIX: DISABLE WI-FI SLEEP LAYERS
+		' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
+		' from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
+		RunNative("DisableWiFiSleep", Null)
+	       
+		Log("[AppStart] Init opc server")
+		If InitOpcServer Then
+			Log("[AppStart] Opc server started")
+		End If
+	Else
+		Log("[AppStart][E] WiFi Connection Failed")
+	End If
+End Sub
+
+#Region OpcServer
+' InitOpcServer
+' Steps:
+' Init the server with ip, port and client callback
+' Wait till the opc server has been started successfully
+' Add various nodes
+Private Sub InitOpcServer As Boolean
+	Dim TimeoutCounter As Int = 0
+	Dim ServerBootFailed As Boolean = False
+
+	Log("[InitOpcServer] Initializing...")
+	' Spin up the Core 0 open62541 network engine with callback
+	OpcServer.Initialize(WiFi.LocalIp, PORT, "", "", "OpcTriggerCallback")
+	
+	' Wait for the background thread layout initialization to complete!
+	Log("[InitOpcServer] Awaiting background core network initialization...")
+	Do While OpcServer.IsReady = False
+		' 100ms yield ticks for the cooperative scheduler
+		Delay(100) 
+        
+		TimeoutCounter = TimeoutCounter + 1
+		' 50 ticks * 100ms = 5000ms (5 Seconds Timeout)
+		If TimeoutCounter >= 50 Then 
+			ServerBootFailed = True
+			' Break out of the endless loop safely!
+			Exit 
+		End If
+	Loop
+    
+	If ServerBootFailed Then
+		Log("[InitOpcServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
+		' Optional: Run local emergency fallback routine or let local sensors run offline
+	Else
+		Log("[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...")
+
+		' Register nodes
+		
+		' State of the led 0=off, 1=on
+		OpcServer.AddIntNode(LED_NODE_ID, "LED State", 0)
+		
+		' Add trigger received from the client and call event OpcTriggerCallback
+		OpcServer.AddStringNode("Trigger", "Remote Action Trigger", "0")
+	End If
+	Return Not(ServerBootFailed)
+End Sub
+
+' OpcTriggerCallback
+' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
+' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
+Private Sub OpcTriggerCallback(buffer() As Byte)
+	Dim cmd As String = ByteConv.StringFromBytes(buffer)
+	Log("[OpcTriggerCallback] Client trigger method cmd=", cmd, " length=", buffer.length)
+	Select cmd
+		Case "ledon"
+			LedRedPin.DigitalWrite(True)
+			LedRedState = True
+		Case "ledoff"
+			LedRedPin.DigitalWrite(False)
+			LedRedState = False
+		' add more
+	End Select
+End Sub
+#End Region
+
+#Region Button
+'Handle button state changed. 
+'This is a pushbutton, means when pressing the button the LED will be turned on, when releasing again the LED is turned OFF.
+Sub Button_StateChanged (State As Boolean)
+	' Disable firsttime else led is turned on 
+	If FirstTime Then
+		FirstTime = Not(FirstTime)
+		Return
+	End If
+	Log("[Button_StateChanged] Button state: ", State)
+	
+	'The state will be false when the button is clicked because of the PULLUP mode.
+	If Not(State) Then
+		LedRedState = Not(LedRedState)
+		LedRedPin.DigitalWrite(LedRedState)
+		' Update the opc node
+		OpcServer.UpdateNodeValue(LED_NODE_ID, IIf(LedRedState, 1, 0))
+	End If
+End Sub
+#End Region
+
+#if C
+#include "esp_wifi.h"
+
+void DisableWiFiSleep(B4R::Object* o) {
+    // Force Espressif lwIP stack to set Power Save to NONE
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
+}
+#End If

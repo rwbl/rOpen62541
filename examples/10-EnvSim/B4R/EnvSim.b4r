@@ -1,0 +1,195 @@
+﻿Build1=Default,B4RDev
+Group=Default Group
+Library1=rcore
+Library2=ropen62541
+Library3=rrandomaccessfile
+Library4=resp8266wifi
+NumberOfFiles=0
+NumberOfLibraries=4
+NumberOfModules=0
+Version=4
+@EndOfDesignText@
+#Region Project Header
+'==============================================
+' Project:		rOpen6241
+' Brief:		Example simulating sensor data and listening to client callback.
+' Date:			2026-09-12
+' Author: 		Robert W.B. Linn
+' License:		MIT — see LICENSE file.
+' Description:	Simulating temperature and humidity sensor data.
+' Hardware:		ESP32-S3-N16R8
+'				Board settings:
+'				Unleash the 8MB Octal PSRAM footprint
+'				Partitionscheme: HUge App
+'				PSRAM: OPI PSRAM
+' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
+'				Arduino Board Manager ESP32 3.3.11.
+' Wiring:		N/A
+' Log:
+'[AppStart] rOpen62541 EnvSim v20260912
+'[AppStart] WiFi connected > local IP=192.168.1.175
+'[AppStart] Init opc server
+'[InitOpcServer] Initializing...
+'[InitOpcServer] Awaiting background core network initialization...
+'[opcuaServerTask] OPC UA Security: Anonymous Access Mode Active!
+'[opcuaServerTask] OPC UA Server successfully running on Core 0!
+'[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...
+'[AppStart] Opc server started
+'[AppTimer] Sensor read complete. Updated Node memory with: t=25.5000 h=74
+'[OpcCallback] SCADA/B4J Client clicked the trigger method. command=STOP
+'This means
+'1. The B4R setup engine yields And waits: [AppStart] Awaiting background core network initialization...
+'2. Core 0 spins up silently, selects the security mode, And mounts the PORT: OPC UA Security: Anonymous Access Mode Active! And OPC UA Server successfully running on Core 0!
+'3. B4R breaks out of the safety Loop And dynamically attaches the nodes: [AppStart] Core 0 online! Spawning dynamic address space nodes...
+'4. The background FreeRTOS value-callback intercepts the B4J write And safely executes the B4R Sub: [OpcCallback] SCADA/B4J Client clicked the trigger method!
+'==============================================
+#End Region
+
+#Region Project Attributes
+	#AutoFlushLogs: True
+	#CheckArrayBounds: True
+	#StackBufferSize: 600
+#End Region
+'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
+
+Sub Process_Globals
+	Private VERSION 			As String = "rOpen62541 EnvSim v20260913"
+
+	' Communication
+	Public Serial1 				As Serial
+	Private WiFi 				As ESP8266WiFi						' Lib rESP8266WiFi
+	Private SSID				As String = "***"
+	Private PW 					As String = "***"
+	
+	' Open62541
+	Private OpcServer			As Open62541						' Lib rOpen62541
+	Private PORT 				As Int = 4840
+
+	Private AppTimer As Timer
+	Private APPTIMER_INTERVAL As ULong = 2000
+	' Private BMP As B4RBMP280 ' Your physical sensor object
+	
+	'Helper
+	Private bc As ByteConverter	'ignore
+End Sub
+
+Sub AppStart
+	Serial1.Initialize(115200)
+	Log(CRLF, "[AppStart] ", VERSION)
+
+	' Init app timer to generate env data
+	AppTimer.Initialize("AppTimer_Tick", APPTIMER_INTERVAL)
+	' Start after opc server has been initialized and nodes created
+	AppTimer.Enabled = False
+	
+	' Connect to the network first
+	If WiFi.Connect2(SSID, PW) Then
+		Log("[AppStart] WiFi connected > local ip=", WiFi.LocalIP)
+		' [AppStart] WiFi connected. IP=192.168.1.68
+
+		' CRITICAL HARDWARE FIX: DISABLE WI-FI SLEEP LAYERS
+		' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
+		' from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
+		RunNative("DisableWiFiSleep", Null)
+			       
+		Log("[AppStart] Init opc server")
+		If InitOpcServer Then
+			' All good > start the app timer to update nodes
+			AppTimer.Enabled = True
+			Log("[AppStart] Opc server started")
+		End If
+	Else
+		Log("[AppStart][E] WiFi Connection Failed")
+	End If
+End Sub
+
+' InitOpcServer
+' Steps:
+' Init the server with ip, port and client callback
+' Wait till the opc server has been started successfully
+' Add various nodes
+Private Sub InitOpcServer As Boolean
+	Dim TimeoutCounter As Int = 0
+	Dim ServerBootFailed As Boolean = False
+
+	Log("[InitOpcServer] Initializing...")
+	' Spin up the Core 0 open62541 network engine with callback
+	OpcServer.Initialize(WiFi.LocalIp, PORT, "", "", "OpcCallback")
+	
+	' Wait for the background thread layout initialization to complete!
+	Log("[InitOpcServer] Awaiting background core network initialization...")
+	Do While OpcServer.IsReady = False
+		Delay(100) ' 100ms yield ticks for the cooperative scheduler
+        
+		TimeoutCounter = TimeoutCounter + 1
+		If TimeoutCounter >= 50 Then ' 50 ticks * 100ms = 5000ms (5 Seconds Timeout)
+			ServerBootFailed = True
+			Exit ' Break out of the endless loop safely!
+		End If
+	Loop
+    
+	If ServerBootFailed Then
+		Log("[InitOpcServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
+		' Optional: Run local emergency fallback routine or let local sensors run offline
+	Else
+		Log("[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...")
+		' Add nodes holding data
+		OpcServer.AddFloatNode("Temperature", "Room Temperature", 20.0)
+		OpcServer.AddFloatNode("Humidity", "Room Humidity", 68.0)
+		OpcServer.AddIntNode("Counter", "Total Shift Cycle Count", 0)
+
+		' Allocate a local test array buffer: 0x19, 0x02, 0x03, 0x04, 0x58
+		Dim RawBuffer() As Byte = Array As Byte(0x19, 0x02, 0x03, 0x04, 0x58)
+    
+		' Create the standardized ByteString variable node
+		OpcServer.AddByteStringNode("RawTelemetry", "Atomic Hex Package", RawBuffer)
+    
+		' Add trigger received from the client and call OpcCallback
+		OpcServer.AddStringNode("Trigger", "Remote Action Trigger", "0")
+	End If
+	Return Not(ServerBootFailed)
+End Sub
+
+Sub AppTimer_Tick
+    ' Only write data if the background server task on Core 0 is fully ready
+    If OpcServer.IsReady Then
+        
+        ' Read real sensor here: 
+		' Dim CurrentTemp As Float = BMP.ReadTemperature
+		Dim CurrentTemp As Float = 24.5 + Rnd(-2.0, 3.0)
+		Dim CurrentHum As Float = 68 + Rnd(-10.0, 11.0)
+        
+        ' PUSH DATA INTO THE NODE CONTAINER
+        ' This updates the internal open62541 memory using the C++ Mutex protection
+		' How the client accesses this data inside C++ code, register the temperature variable using this specific string name: 
+		' "Temperature".
+		' Because of this, open62541 assigns it a standardized identifier (Node ID) inside Namespace 1: 
+		' ns=1;s=Temperature (Namespace 1, String identifier).
+		' The client simply asks the server for that exact identifier.
+		OpcServer.UpdateNodeValue("Temperature", CurrentTemp)        
+		' Humidity following same as Temperature
+		OpcServer.UpdateNodeValue("Humidity", CurrentHum)
+
+        ' Log update
+		Log("[AppTimer] Sensor read complete. Updated Node memory with: t=", CurrentTemp, " h=", CurrentHum)
+    End If
+End Sub
+
+' OpcCallback
+' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
+' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
+Private Sub OpcCallback(buffer() As Byte)
+	Log("[OpcCallback] SCADA/B4J Client clicked the trigger method. command=", bc.StringFromBytes(buffer))
+	'[OpcCallback] SCADA/B4J Client clicked the trigger method. command=STOP
+	'[OpcCallback] SCADA/B4J Client clicked the trigger method. command=68
+End Sub
+
+#if C
+#include "esp_wifi.h"
+
+void DisableWiFiSleep(B4R::Object* o) {
+    // Force Espressif lwIP stack to set Power Save to NONE
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
+}
+#End If
