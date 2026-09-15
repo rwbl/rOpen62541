@@ -10,13 +10,15 @@ It provides thread-safe cross-core communication, dynamic string-node creation, 
 ---
 
 ## Author's Note & Personal Context
-This library was developed purely for personal educational use, born out of a desire to dive deep into industrial connectivity and tackle the challenging feat of wrapping the open62541 stack for B4R. It wasn't easy to build, but exploring cross-platform client integration — such as B4J with the PyBridge or Node-RED — and seeing the dual-core hardware spring to life made it an incredibly rewarding project. Moving forward, this proof-of-concept server framework will serve as a foundational wireless gateway component for the author's open-source several MAKE projects.
+**This library was developed purely for personal educational use**, born out of a desire to dive deep into industrial connectivity and tackle the challenging feat of wrapping the open62541 stack for [B4R](https://www.b4x.com/b4r.html). 
+It wasn't easy to build, but exploring cross-platform client integration — such as [B4J](https://www.b4x.com/b4j.html) with the PyBridge or [Node-RED](https://nodered.org) — and seeing the dual-core hardware spring to life made it an incredibly rewarding project. 
+Moving forward, this proof-of-concept server framework will serve as a foundational wireless gateway component for the author's open-source several **MAKE projects**.
 
 ---
 
 ## What is OPC UA & What is it used for?
 **OPC UA (Open Platform Communications Unified Architecture)** is a robust, platform-independent, and highly secure industrial machine-to-machine (M2M) communication protocol framework widely deployed in **Industry 4.0 / Industrial IoT (IIoT)** environments.
-Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unified [I]Address Space[/I] allowing devices to structurally expose complex object folders, variable data nodes, and custom tracking methods with rich data metadata. It is extensively used to interconnect hardware sensors, embedded controllers, PLCs, industrial SCADA systems, and high-level enterprise MES/ERP software architectures seamlessly over modern Ethernet/Wi-Fi networks.
+Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unified Address Space allowing devices to structurally expose complex object folders, variable data nodes, and custom tracking methods with rich data metadata. It is extensively used to interconnect hardware sensors, embedded controllers, PLCs, industrial SCADA systems, and high-level enterprise MES/ERP software architectures seamlessly over modern Ethernet/Wi-Fi networks.
 
 ---
 
@@ -80,9 +82,9 @@ Returns True if the background FreeRTOS network task on Core 0 has successfully 
 - **AddStringNode (NodeIdentifier As String, DisplayName As String, InitialValue As String)*  *
 Dynamically instantiates a unique string-identified OPC UA variable node in the main "Factory_Floor" parent directory. If the NodeIdentifier string parameter matches exactly "Trigger", the library attaches a native C++ write-callback interceptor to capture network write payloads.
 - **AddMethodNode (MethodName As String, DisplayName As String, MethodCallSub As Object)**  
-Dynamically instantiates a unique string-identified executable RPC Method node inside the main "Factory_Floor" parent directory. It configures a single universal input argument parameter slot ([I]ByteString[/I] layout) and a single [I]INT32[/I] output verification parameter slot, safely anchoring your dedicated B4R execution callback subroutine entry pointer.
+Dynamically instantiates a unique string-identified executable RPC Method node inside the main "Factory_Floor" parent directory. It configures a single universal input argument parameter slot (ByteString layout) and a single INT32 output verification parameter slot, safely anchoring your dedicated B4R execution callback subroutine entry pointer.
 - **SetMethodReturnCode (Code As Int)**  
-Sets the integer execution status return token code for the currently processed network method invocation frame. This function must be executed inside your B4R method callback subroutine to send an atomic confirmation value (e.g., [I]100[/I] for success or [I]400[/I] for failure) back across the network socket layer to the client application.
+Sets the integer execution status return token code for the currently processed network method invocation frame. This function must be executed inside your B4R method callback subroutine to send an atomic confirmation value (e.g., 100 for success or 400 for failure) back across the network socket layer to the client application.
 - **AddFloatNode (NodeIdentifier As String, DisplayName As String, InitialValue As Float)**  
 Dynamically instantiates a unique string-identified floating-point variable node attached to the primary tree registry.
 - **AddIntNode (NodeIdentifier As String, DisplayName As String, InitialValue As Int)**  
@@ -90,12 +92,12 @@ Dynamically instantiates a unique string-identified 32-bit signed integer variab
 - **AddByteStringNode (NodeIdentifier As String, DisplayName As String, InitialBytes() As Byte)**  
 Dynamically allocates a new raw ByteString variable node inside the Factory Floor folder. Perfect for transferring B4RSerializator binary buffers or plain byte sets.
 - **AddBooleanNode (NodeIdentifier As String, DisplayName As String, InitialValue As Boolean)**  
-Dynamically instantiates a unique string-identified OPC UA variable node in the main "Factory_Floor" parent directory. Configured using the native [I]UA_TYPES_BOOLEAN[/I] primitive format, this node is ideal for publishing raw system states or driving hardware switching configurations like output relays.
+Dynamically instantiates a unique string-identified OPC UA variable node in the main "Factory_Floor" parent directory. Configured using the native UA_TYPES_BOOLEAN primitive format, this node is ideal for publishing raw system states or driving hardware switching configurations like output relays.
 - **UpdateNodeValue (NodeIdentifier As String, NewValue As Boolean)**  
 An overloaded variation of the thread-safe update engine. It intercepts your B4R boolean statuses, locks the cross-core FreeRTOS semaphore, verifies if the target node registry matches the boolean data signature, and pushes the binary update straight out to your connected SCADA monitors.
 - **UpdateNodeValue (NodeIdentifier As String, NewValue As Double)**  
 A type-agnostic, thread-safe method using dynamic variant level checks to safely access server variables across cores.
-[/LIST]
+
 ---
 
 ## Code Example (Snippet)
