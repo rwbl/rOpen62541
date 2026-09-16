@@ -253,6 +253,90 @@ void DisableWiFiSleep(B4R::Object* o) {
 ```
 
 ---
+---
+
+## How to Use Callbacks (Tutorial & Examples)
+
+The library uses a dual-core architecture (FreeRTOS running the OPC UA engine on Core 0, and your B4R code running on Core 1). Callbacks bridge these cores safely using background event routing. 
+
+There are two types of callbacks you can implement:
+* *Method Trigger Callbacks* (for RPC execution)
+* *Write-Callback Interceptors* (automatically attached when writing to a node named "Trigger").
+
+---
+
+### 1. Method Callbacks (RPC Integration)
+
+When a client invokes a method created via *AddMethodNode*, the server pauses the network frame, fires your B4R subroutine, extracts the dynamic *ByteString* input, and expects you to submit a return code using *SetMethodReturnCode*.
+
+**Implementation Example:**
+
+```b4x
+Sub Process_Globals
+    Private OpcServer As rOpen62541
+End Sub
+
+Sub AppStart
+    Serial1.Initialize(115200)
+    Log("Starting OPC UA Server...")
+ 
+    ' 1. Initialize server and pass Me as the main trigger object
+    OpcServer.Initialize(4840, "192.168.1.50", "", "", Me)
+ 
+    ' 2. Register the executable Method Node and hook it to our local subroutine
+    OpcServer.AddMethodNode("ToggleRelay", "Remote Relay Toggle Switch", "OnMethodCall_ToggleRelay")
+End Sub
+
+' The callback subroutine triggered by the client RPC call
+Sub OnMethodCall_ToggleRelay (InputBuffer() As Byte)
+    Log("Method called by client!")
+ 
+    ' Process your raw input data here (e.g., parsing B4RSerializator)
+    If InputBuffer.Length > 0 Then
+        Log("Received payload bytes: " & InputBuffer.Length)
+    End If
+ 
+    ' Execute your physical hardware or logic routine
+    ' ... Your Code Here ...
+ 
+    ' IMPORTANT: Always set a return token code back to the client before exiting
+    OpcServer.SetMethodReturnCode(100) ' 100 = Success, 400 = Failure
+End Sub
+```
+
+---
+
+### 2. Write-Callback Interceptors ("Trigger" Node)
+
+If you create a string node using *AddStringNode* and set its *NodeIdentifier* exactly to **"Trigger"**, the underlying native C++ engine automatically latches a write-callback interceptor. Any time an external SCADA system or client writes a new payload to this node, your background global method handler is invoked.
+
+**Implementation Example:**
+
+```b4x
+Sub AppStart
+    ' Initialize server
+    OpcServer.Initialize(4840, "192.168.1.50", "", "", Me)
+ 
+    ' Creating this exact NodeIdentifier automatically attaches the network interceptor
+    OpcServer.AddStringNode("Trigger", "Network Command Trigger", "")
+End Sub
+
+' This global event hook intercepts incoming network write payloads on the Trigger node
+Sub MethodTriggerSub_Event (Payload As String)
+    Log("Network write interceptor tripped! Command received: " & Payload)
+ 
+    Select Payload
+        Case "START_SIM"
+            Log("Starting industrial loop...")
+        Case "STOP_SIM"
+            Log("Stopping industrial loop...")
+        Default:
+            Log("Unknown command string received.")
+    End Select
+End Sub
+```
+
+---
 
 ## Troubleshooting
 
