@@ -68,6 +68,16 @@ The folder **examples** holds several usage examples.
 
 ---
 
+## Examples
+
+| Example / Folder | Description | Key Features |
+| :--- | :--- | :--- |
+| [**EnvSim**](https://github.com/rwbl/rOpen62541/tree/main/examples/10-EnvSim) | Environment simulation example using rOpen62541.<br><br>*Note: Uses the B4J library [SS_OPCUAClient](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/).* | Simulates sensor data and process variables within the OPC UA address space. |
+| [**MethodCallback**](https://https://github.com/rwbl/rOpen62541/tree/main/examples/12-MethodCallback) | Demonstration of OPC UA method calls and callbacks. | Implements custom server-side functions that clients can trigger remotely. |
+| [**InOutput**](https://github.com/rwbl/rOpen62541/tree/main/examples/14-InOutput) | Handling of Input (trigger Pushbutton) and Output (LED) arguments for nodes. | Shows how to read, write, and map structured data types between client and server. |
+
+---
+
 ## Screenshot Example
 
 ![InOut](images/ropen62541-b4j-inout-pybridge.png)
@@ -265,11 +275,11 @@ void DisableWiFiSleep(B4R::Object* o) {
 
 ## Credits
 
-- Developers, maintainers, and open-source contributors of the official [open62541 architecture framework](http://open62541.org/), providing an industrial-grade embedded C implementation of OPC UA.
-- Developer of the [open62541-121-esp32](https://github.com/cmbahadir) opcua-esp32 as used for the B4R wrapper.
-- Anywhere software for the B4X suite of development tools.
+- Developers, maintainers, and open-source contributors of the official [open62541 architecture framework](https://open62541.org), providing an industrial-grade embedded C implementation of OPC UA.
+- Developer of the [opcua-esp32](https://github.com) repository, which served as the foundation for this B4R wrapper.
+- [Anywhere Software](https://www.b4x.com/) for the B4X suite of RAD development tools.
+- Developer of the [B4J](https://b4x.com) library [SS_OPCUAClient](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/).
 - AI for engineering collaboration.
-
 ---
 
 **Disclaimer**
