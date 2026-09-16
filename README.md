@@ -253,7 +253,6 @@ void DisableWiFiSleep(B4R::Object* o) {
 ```
 
 ---
----
 
 ## How to Use Callbacks (Tutorial & Examples)
 
