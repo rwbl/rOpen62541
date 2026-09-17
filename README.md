@@ -1,7 +1,8 @@
 # rOpen62541
 
 > [!WARNING]
-> **Work In Progress:** This project is under active dual-core optimization. Core APIs and structures are subject to breaking changes.
+> **Final Testing & Documentation In Progress**  
+> Core server developments are complete and in final testing, meaning minor API changes may still occur before the formal release. Documentation and project examples are actively being written and updated.
 
 **rOpen62541** is an open-source library wrapper for the industrial open62541 OPC UA protocol stack, specifically optimized for the ESP32-S3 Dual-Core architecture. 
 It provides thread-safe cross-core communication, dynamic string-node creation, and type-agnostic runtime write diagnostics.
@@ -46,29 +47,31 @@ This library was developed and strictly tested with an **ESP32-S3-N16R8** develo
 
 ---
 
-## Compatibility
-- Supports Espressif ESP32-S3 high-memory microcontrollers (N16R8 format). Must ensure standard network lwIP socket frameworks are initialized.
+## Compatibility & Verified Clients
 
+### Hardware & Platform Compatibility
+* **Supported Hardware:** Optimized for **Espressif ESP32-S3** high-memory microcontrollers (specifically the **N16R8** format featuring 16MB Flash and 8MB PSRAM).
+* **Network Layer:** Requires standard embedded network `lwIP` socket frameworks to be initialized on boot.
+
+### Verified OPC UA Clients
+This server implementation complies strictly with core industrial data-modeling specs and has been successfully verified across multiple desktop, terminal, and automation client ecosystems:
+
+* [**Node-RED**](https://github.com) — Fully interoperable using the standard `node-red-contrib-opcua` flow palette node module.
+* [**opcua-commander**](https://github.com/node-opcua/opcua-commander) — Validated using the interactive, keyboard-driven terminal curses explorer (TUI).
+* [**B4J (Native Client)**](https://b4x.com) — Smooth integration with Peter Simpson's high-level wrapper library (`SS_OPCUAClient`).
+* [**B4J with PyBridge**](https://b4x.com) — Confirmed working via Python-backend socket communication routing bridges.
 ---
 
-## Verified Client Compatibility
-
-This OPC UA server implementation complies strictly with core data-modeling specs and has been successfully verified across multiple production-grade and community-favorite clients:
-
-*   [**Node-RED**](https://github.com) - Interoperable over the standard `node-red-contrib-opcua` flow palette node.
-*   [**opcua-commander**](https://github.com/node-opcua/opcua-commander) - Fully validated using the interactive terminal-based curses explorer (TUI).
-*   [**B4J (Native Client)**](https://b4x.com) - Smooth integration with B4J high-level wrapper library (`SS_OPCUAClient`).
-*   [**B4J with PyBridge**](https://b4x.com) - Confirmed working via B4J PyBridge Python-backend communication routing bridges.
-
----
-
-**Architectural Version Selection: Why open62541 v1.2?**
+<details>
+<summary><b>Architectural Version Selection: Why open62541 v1.2? (Click to expand)</b></summary>
 This library explicitly uses the open62541 v1.2 legacy branch (v1.2-rc1-20-g78a6721b-dirty) instead of v1.3+ or v1.5+ release lines.  
 While modern versions introduce advanced enterprise desktop configurations, version 1.2 is carefully selected for the following critical engineering reasons:
 - Embedded-First Resource footprint: Version 1.2 compiles into a highly lightweight binary footprint. Newer versions contain massive auto-generated internal structures (such as updated Namespace 0 trees) that routinely hit compiler variable-tracking limits, causing the Xtensa compiler toolchain to freeze, link-crash, or hang the B4R IDE.
 - Native lwIP Connection Abstraction: The network socket management layer in v1.2 seamlessly adapts to the ESP32’s native embedded FreeRTOS/lwIP stack out of the box. Newer versions introduce rigid desktop POSIX dependencies (such as <poll.h> and complex desktop mutex types) that create structural friction on microcontrollers.
 - Streamlined Property Configuration: Version 1.2 exposes clean, low-level configuration functions like UA_ServerConfig_setCustomHostname(). Later versions completely refactor these into complex, deeply nested configuration allocation macros that are difficult to manage within an object-oriented B4R C++ wrapper interface.
 - Perfect Functional Match: The v1.2 branch provides 100% of the industrial protocol features required for this proof of concept (including dynamic float, integer, string, and raw binary ByteString node arrays) without any unnecessary software bloat.
+
+</details>
 
 ---
 
@@ -82,23 +85,13 @@ Download the ropository from [GitHub](https://github.com/rwbl/rOpen62541).
 
 ## Examples
 
-| Example / Folder | Description | Key Features |
-| :--- | :--- | :--- |
-| [**EnvSim**](https://github.com/rwbl/rOpen62541/tree/main/examples/10-EnvSim) | Environment simulation example using rOpen62541.<br><br>*Note: Uses the B4J library [SS_OPCUAClient](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/).* | Simulates sensor data and process variables within the OPC UA address space. |
-| [**MethodCallback**](https://https://github.com/rwbl/rOpen62541/tree/main/examples/12-MethodCallback) | Demonstration of OPC UA method calls and callbacks. | Implements custom server-side functions that clients can trigger remotely. |
-| [**InOutput**](https://github.com/rwbl/rOpen62541/tree/main/examples/14-InOutput) | Handling of Input (trigger Pushbutton) and Output (LED) arguments for nodes. | Shows how to read, write, and map structured data types between client and server. |
-| [**NodeIDs**](https://https://github.com/rwbl/rOpen62541/tree/main/examples/16-NodeIDs) | Demonstration of OPC UA system node ID calls. | Shows how to read and parse system node ID data. |
+Includes *EnvSim*, *MethodCallback*, *InOutput*, and *NodeIDs* examples within the repository.
 
 ---
 
 ## Project Tutorials & Documentation
 
-| Guide / Document | Description | Key Highlights |
-| :--- | :--- | :--- |
-| [**Tutorial: Callbacks**](https://github.com/rwbl/rOpen62541/blob/main/docs/TUTORIAL-CALLBACKS.md) | ESP32-S3 cross-core event handling guide. | Node Write Triggers and RPC methods. |
-| [**Tutorial: Node ID List**](https://github.com/rwbl/rOpen62541/blob/main/docs/TUTORIAL-NODEID-LIST.md) | Namespace 0 system variables overview. | Memory constraints and time sync. |
-
-*Note: Additional documentation and guides are in progress.*
+Refer to the repository documentation folder for detailed callback and node ID guides.
 
 ---
 
@@ -109,11 +102,15 @@ Download the ropository from [GitHub](https://github.com/rwbl/rOpen62541).
 ---
 
 ## Functions
+
+<details>
+<summary><b>📋 Click to view the full B4R Class Methods Reference List</b></summary>
+
 - **Initialize (Port As Int, LocalIP As String, Username As String, Password As String, MethodTriggerSub As Object)**  
 Initializes the OPC UA Server core engine, establishes the listening network port, boots the underlying server background runtime loop on Core 0, and hooks your B4R callback.
 - **IsReady As Boolean (Property Getter)**  
 Returns True if the background FreeRTOS network task on Core 0 has successfully initialized the minimal configurations, created root folder structures, and bound the TCP sockets.
-- **AddStringNode (NodeIdentifier As String, DisplayName As String, InitialValue As String)*  *
+- **AddStringNode (NodeIdentifier As String, DisplayName As String, InitialValue As String)**  
 Dynamically instantiates a unique string-identified OPC UA variable node in the main "Factory_Floor" parent directory. If the NodeIdentifier string parameter matches exactly "Trigger", the library attaches a native C++ write-callback interceptor to capture network write payloads.
 - **AddMethodNode (MethodName As String, DisplayName As String, MethodCallSub As Object)**  
 Dynamically instantiates a unique string-identified executable RPC Method node inside the main "Factory_Floor" parent directory. It configures a single universal input argument parameter slot (ByteString layout) and a single INT32 output verification parameter slot, safely anchoring your dedicated B4R execution callback subroutine entry pointer.
@@ -132,9 +129,13 @@ An overloaded variation of the thread-safe update engine. It intercepts your B4R
 - **UpdateNodeValue (NodeIdentifier As String, NewValue As Double)**  
 A type-agnostic, thread-safe method using dynamic variant level checks to safely access server variables across cores.
 
+</details>
+
 ---
 
 ## Code Example (Snippet)
+<details>
+<summary><b>📋 Click to view the B4R Code Example</b></summary>
 ```
     Private VERSION As String = "rOpen62541 EnvSim v20260913"
 
@@ -275,6 +276,7 @@ void DisableWiFiSleep(B4R::Object* o) {
 }
 #End If
 ```
+</details>
 
 ---
 
