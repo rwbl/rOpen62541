@@ -1,0 +1,181 @@
+﻿Build1=Default,B4RDev
+Group=Default Group
+Library1=rcore
+Library2=ropen62541
+Library3=rrandomaccessfile
+Library4=resp8266wifi
+NumberOfFiles=0
+NumberOfLibraries=4
+NumberOfModules=0
+Version=4
+@EndOfDesignText@
+#Region Project Header
+'==============================================
+' Project:		rOpen6241
+' Brief:		Example method callback function.
+' Date:			2026-09-16
+' Author: 		Robert W.B. Linn
+' License:		MIT — see LICENSE file.
+' Description:
+' B4R Log:
+' Hardware:		ESP32-S3-N16R8
+'				Board settings:
+'				Unleash the 8MB Octal PSRAM footprint
+'				Partitionscheme: HUge App
+'				PSRAM: OPI PSRAM
+' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
+'				Arduino Board Manager ESP32 3.3.11.
+' Wiring:		N/A
+'==============================================
+#End Region
+
+#Region Project Attributes
+	#AutoFlushLogs: True
+	#CheckArrayBounds: True
+	#StackBufferSize: 600
+#End Region
+'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
+
+Sub Process_Globals
+	Private VERSION 			As String = "rOpen62541 NodeIDs v20260916"
+
+	' Communication
+	Public Serial1 				As Serial
+	Private WiFi 				As ESP8266WiFi						' Lib rESP8266WiFi
+	Private SSID				As String = "***"
+	Private PW 					As String = "***"
+	
+	' Open62541
+	Private OpcServer			As Open62541						' Lib rOpen62541
+	Private PORT 				As Int = 4840
+	
+	'Helper
+	Private bc As ByteConverter	'ignore
+End Sub
+
+Sub AppStart
+	Serial1.Initialize(115200)
+	Log(CRLF, "[AppStart] ", VERSION)
+	
+	' Connect to the network first
+	If WiFi.Connect2(SSID, PW) Then
+		Log("[AppStart] WiFi connected > local ip=", WiFi.LocalIP)
+		' [AppStart] WiFi connected. IP=192.168.1.68
+
+		Log("[AppStart] Disable deep sleep...")
+		RunNative("DisableWiFiSleep", Null)
+
+		Log("[AppStart] Synchronizing system clock via NTP...")
+		RunNative("InitSystemClock", Null)
+
+		Log("[AppStart] Init opc server")
+		If InitOpcServer Then
+			Log("[AppStart] Opc server started")
+		End If
+	Else
+		Log("[AppStart][E] WiFi Connection Failed")
+	End If
+End Sub
+
+' InitOpcServer
+' Steps:
+' Init the server with ip, port and client callback
+' Wait till the opc server has been started successfully
+' Add various nodes
+Private Sub InitOpcServer As Boolean
+	Dim TimeoutCounter As Int = 0
+	Dim ServerBootFailed As Boolean = False
+
+	Log("[InitOpcServer] Initializing...")
+	' Spin up the Core 0 open62541 network engine with callback
+	OpcServer.Initialize(WiFi.LocalIp, PORT, "", "", "OpcTriggerCallback")
+	
+	' Wait for the background thread layout initialization to complete!
+	Log("[InitOpcServer] Awaiting background core network initialization...")
+	Do While OpcServer.IsReady = False
+		' 100ms yield ticks for the cooperative scheduler
+		Delay(100) 
+        
+		TimeoutCounter = TimeoutCounter + 1
+		' 50 ticks * 100ms = 5000ms (5 Seconds Timeout)
+		If TimeoutCounter >= 50 Then 
+			ServerBootFailed = True
+			' Break out of the endless loop safely!
+			Exit 
+		End If
+	Loop
+    
+	If ServerBootFailed Then
+		Log("[InitOpcServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
+		' Optional: Run local emergency fallback routine or let local sensors run offline
+	Else
+		Log("[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...")
+
+		' Register the native executable method node!
+		OpcServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OpcMethodCallCallback")
+		' Node-RED Example:
+		' objectId = "ns=1;s=Factory_Floor"; methodId = "ns=1;s=ExecuteJob"; msg.inputArguments = [{dataType: "ByteString",value: "START_BATCH"}];
+	End If
+	Return Not(ServerBootFailed)
+End Sub
+
+'==============================================
+' EVENT CALLBACKS
+'==============================================
+
+' OpcCallback
+' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
+' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
+Private Sub OpcTriggerCallback(buffer() As Byte)
+	Log("[OpcCallback] OPC UA client clicked the trigger method. value=", bc.StringFromBytes(buffer))
+End Sub
+
+' Fired automatically when a client invokes OpcServer.CallMethod()
+' Bound directly to MethodCallSub execution loop
+Private Sub OpcMethodCallCallback(InputParams() As Byte)
+	Dim ParamText As String = bc.StringFromBytes(InputParams)
+	Log("[OpcMethodCallCallback] OPC UA client invoked the method node with argument:", _
+		" hex=", bc.StringFromBytes(InputParams), _
+		" string=", bc.HexFromBytes(InputParams))
+    
+	' Evaluate your local logic parameters safely
+	If ParamText = "START_BATCH" Then
+		Log("[OpcMethodCallCallback] Command accepted. Running production batch code...")
+        
+		' Invoke via your active OpcServer instance prefix!
+		OpcServer.SetMethodReturnCode(100) ' Sends "Success" back to OPC UA client
+	Else
+		Log("[OpcMethodCallCallback] Command rejected. Invalid parameter format.")
+        
+		' Invoke via your active OpcServer instance prefix!
+		OpcServer.SetMethodReturnCode(400) ' Sends "Fault/Error" back to OPC UA client
+	End If
+End Sub
+
+'==============================================
+'INLINE C HELPERS
+'==============================================
+
+#if C
+#include "esp_wifi.h"
+#include "time.h"
+
+// Disable wi-fi sleep layers
+// Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
+// from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
+// RunNative("DisableWiFiSleep", Null)
+void DisableWiFiSleep(B4R::Object* o) {
+    // Force Espressif lwIP stack to set Power Save to NONE
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
+}
+
+// Synchronize system clock via NTP.
+// RunNative("InitSystemClock", Null)
+void InitSystemClock(B4R::Object* o) {
+    // Configures the system to poll pool.ntp.org with a standard global UTC offset
+    // Adjust the 3600 (seconds) based on your target local timezone offset (e.g. 3600 = UTC+1)
+    configTime(3600, 0, "pool.ntp.org", "time.nist.gov");
+    ::Serial.println("[Hardware Engine] SNTP Client started. Synchronizing baseline...");
+}
+#End If

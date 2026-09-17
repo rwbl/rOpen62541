@@ -3,7 +3,7 @@
 > [!WARNING]
 > **Work In Progress:** This project is under active dual-core optimization. Core APIs and structures are subject to breaking changes.
 
-rOpen62541 is an open-source library wrapper for the industrial open62541 OPC UA protocol stack, specifically optimized for the ESP32-S3 Dual-Core architecture. 
+**rOpen62541** is an open-source library wrapper for the industrial open62541 OPC UA protocol stack, specifically optimized for the ESP32-S3 Dual-Core architecture. 
 It provides thread-safe cross-core communication, dynamic string-node creation, and type-agnostic runtime write diagnostics.
 
 ---
@@ -63,8 +63,9 @@ While modern versions introduce advanced enterprise desktop configurations, vers
 
 ## Install
 Download the ropository from [GitHub](https://github.com/rwbl/rOpen62541).
-Copy the folder **rOpen62541** into your B4R **Additional Libraries** folder, keeping the directory structure fully intact.
-The folder **examples** holds several usage examples.
+- Copy the src sub-folder **rOpen62541** into your B4R **Additional Libraries** folder, keeping the directory structure fully intact.
+- Copy the src file **rOpen62541.xml** into your B4R **Additional Libraries** folder.
+- The folder **examples** holds several usage examples.
 
 ---
 
@@ -75,6 +76,18 @@ The folder **examples** holds several usage examples.
 | [**EnvSim**](https://github.com/rwbl/rOpen62541/tree/main/examples/10-EnvSim) | Environment simulation example using rOpen62541.<br><br>*Note: Uses the B4J library [SS_OPCUAClient](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/).* | Simulates sensor data and process variables within the OPC UA address space. |
 | [**MethodCallback**](https://https://github.com/rwbl/rOpen62541/tree/main/examples/12-MethodCallback) | Demonstration of OPC UA method calls and callbacks. | Implements custom server-side functions that clients can trigger remotely. |
 | [**InOutput**](https://github.com/rwbl/rOpen62541/tree/main/examples/14-InOutput) | Handling of Input (trigger Pushbutton) and Output (LED) arguments for nodes. | Shows how to read, write, and map structured data types between client and server. |
+| [**NodeIDs**](https://https://github.com/rwbl/rOpen62541/tree/main/examples/16-NodeIDs) | Demonstration of OPC UA system node ID calls. | Shows how to read and parse system node ID data. |
+
+--
+
+## Project Tutorials & Documentation
+
+| Guide / Document | Description | Key Highlights |
+| :--- | :--- | :--- |
+| [**Tutorial: Callbacks**](https://github.com/rwbl/rOpen62541/blob/main/docs/TUTORIAL-CALLBACKS.md) | ESP32-S3 cross-core event handling guide. | Node Write Triggers and RPC methods. |
+| [**Tutorial: Node ID List**](https://github.com/rwbl/rOpen62541/blob/main/docs/TUTORIAL-NODEID-LIST.md) | Namespace 0 system variables overview. | Memory constraints and time sync. |
+
+*Note: Additional documentation and guides are in progress.*
 
 ---
 
@@ -250,89 +263,6 @@ void DisableWiFiSleep(B4R::Object* o) {
     ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
 }
 #End If
-```
-
----
-
-## How to Use Callbacks (Tutorial & Examples)
-
-The library uses a dual-core architecture (FreeRTOS running the OPC UA engine on Core 0, and your B4R code running on Core 1). Callbacks bridge these cores safely using background event routing. 
-
-There are two types of callbacks you can implement:
-* *Method Trigger Callbacks* (for RPC execution)
-* *Write-Callback Interceptors* (automatically attached when writing to a node named "Trigger").
-
----
-
-### 1. Method Callbacks (RPC Integration)
-
-When a client invokes a method created via *AddMethodNode*, the server pauses the network frame, fires your B4R subroutine, extracts the dynamic *ByteString* input, and expects you to submit a return code using *SetMethodReturnCode*.
-
-**Implementation Example:**
-
-```b4x
-Sub Process_Globals
-    Private OpcServer As rOpen62541
-End Sub
-
-Sub AppStart
-    Serial1.Initialize(115200)
-    Log("Starting OPC UA Server...")
- 
-    ' 1. Initialize server and pass Me as the main trigger object
-    OpcServer.Initialize(4840, "192.168.1.50", "", "", Me)
- 
-    ' 2. Register the executable Method Node and hook it to our local subroutine
-    OpcServer.AddMethodNode("ToggleRelay", "Remote Relay Toggle Switch", "OnMethodCall_ToggleRelay")
-End Sub
-
-' The callback subroutine triggered by the client RPC call
-Sub OnMethodCall_ToggleRelay (InputBuffer() As Byte)
-    Log("Method called by client!")
- 
-    ' Process your raw input data here (e.g., parsing B4RSerializator)
-    If InputBuffer.Length > 0 Then
-        Log("Received payload bytes: " & InputBuffer.Length)
-    End If
- 
-    ' Execute your physical hardware or logic routine
-    ' ... Your Code Here ...
- 
-    ' IMPORTANT: Always set a return token code back to the client before exiting
-    OpcServer.SetMethodReturnCode(100) ' 100 = Success, 400 = Failure
-End Sub
-```
-
----
-
-### 2. Write-Callback Interceptors ("Trigger" Node)
-
-If you create a string node using *AddStringNode* and set its *NodeIdentifier* exactly to **"Trigger"**, the underlying native C++ engine automatically latches a write-callback interceptor. Any time an external SCADA system or client writes a new payload to this node, your background global method handler is invoked.
-
-**Implementation Example:**
-
-```b4x
-Sub AppStart
-    ' Initialize server
-    OpcServer.Initialize(4840, "192.168.1.50", "", "", Me)
- 
-    ' Creating this exact NodeIdentifier automatically attaches the network interceptor
-    OpcServer.AddStringNode("Trigger", "Network Command Trigger", "")
-End Sub
-
-' This global event hook intercepts incoming network write payloads on the Trigger node
-Sub MethodTriggerSub_Event (Payload As String)
-    Log("Network write interceptor tripped! Command received: " & Payload)
- 
-    Select Payload
-        Case "START_SIM"
-            Log("Starting industrial loop...")
-        Case "STOP_SIM"
-            Log("Stopping industrial loop...")
-        Default:
-            Log("Unknown command string received.")
-    End Select
-End Sub
 ```
 
 ---
