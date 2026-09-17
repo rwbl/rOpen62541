@@ -90,7 +90,7 @@ Download the ropository from [GitHub](https://github.com/rwbl/rOpen62541).
 
 ## Examples
 
-Includes *EnvSim*, *MethodCallback*, *InOutput*, and *NodeIDs* examples within the repository.
+Includes *EnvSim*, *MethodCallback*, *InOutput*, and other examples within the repository.
 
 ---
 
@@ -282,13 +282,7 @@ void DisableWiFiSleep(B4R::Object* o) {
 
 ## Troubleshooting
 
-- B4J Client Node Errors (`Bad_NodeIdUnknown`): Ensure your client calls use explicit string node formats using `s=` syntax (e.g., `ns=1;s=Temperature` or `ns=1;s=Trigger`). Do not look up auto-incrementing numerical configurations (`i=`).
-- Node-RED Link Timeout ("invalid endpoint"): The underlying `node-opcua` JavaScript module is very strict.   
-	- Ensure your target URL incorporates the complete lowercase protocol structure along with a trailing forward slash, explicitly configured like this: `opc.tcp://NNN.NNN.NNN.NNN:4840/`.  
-	- Set both Security Policy and Security Mode to `None` inside your server profile pane.
-- Missing Log Actions: If a client writes to the trigger node but B4R remains silent, ensure that your `AddStringNode` function block configures the callback mappings after the variable instantiation lines are executed, and verify that your B4R callback subroutine accepts a single `Buffer() As Byte` parameter.
-- Console Debug Silence: Core library logs are intentionally routed to `/dev/null` at the hardware level during task setup. 
-	- This completely drops pre-compiled verbose `trace/channel` and `debug/session` stdout spam to maximize hardware efficiency while leaving the explicit B4R `Log()` actions functional.
+Please refer to the [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for quick resolutions regarding node errors, connection timeouts, or silent callback hooks.
 
 ---
 
