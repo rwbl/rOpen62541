@@ -249,40 +249,13 @@ Refer to the repository documentation folder for detailed callback and node ID g
 ---
 
 ## Functions Reference
-
-<details>
-<summary><b>Click to view the full B4R Class Methods Reference List</b></summary>
-
-- **Initialize (Port As Int, LocalIP As String, Username As String, Password As String, MethodTriggerSub As Object)**  
-Initializes the OPC UA Server core engine, establishes the listening network port, boots the underlying server background runtime loop on Core 0, and hooks your B4R callback.
-- **IsReady As Boolean (Property Getter)**  
-Returns True if the background FreeRTOS network task on Core 0 has successfully initialized the minimal configurations, created root folder structures, and bound the TCP sockets.
-- **AddStringNode (NodeIdentifier As String, DisplayName As String, InitialValue As String)**  
-Dynamically instantiates a unique string-identified OPC UA variable node in the main "Factory_Floor" parent directory. If the NodeIdentifier string parameter matches exactly "Trigger", the library attaches a native C++ write-callback interceptor to capture network write payloads.
-- **AddMethodNode (MethodName As String, DisplayName As String, MethodCallSub As Object)**  
-Dynamically instantiates a unique string-identified executable RPC Method node inside the main "Factory_Floor" parent directory. It configures a single universal input argument parameter slot (ByteString layout) and a single INT32 output verification parameter slot, safely anchoring your dedicated B4R execution callback subroutine entry pointer.
-- **SetMethodReturnCode (Code As Int)**  
-Sets the integer execution status return token code for the currently processed network method invocation frame. This function must be executed inside your B4R method callback subroutine to send an atomic confirmation value (e.g., 100 for success or 400 for failure) back across the network socket layer to the client application.
-- **AddFloatNode (NodeIdentifier As String, DisplayName As String, InitialValue As Float)**  
-Dynamically instantiates a unique string-identified floating-point variable node attached to the primary tree registry.
-- **AddIntNode (NodeIdentifier As String, DisplayName As String, InitialValue As Int)**  
-Dynamically instantiates a unique string-identified 32-bit signed integer variable node attached to the primary tree registry.
-- **AddByteStringNode (NodeIdentifier As String, DisplayName As String, InitialBytes() As Byte)**  
-Dynamically allocates a new raw ByteString variable node inside the Factory Floor folder. Perfect for transferring B4RSerializator binary buffers or plain byte sets.
-- **AddBooleanNode (NodeIdentifier As String, DisplayName As String, InitialValue As Boolean)**  
-Dynamically instantiates a unique string-identified OPC UA variable node in the main "Factory_Floor" parent directory. Configured using the native UA_TYPES_BOOLEAN primitive format, this node is ideal for publishing raw system states or driving hardware switching configurations like output relays.
-- **UpdateNodeValue (NodeIdentifier As String, NewValue As Boolean)**  
-An overloaded variation of the thread-safe update engine. It intercepts your B4R boolean statuses, locks the cross-core FreeRTOS semaphore, verifies if the target node registry matches the boolean data signature, and pushes the binary update straight out to your connected SCADA monitors.
-- **UpdateNodeValue (NodeIdentifier As String, NewValue As Double)**  
-A type-agnostic, thread-safe method using dynamic variant level checks to safely access server variables across cores.
-
-</details>
+Refer to the comprehensive [Functions Reference Guide](docs/FUNCTIONS-REFERENCE.md) for a full list of class methods, parameter expectations, and overloaded structures.
 
 ---
 
 ## Troubleshooting
 
-Please refer to the [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for quick resolutions regarding node errors, connection timeouts, or silent callback hooks.
+Refer to the [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for quick resolutions regarding node errors, connection timeouts, or silent callback hooks.
 
 ---
 
