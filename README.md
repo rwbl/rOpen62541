@@ -9,16 +9,22 @@ It provides thread-safe cross-core communication, dynamic string-node creation, 
 
 ---
 
-## Author's Note & Personal Context
+## Project Overview & Background
+
+<details>
+<summary><b>Author's Note & Personal Context (Click to expand)</b></summary>
+
 **This library was developed purely for personal educational use**, born out of a desire to dive deep into industrial connectivity and tackle the challenging feat of wrapping the open62541 stack for [B4R](https://www.b4x.com/b4r.html). 
 It wasn't easy to build, but exploring cross-platform client integration — such as [B4J](https://www.b4x.com/b4j.html) with the PyBridge and [opcua-asyncio](https://github.com/FreeOpcUa/opcua-asyncio) or [Node-RED](https://nodered.org) — and seeing the dual-core hardware spring to life made it an incredibly rewarding project. 
 Moving forward, this proof-of-concept server framework will serve as a foundational wireless gateway component for the author's open-source several **MAKE projects**.
+</details>
 
----
+<details>
+<summary><b>What is OPC UA & What is it used for? (Click to expand)</b></summary>
 
-## What is OPC UA & What is it used for?
 **OPC UA (Open Platform Communications Unified Architecture)** is a robust, platform-independent, and highly secure industrial machine-to-machine (M2M) communication protocol framework widely deployed in **Industry 4.0 / Industrial IoT (IIoT)** environments.
 Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unified Address Space allowing devices to structurally expose complex object folders, variable data nodes, and custom tracking methods with rich data metadata. It is extensively used to interconnect hardware sensors, embedded controllers, PLCs, industrial SCADA systems, and high-level enterprise MES/ERP software architectures seamlessly over modern Ethernet/Wi-Fi networks.
+</details>
 
 ---
 
@@ -36,14 +42,25 @@ Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unifi
 ---
 
 ## Development Info
-This B4R library is:
+This B4R rOpen62541 library is:
 - An [open62541](https://open62541.org) protocol stack wrapper using Git-Revision **v1.2-rc1-20-g78a6721b-dirty**.
--	For this rOpen62541 library, the [open62541-121-esp32](https://github.com/cmbahadir) opcua-esp32 have been used to obtain the single-file-release open62541.h and open62541.c.
+	- The [open62541-121-esp32](https://github.com/cmbahadir) opcua-esp32 have been used to obtain the single-file-release open62541.h and open62541.c.
 - Written in C++ using Arduino IDE 2.3.10+, Espressif ESP32 Arduino Core V3.x, and the standard B4Rh2xml parsing pipeline.
-- **Mandatory Hardware Constraint:**  
-This library was developed and strictly tested with an **ESP32-S3-N16R8** developer kit (32-bit Xtensa lx7 dual-core chip with 16MB Flash and 8MB PSRAM). Due to memory allocation sizes and dual-core constraints, utilizing this specific hardware class is highly recommended or mandatory.
+- Was developed and strictly tested with an **ESP32-S3-N16R8** developer kit (32-bit Xtensa lx7 dual-core chip with 16MB Flash and 8MB PSRAM). 
+	- Due to memory allocation sizes and dual-core constraints, utilizing this specific hardware class is highly recommended or mandatory.
+- Is meant for local subnet networks (LAN/WLAN) where no external internet router firewall ports need to be exposed.
 - Tested with B4R 4.00 (64-bit).
-- **Not supported over WAN directly:** Meant for local subnet networks (LAN/WLAN) where no external internet router firewall ports need to be exposed.
+
+<details>
+<summary><b>Architectural Version Selection: Why open62541 v1.2? (Click to expand)</b></summary>
+This library explicitly uses the open62541 v1.2 legacy branch (v1.2-rc1-20-g78a6721b-dirty) instead of v1.3+ or v1.5+ release lines.  
+While modern versions introduce advanced enterprise desktop configurations, version 1.2 is carefully selected for the following critical engineering reasons:
+- Embedded-First Resource footprint: Version 1.2 compiles into a highly lightweight binary footprint. Newer versions contain massive auto-generated internal structures (such as updated Namespace 0 trees) that routinely hit compiler variable-tracking limits, causing the Xtensa compiler toolchain to freeze, link-crash, or hang the B4R IDE.
+- Native lwIP Connection Abstraction: The network socket management layer in v1.2 seamlessly adapts to the ESP32’s native embedded FreeRTOS/lwIP stack out of the box. Newer versions introduce rigid desktop POSIX dependencies (such as <poll.h> and complex desktop mutex types) that create structural friction on microcontrollers.
+- Streamlined Property Configuration: Version 1.2 exposes clean, low-level configuration functions like UA_ServerConfig_setCustomHostname(). Later versions completely refactor these into complex, deeply nested configuration allocation macros that are difficult to manage within an object-oriented B4R C++ wrapper interface.
+- Perfect Functional Match: The v1.2 branch provides 100% of the industrial protocol features required for this proof of concept (including dynamic float, integer, string, and raw binary ByteString node arrays) without any unnecessary software bloat.
+
+</details>
 
 ---
 
@@ -60,18 +77,6 @@ This server implementation complies strictly with core industrial data-modeling 
 * [**opcua-commander**](https://github.com/node-opcua/opcua-commander) — Validated using the interactive, keyboard-driven terminal curses explorer (TUI).
 * [**B4J (Native Client)**](https://b4x.com) — Smooth integration with Peter Simpson's high-level wrapper library (`SS_OPCUAClient`).
 * [**B4J with PyBridge**](https://b4x.com) — Confirmed working via Python-backend socket communication routing bridges.
----
-
-<details>
-<summary><b>Architectural Version Selection: Why open62541 v1.2? (Click to expand)</b></summary>
-This library explicitly uses the open62541 v1.2 legacy branch (v1.2-rc1-20-g78a6721b-dirty) instead of v1.3+ or v1.5+ release lines.  
-While modern versions introduce advanced enterprise desktop configurations, version 1.2 is carefully selected for the following critical engineering reasons:
-- Embedded-First Resource footprint: Version 1.2 compiles into a highly lightweight binary footprint. Newer versions contain massive auto-generated internal structures (such as updated Namespace 0 trees) that routinely hit compiler variable-tracking limits, causing the Xtensa compiler toolchain to freeze, link-crash, or hang the B4R IDE.
-- Native lwIP Connection Abstraction: The network socket management layer in v1.2 seamlessly adapts to the ESP32’s native embedded FreeRTOS/lwIP stack out of the box. Newer versions introduce rigid desktop POSIX dependencies (such as <poll.h> and complex desktop mutex types) that create structural friction on microcontrollers.
-- Streamlined Property Configuration: Version 1.2 exposes clean, low-level configuration functions like UA_ServerConfig_setCustomHostname(). Later versions completely refactor these into complex, deeply nested configuration allocation macros that are difficult to manage within an object-oriented B4R C++ wrapper interface.
-- Perfect Functional Match: The v1.2 branch provides 100% of the industrial protocol features required for this proof of concept (including dynamic float, integer, string, and raw binary ByteString node arrays) without any unnecessary software bloat.
-
-</details>
 
 ---
 
@@ -101,7 +106,7 @@ Refer to the repository documentation folder for detailed callback and node ID g
 
 ---
 
-## Functions
+## Functions Reference
 
 <details>
 <summary><b>Click to view the full B4R Class Methods Reference List</b></summary>
@@ -134,7 +139,11 @@ A type-agnostic, thread-safe method using dynamic variant level checks to safely
 ---
 
 ## Code Example (Snippet)
-```
+
+<details>
+<summary><b>Click to expand the full B4R Example Source Code</b></summary>
+
+```b4x
     Private VERSION As String = "rOpen62541 EnvSim v20260913"
 
     ' Communication
@@ -230,6 +239,10 @@ Private Sub InitOpcServer As Boolean
     Return Not(ServerBootFailed)
 End Sub
 
+Sub AppStart
+    ' Core loop logic
+End Sub
+
 Sub AppTimer_Tick
     ' Only write data if the background server task on Core 0 is fully ready
     If OpcServer.IsReady Then
@@ -240,14 +253,7 @@ Sub AppTimer_Tick
         Dim CurrentHum As Float = 68 + Rnd(-10.0, 11.0)
         
         ' PUSH DATA INTO THE NODE CONTAINER
-        ' This updates the internal open62541 memory using the C++ Mutex protection
-        ' How the client accesses this data inside C++ code, register the temperature variable using this specific string name:
-        ' "Temperature".
-        ' Because of this, open62541 assigns it a standardized identifier (Node ID) inside Namespace 1:
-        ' ns=1;s=Temperature (Namespace 1, String identifier).
-        ' The client simply asks the server for that exact identifier.
         OpcServer.UpdateNodeValue("Temperature", CurrentTemp)       
-        ' Humidity following same as Temperature
         OpcServer.UpdateNodeValue("Humidity", CurrentHum)
 
         ' Log update
@@ -256,24 +262,21 @@ Sub AppTimer_Tick
 End Sub
 
 ' OpcCallback
-' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
-' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
 Private Sub OpcCallback(buffer() As Byte)
     Log("[OpcCallback] SCADA/B4J Client clicked the trigger method. command=", bc.StringFromBytes(buffer))
-    '[OpcCallback] SCADA/B4J Client clicked the trigger method. command=STOP
-    '[OpcCallback] SCADA/B4J Client clicked the trigger method. command=68
 End Sub
 
 #if C
 #include "esp_wifi.h"
 
 void DisableWiFiSleep(B4R::Object* o) {
-    // Force Espressif lwIP stack to set Power Save to NONE
     esp_wifi_set_ps(WIFI_PS_NONE);
-    ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
+    ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled!");
 }
 #End If
 ```
+
+</details>
 
 ---
 
