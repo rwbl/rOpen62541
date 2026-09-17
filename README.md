@@ -46,8 +46,19 @@ This library was developed and strictly tested with an **ESP32-S3-N16R8** develo
 
 ---
 
-**Compatibility**
+## Compatibility
 - Supports Espressif ESP32-S3 high-memory microcontrollers (N16R8 format). Must ensure standard network lwIP socket frameworks are initialized.
+
+---
+
+## Verified Client Compatibility
+
+This OPC UA server implementation complies strictly with core data-modeling specs and has been successfully verified across multiple production-grade and community-favorite clients:
+
+*   [**Node-RED**](https://github.com) - Interoperable over the standard `node-red-contrib-opcua` flow palette node.
+*   [**opcua-commander**](https://github.com/node-opcua/opcua-commander) - Fully validated using the interactive terminal-based curses explorer (TUI).
+*   [**B4J (Native Client)**](https://b4x.com) - Smooth integration with B4J high-level wrapper library (`SS_OPCUAClient`).
+*   [**B4J with PyBridge**](https://b4x.com) - Confirmed working via B4J PyBridge Python-backend communication routing bridges.
 
 ---
 
