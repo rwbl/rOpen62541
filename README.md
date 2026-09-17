@@ -104,7 +104,7 @@ Refer to the repository documentation folder for detailed callback and node ID g
 ## Functions
 
 <details>
-<summary><b>📋 Click to view the full B4R Class Methods Reference List</b></summary>
+<summary><b>Click to view the full B4R Class Methods Reference List</b></summary>
 
 - **Initialize (Port As Int, LocalIP As String, Username As String, Password As String, MethodTriggerSub As Object)**  
 Initializes the OPC UA Server core engine, establishes the listening network port, boots the underlying server background runtime loop on Core 0, and hooks your B4R callback.
@@ -134,8 +134,6 @@ A type-agnostic, thread-safe method using dynamic variant level checks to safely
 ---
 
 ## Code Example (Snippet)
-<details>
-<summary><b>📋 Click to view the B4R Code Example</b></summary>
 ```
     Private VERSION As String = "rOpen62541 EnvSim v20260913"
 
@@ -276,8 +274,6 @@ void DisableWiFiSleep(B4R::Object* o) {
 }
 #End If
 ```
-
-</details>
 
 ---
 
