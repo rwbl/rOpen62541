@@ -12,12 +12,11 @@ Version=4
 #Region Project Header
 '==============================================
 ' Project:		rOpen6241
-' Brief:		Example method callback function.
-' Date:			2026-09-16
+' Brief:		Low-level standard namespace lookup implementations. 
+' Date:			2026-09-18
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
-' Description:
-' B4R Log:
+' Description:	Demonstrates querying standard Namespace 0 (`ns=0`) system variables And parsing complex structure payloads.
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
 '				Unleash the 8MB Octal PSRAM footprint
@@ -26,6 +25,21 @@ Version=4
 ' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
 '				Arduino Board Manager ESP32 3.3.11.
 ' Wiring:		N/A
+' B4R Log:
+'				[AppStart] rOpen62541 NodeIDs v20260918
+'				[AppStart] WiFi connected > local ip=192.168.1.175
+'				[AppStart] Disable deep sleep...
+'				[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set To high-performance mode.
+'				[AppStart] Synchronizing system clock via NTP...
+'				[Hardware Engine] SNTP Client started. Synchronizing baseline...
+'				[AppStart] Init opc server
+'				[InitOpcServer] Initializing...
+'				[InitOpcServer] Awaiting background core network initialization...
+'				[opcuaServerTask] OPC UA Security: Anonymous Access Mode Active!
+'				[opcuaServerTask] OPC UA Server successfully running on Core 0!
+'				[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...
+'				[AppStart] Opc server started
+'				[GetSystemNode] 2258=2026-09-18 17:59:16
 '==============================================
 #End Region
 
@@ -37,7 +51,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 NodeIDs v20260916"
+	Private VERSION 			As String = "rOpen62541 NodeIDs v20260918"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -71,6 +85,7 @@ Sub AppStart
 		Log("[AppStart] Init opc server")
 		If InitOpcServer Then
 			Log("[AppStart] Opc server started")
+			CallSubPlus("GetSystemNode", 5000, 58)
 		End If
 	Else
 		Log("[AppStart][E] WiFi Connection Failed")
@@ -115,8 +130,15 @@ Private Sub InitOpcServer As Boolean
 		OpcServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OpcMethodCallCallback")
 		' Node-RED Example:
 		' objectId = "ns=1;s=Factory_Floor"; methodId = "ns=1;s=ExecuteJob"; msg.inputArguments = [{dataType: "ByteString",value: "START_BATCH"}];
+
 	End If
 	Return Not(ServerBootFailed)
+End Sub
+
+Private Sub GetSystemNode(nodeid As Byte)
+	Dim n As UInt = 2200 + nodeid
+	Log("[GetSystemNode] ", n, "=", OpcServer.ReadNumeric(0, n))
+	' [GetSystemNode] 2258:2026-09-18 17:13:20
 End Sub
 
 '==============================================
@@ -178,4 +200,5 @@ void InitSystemClock(B4R::Object* o) {
     configTime(3600, 0, "pool.ntp.org", "time.nist.gov");
     ::Serial.println("[Hardware Engine] SNTP Client started. Synchronizing baseline...");
 }
+
 #End If

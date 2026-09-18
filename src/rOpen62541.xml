@@ -199,6 +199,40 @@ Supports cross-core type verification for both floating-point and integer struct
                 <type>double</type>
             </parameter>
         </method>
+        <method>
+            <name DesignerName="ReadNumeric">ReadNumeric</name>
+            <comment>OPC UA Standard Read Service.
+Thread-safely reads a node value using a numeric identifier.
+@param NamespaceIndex The numerical namespace target index (e.g., 0).
+@param NumericIdentifier The unique numerical identifier key (e.g., 2258).
+@return A B4RString pointer containing the text-formatted UTC value payload.</comment>
+            <returntype>B4R::B4RString*</returntype>
+            <parameter>
+                <name>NamespaceIndex</name>
+                <type>int</type>
+            </parameter>
+            <parameter>
+                <name>NumericIdentifier</name>
+                <type>int</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="ReadString">ReadString</name>
+            <comment>OPC UA Standard Read Service.
+Thread-safely reads a node value using a string identifier.
+@param NamespaceIndex The numerical namespace target index (e.g., 1).
+@param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
+@return A B4RString pointer containing the text-formatted value payload.</comment>
+            <returntype>B4R::B4RString*</returntype>
+            <parameter>
+                <name>NamespaceIndex</name>
+                <type>int</type>
+            </parameter>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+        </method>
     </class>
-    <version>0.68</version>
+    <version>0.69</version>
 </root>

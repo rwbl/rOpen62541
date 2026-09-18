@@ -14,3 +14,4 @@ The following examples are structured into dedicated sub-folders:
 - [**16-NodeIDs**](16-NodeIDs/) — Low-level standard namespace lookup implementations. 
 	- Demonstrates querying standard Namespace 0 (`ns=0`) system variables and parsing complex structure payloads.
 	- Uses the B4J `SS_OPCUAClient` library.
+	- Uses the Node.js `node-opcua` stack.

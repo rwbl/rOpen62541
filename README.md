@@ -51,6 +51,7 @@ This server implementation complies strictly with core industrial data-modeling 
 * [**opcua-commander**](https://github.com/node-opcua/opcua-commander) — Validated using the interactive, keyboard-driven terminal curses explorer (TUI).
 * [**B4J (Native Client)**](https//www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/) — Smooth integration with OPC UA Client library for B4J.
 * [**B4J with PyBridge**](https://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/#content) — Confirmed working via Python-backend socket communication routing bridges PyBridge framework.
+* [**Node.js OPC UA Stack**](https://node-opcua.github.io) — Confirmed working via TypeScript client example.
 
 ---
 

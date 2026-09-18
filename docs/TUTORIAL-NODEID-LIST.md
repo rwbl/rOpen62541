@@ -4,7 +4,7 @@
 > **Embedded Profile Constraints (Namespace 0 Differences)**
 > When querying system nodes (`ns=0`) on an ESP32 microcontroller wrapper, certain standard values may return `0`, `null`, or alternate string identifiers (e.g., `i=2262` returning a URL string or `i=2295` returning `Bad_AttributeIdInvalid`).
 > 
-> This is intentional architectural behavior. The underlying open62541 core trims non-essential nested system properties to keep the memory footprint lightweight, preserving maximum RAM for your low-level hardware control execution loops on Core 1!
+> This is intentional architectural behavior. The underlying open62541 core trims non-essential nested system properties to keep the memory footprint lightweight, preserving maximum RAM for the low-level hardware control execution loops on Core 1!
 
 ## How to Use Node IDs (Tutorial & Examples)
 
@@ -14,17 +14,17 @@ Here are the best places to look up the full list of identifiers:
 
 ### Online Interactive Reference Tables
 * **Unified Automation NodeId Online Lookup**: A complete indexed list maintained by the creators of UaExpert.
-* **OPC Foundation Official CSV / Source Files**: The raw, definitive machine-readable CSV list hosted on the official OPC Foundation GitHub repository. You can open this file in Excel to search through all Namespace 0 definitions.
+* **OPC Foundation Official CSV / Source Files**: The raw, definitive machine-readable CSV list hosted on the official OPC Foundation GitHub repository.
 
 ---
 
 ## Cheat Sheet: Most Useful Namespace 0 System Nodes
-For industrial debugging and script monitoring, you will typically only need a handful of core server status nodes:
+For industrial debugging and script monitoring, these are a handful of core server status nodes:
 
 | Node ID     | Browse Path Name | Description / Use Case |
 |-------------|---|---|
 | `ns=0;i=2256` | ServerStatus | Parent structure containing all runtime states (Complex Payload). |
-| `ns=0;i=2258` | CurrentTime | The exact server clock timestamp node you just viewed. |
+| `ns=0;i=2258` | CurrentTime | The exact server clock timestamp node. |
 | `ns=0;i=2259` | StartTime | Shows exactly when the ESP32 server booted up. |
 | `ns=0;i=2262` | SecondsTillShutdown | Used to warn clients before a server restarts. |
 | `ns=0;i=2295` | State | Returns an integer indicating server health (0=Running, 1=Failed). |
@@ -38,7 +38,7 @@ For industrial debugging and script monitoring, you will typically only need a h
 
 ### ns=0;i=2262 (SecondsTillShutdown) ➜ Returns `"http://open62541.org"`
 * **Why**: This is a classic case of Node ID Reuse/Slicing overlap in stripped-down legacy configurations.
-* **What to expect**: In a full desktop server layout, `i=2262` is reserved for an integer tracking remaining seconds before a shutdown. However, under open62541's minimal compilation flags, the internal mapping array skips complex structures. The memory slot index gets redirected to pull the standard product/namespace string array baseline instead, which happens to be your framework URL text block.
+* **What to expect**: In a full desktop server layout, `i=2262` is reserved for an integer tracking remaining seconds before a shutdown. However, under open62541's minimal compilation flags, the internal mapping array skips complex structures. The memory slot index gets redirected to pull the standard product/namespace string array baseline instead, which happens to be the framework URL text block.
 
 ### ns=0;i=2295 (State) ➜ Returns `Bad_AttributeIdInvalid / null`
 * **Why**: The error `Bad_AttributeIdInvalid (0x80350000)` explicitly tells us that while the node identifier `i=2295` is present in the layout schema, the lightweight open62541 profile completely compiled out the actual data properties behind it.
@@ -50,7 +50,7 @@ For industrial debugging and script monitoring, you will typically only need a h
 ---
 
 ## How to discover them live in B4J
-If you want to read any system node without checking a manual, just use the B4J client implementation.
+To read any system node without checking a manual, just use the B4J client implementation.
 
 ### Test B4J OPCUA-CLIENT (Scalar Value Node)
 ```b4x
@@ -62,7 +62,8 @@ Resulting log event trigger:
 ```
 
 ### Advanced: Parsing Complex ExtensionObject Structs (`ns=0;i=2256`)
-When querying the full `ServerStatus` node, the embedded architecture passes the data back as a raw binary package wrapped inside an `ExtensionObject`. You can read it securely using this custom index-aligned byte buffer slice lookup without needing heavy object reflections:
+When querying the full `ServerStatus` node, the embedded architecture passes the data back as a raw binary package wrapped inside an `ExtensionObject`. 
+This can be read it securely using this custom index-aligned byte buffer slice lookup without needing heavy object reflections:
 
 ```b4x
 Sub OpcClient_ReadResult (NodeId As String, Value As Object, Status As String)
@@ -95,4 +96,72 @@ Sub OpcClient_ReadResult (NodeId As String, Value As Object, Status As String)
         End Try
     End If
 End Sub
+```
+
+### Test Node.js / TypeScript (node-opcua)
+
+Example reading a Namespace 0 system node to fetch the standard `ServerStatus.CurrentTime` using modern asynchronous TypeScript and ES modules.
+
+* **Reference:** [Official Node-OPCUA Getting Started Guide](https://node-opcua.github.io/getting-started.html)
+
+#### Create Project Folder & Install node-opcua
+The example is organized inside the `examples/16-NodeIDs` root path. Run the following commands to initialize the project workspace and pull the zero-native-dependency library core:
+```bash
+mkdir node-opcua && cd node-opcua
+npm init -y
+npm install node-opcua
+```
+
+#### Project Configuration (`package.json`)
+To use modern native `import` layouts and top-level `await` syntax without runtime parsing or type compilation warnings, explicitly configuring the project module type is a **must**.
+
+Ensure the local `package.json` file incorporates the `"type": "module"` property:
+
+```json
+{
+  "name": "node-opcua-client-example",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "node-opcua": "^2.131.0"
+  }
+}
+```
+
+#### Client Script (`client.ts`)
+Create a file named `client.ts` in the project folder.   
+The `withSessionAsync` helper block natively manages the low-level asymmetric binary handshake channel, session tracking, and disconnect boundaries under the hood:
+
+```typescript
+import { OPCUAClient, AttributeIds } from "node-opcua";
+
+const endpointUrl = "opc.tcp://192.168.1.175:4840";
+
+// Instantiate the client without forcing strict endpoint URI configuration matches
+const client = OPCUAClient.create({ 
+  endpointMustExist: false 
+});
+
+await client.withSessionAsync(endpointUrl, async (session) => {
+  const dataValue = await session.read({
+    nodeId: "ns=0;i=2258", // Standard Server CurrentTime Node
+    attributeId: AttributeIds.Value,
+  });
+  
+  console.log("Server time:", dataValue.value.value);
+});
+```
+
+#### Expected Console Output
+Run the TypeScript file:
+
+```bash
+node client.ts
+```
+
+This spins up an asynchronous binary communication channel to the ESP32-S3 Core 0 engine and 
+logs the precise microsecond timestamp tracked by the embedded system clock:
+
+```text
+Server time: 2026-09-18T15:52:33.619Z { picoseconds: 740000000 }
 ```

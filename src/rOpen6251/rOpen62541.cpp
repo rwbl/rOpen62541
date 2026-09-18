@@ -548,7 +548,7 @@ namespace B4R {
                     UA_Server_writeValue(server, targetNodeId, myVar);
                 }
                 // ============================================================================
-                // NEW - Case C: Target node is configured as a Boolean binary state node
+                // Case C: Target node is configured as a Boolean binary state node
                 // ============================================================================
                 else if (currentValue.type == &UA_TYPES[UA_TYPES_BOOLEAN]) {
                     // Converts 0.0 to false, and any non-zero value (like 1.0/True) to true
@@ -562,6 +562,82 @@ namespace B4R {
             xSemaphoreGive(open62541Mutex);
         }
     }
+
+    // ============================================================================
+    // OPC UA READ NODE
+    // ============================================================================
+
+	B4RString* B4ROPEN62541::ReadNumeric(int NamespaceIndex, int NumericIdentifier) {
+		PrintToMemory pm;
+		B4RString* s = B4RString::PrintableToString(NULL);
+		bool dataCaptured = false;
+		char numericBuffer[64]; 
+		memset(numericBuffer, 0, sizeof(numericBuffer));
+
+		if (server != NULL && xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
+			UA_NodeId targetNodeId = UA_NODEID_NUMERIC(NamespaceIndex, NumericIdentifier);
+			UA_Variant outVariant;
+			UA_Variant_init(&outVariant);
+			
+			UA_StatusCode retval = UA_Server_readValue(server, targetNodeId, &outVariant);
+			if (retval == UA_STATUSCODE_GOOD && UA_Variant_isScalar(&outVariant)) {
+				dataCaptured = true;
+				if (outVariant.type == &UA_TYPES[UA_TYPES_INT32]) { itoa(*(UA_Int32*)outVariant.data, numericBuffer, 10); pm.print(numericBuffer); }
+				else if (outVariant.type == &UA_TYPES[UA_TYPES_BOOLEAN]) { pm.print(*(UA_Boolean*)outVariant.data ? "True" : "False"); }
+				else if (outVariant.type == &UA_TYPES[UA_TYPES_FLOAT]) { dtostrf(*(UA_Float*)outVariant.data, 1, 4, numericBuffer); pm.print(numericBuffer); }
+				else if (outVariant.type == &UA_TYPES[UA_TYPES_DOUBLE]) { dtostrf(*(UA_Double*)outVariant.data, 1, 4, numericBuffer); pm.print(numericBuffer); }
+				else if (outVariant.type == &UA_TYPES[UA_TYPES_STRING]) { UA_String* uaStr = (UA_String*)outVariant.data; for (size_t i = 0; i < uaStr->length; i++) pm.print((char)uaStr->data[i]); }
+				else if (outVariant.type == &UA_TYPES[UA_TYPES_DATETIME]) {
+					UA_DateTime rawTime = *(UA_DateTime*)outVariant.data;
+					time_t unixTime = (time_t)((rawTime - 116444736000000000LL) / 10000000LL);
+					struct tm* timeInfo = gmtime(&unixTime);
+					if (timeInfo != NULL) { strftime(numericBuffer, sizeof(numericBuffer), "%Y-%m-%d %H:%M:%SZ", timeInfo); pm.print(numericBuffer); }
+				}
+				else { pm.print("[Unsupported Type]"); }
+			}
+			UA_Variant_clear(&outVariant);
+			xSemaphoreGive(open62541Mutex);
+		}
+		if (!dataCaptured) pm.print(server == NULL ? "[Server Null]" : "[Read Error]");
+		StackMemory::buffer[StackMemory::cp++] = 0;
+		return s;
+	}
+
+	B4RString* B4ROPEN62541::ReadString(int NamespaceIndex, B4RString* NodeIdentifier) {
+		PrintToMemory pm;
+		B4RString* s = B4RString::PrintableToString(NULL);
+		bool dataCaptured = false;
+		char numericBuffer[64]; 
+		memset(numericBuffer, 0, sizeof(numericBuffer));
+
+		if (server != NULL && xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
+			UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)NodeIdentifier->data);
+			UA_Variant outVariant;
+			UA_Variant_init(&outVariant);
+			
+			UA_StatusCode retval = UA_Server_readValue(server, targetNodeId, &outVariant);
+			if (retval == UA_STATUSCODE_GOOD && UA_Variant_isScalar(&outVariant)) {
+				dataCaptured = true;
+				if (outVariant.type == &UA_TYPES[UA_TYPES_INT32]) { itoa(*(UA_Int32*)outVariant.data, numericBuffer, 10); pm.print(numericBuffer); }
+				else if (outVariant.type == &UA_TYPES[UA_TYPES_BOOLEAN]) { pm.print(*(UA_Boolean*)outVariant.data ? "True" : "False"); }
+				else if (outVariant.type == &UA_TYPES[UA_TYPES_FLOAT]) { dtostrf(*(UA_Float*)outVariant.data, 1, 4, numericBuffer); pm.print(numericBuffer); }
+				else if (outVariant.type == &UA_TYPES[UA_TYPES_DOUBLE]) { dtostrf(*(UA_Double*)outVariant.data, 1, 4, numericBuffer); pm.print(numericBuffer); }
+				else if (outVariant.type == &UA_TYPES[UA_TYPES_STRING]) { UA_String* uaStr = (UA_String*)outVariant.data; for (size_t i = 0; i < uaStr->length; i++) pm.print((char)uaStr->data[i]); }
+				else if (outVariant.type == &UA_TYPES[UA_TYPES_DATETIME]) {
+					UA_DateTime rawTime = *(UA_DateTime*)outVariant.data;
+					time_t unixTime = (time_t)((rawTime - 116444736000000000LL) / 10000000LL);
+					struct tm* timeInfo = gmtime(&unixTime);
+					if (timeInfo != NULL) { strftime(numericBuffer, sizeof(numericBuffer), "%Y-%m-%d %H:%M:%SZ", timeInfo); pm.print(numericBuffer); }
+				}
+				else { pm.print("[Unsupported Type]"); }
+			}
+			UA_Variant_clear(&outVariant);
+			xSemaphoreGive(open62541Mutex);
+		}
+		if (!dataCaptured) pm.print(server == NULL ? "[Server Null]" : "[Read Error]");
+		StackMemory::buffer[StackMemory::cp++] = 0;
+		return s;
+	}
 
     // ============================================================================
     // OPC UA Callbacks & Event Handling

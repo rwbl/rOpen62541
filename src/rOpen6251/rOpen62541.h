@@ -7,7 +7,7 @@
  *       Mozilla Public License v2.0 as stated in the LICENSE file provided with open62541.
  * @note The custom structural object folder is named "Factory_Floor" (see build buildOpcUaTree) with target "ns=1;s=Factory_Floor" as objectId.
  * @version See below version
- * @date 2026-09-13
+ * @date 2026-09-18
  * @author Robert W. B. Linn (c) 2026 — MIT License provided with rOpen62541.
  */
 
@@ -17,7 +17,7 @@
 // Open 62541 library stored locally
 #include "open62541.h"
 
-//~version: 0.68
+//~version: 0.69
 namespace B4R {
 	//~shortname: Open62541
 	//~Event: MethodTriggered ()
@@ -163,6 +163,28 @@ namespace B4R {
 			 * @param NewValue The numerical double representation payload to convert and assign.
 			 */
 			void UpdateNodeValue(B4RString* NodeIdentifier, double NewValue);
+
+			/**
+			 * READ NODES
+			 */
+
+			/**
+			 * OPC UA Standard Read Service.
+			 * Thread-safely reads a node value using a numeric identifier.
+			 * @param NamespaceIndex The numerical namespace target index (e.g., 0).
+			 * @param NumericIdentifier The unique numerical identifier key (e.g., 2258).
+			 * @return A B4RString pointer containing the text-formatted UTC value payload.
+			 */
+			B4RString* ReadNumeric(int NamespaceIndex, int NumericIdentifier);
+
+			/**
+			 * OPC UA Standard Read Service.
+			 * Thread-safely reads a node value using a string identifier.
+			 * @param NamespaceIndex The numerical namespace target index (e.g., 1).
+			 * @param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
+			 * @return A B4RString pointer containing the text-formatted value payload.
+			 */
+			B4RString* ReadString(int NamespaceIndex, B4RString* NodeIdentifier);
 
 			/**
 			 * SETTER/GETTER
