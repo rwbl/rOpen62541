@@ -47,16 +47,16 @@ Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unifi
 ### Verified OPC UA Clients
 This server implementation complies strictly with core industrial data-modeling specs and has been successfully verified across multiple desktop, terminal, and automation client ecosystems:
 
-* [**Node-RED**](https://github.com) — Fully interoperable using the standard `node-red-contrib-opcua` flow palette node module.
+* [**Node-RED**](https://nodered.org) — Fully interoperable using the standard `node-red-contrib-opcua` flow palette node module.
 * [**opcua-commander**](https://github.com/node-opcua/opcua-commander) — Validated using the interactive, keyboard-driven terminal curses explorer (TUI).
-* [**B4J (Native Client)**](https://b4x.com) — Smooth integration with Peter Simpson's high-level wrapper library (`SS_OPCUAClient`).
-* [**B4J with PyBridge**](https://b4x.com) — Confirmed working via Python-backend socket communication routing bridges.
+* [**B4J (Native Client)**](https//www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/) — Smooth integration with OPC UA Client library for B4J.
+* [**B4J with PyBridge**](https://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/#content) — Confirmed working via Python-backend socket communication routing bridges PyBridge framework.
 
 ---
 
 ## Install
-Download the ropository from [GitHub](https://github.com/rwbl/rOpen62541).
-- Copy the src sub-folder **rOpen62541** into your B4R **Additional Libraries** folder, keeping the directory structure fully intact.
+Download the repository from [GitHub](https://github.com/rwbl/rOpen62541).
+- Copy the src sub-folder **rOpen62541** into your B4R **Additional Libraries** folder, keeping the folder structure fully intact.
 - Copy the src file **rOpen62541.xml** into your B4R **Additional Libraries** folder.
 
 ---
@@ -68,7 +68,7 @@ The repository includes complete, ready-to-run environment folders tracking spec
 
 ---
 
-## Screenshot Example
+## Project Screenshot Example
 
 ![InOut](images/ropen62541-b4j-inout-pybridge.png)
 
