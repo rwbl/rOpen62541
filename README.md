@@ -29,7 +29,6 @@ Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unifi
 ---
 
 ## Purpose & Scope
-## Purpose & Scope
 
 * **Server-Only Architecture:** This library is dedicated exclusively to acting as an OPC UA Server data provider; it does not include client connection parsing capabilities.
 * **Proof of Concept & Learning Project:** This framework was explicitly developed as a personal educational project to learn the foundational basics of OPC UA by creating a custom standalone hardware device from scratch.
