@@ -29,15 +29,13 @@ Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unifi
 ---
 
 ## Purpose & Scope
-- **Server-Only Architecture**: This library is dedicated exclusively to acting as an **OPC UA Server**. 
-	- It turns the  microcontroller into a data provider but does not include client connection parsing capabilities.
-- **Proof of Concept & Learning Project:** This framework was explicitly developed as a personal educational project to learn the foundational basics of OPC UA by creating a custom standalone hardware device from scratch.
-- **No Professional Intent:** There is absolutely no intention for this codebase to be deployed in mission-critical environments, production facilities, or professional commercial installations.
-- Provides a high-level B4R abstraction layer for the native C-based open62541 library engine.
-- Offloads heavy TCP/IP layers and subscription socket polling entirely to **ESP32 Core 0 (Network Core)** using FreeRTOS tasks to guarantee zero timing jitter on your hardware loops.
-- Keeps **ESP32 Core 1 (B4R Core)** completely fluid and responsive for low-level critical hardware execution, physical interrupts, and timing loops.
-- Implements a strict FreeRTOS binary semaphore mutex (open62541Mutex) preventing data collisions or memory corruption during concurrent memory read/write cycles.
-- Exposes a universal, type-agnostic string node interceptor payload framework capable of catching incoming String, Int, or Float writes natively over a robust B4R Byte() array block.
+## Purpose & Scope
+
+* **Server-Only Architecture:** This library is dedicated exclusively to acting as an OPC UA Server data provider; it does not include client connection parsing capabilities.
+* **Proof of Concept & Learning Project:** This framework was explicitly developed as a personal educational project to learn the foundational basics of OPC UA by creating a custom standalone hardware device from scratch.
+* **No Professional Intent:** There is absolutely no intention for this codebase to be deployed in mission-critical environments, production facilities, or professional commercial installations.
+
+*Note: For a detailed breakdown of the underlying dual-core task design and memory synchronization layers, see the [Developer Notes](docs/DEVNOTES.md).*
 
 ---
 

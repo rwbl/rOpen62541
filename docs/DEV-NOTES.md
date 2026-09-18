@@ -4,6 +4,18 @@ This document captures the low-level development configurations, compile environ
 
 ---
 
+## Core Architecture & Execution Layout
+
+The library features the following low-level optimization layers to bridge the B4R environment with the underlying protocol stack:
+
+* **Abstraction Layer:** Provides a high-level B4R abstraction layer for the native C-based open62541 library engine.
+* **Core 0 Offloading:** Offloads heavy TCP/IP layers and subscription socket polling entirely to **ESP32 Core 0 (Network Core)** using FreeRTOS tasks to guarantee zero timing jitter on your hardware loops.
+* **Core 1 Isolation:** Keeps **ESP32 Core 1 (B4R Core)** completely fluid and responsive for low-level critical hardware execution, physical interrupts, and timing loops.
+* **Memory Protection:** Implements a strict FreeRTOS binary semaphore mutex (`open62541Mutex`) preventing data collisions or memory corruption during concurrent memory read/write cycles.
+* **Universal Interceptor:** Exposes a universal, type-agnostic string node interceptor payload framework capable of catching incoming String, Int, or Float writes natively over a robust B4R `Byte()` array block.
+
+---
+
 ## Hard- and Software
 
 ### Software
