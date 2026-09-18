@@ -1,8 +1,9 @@
 # Project Examples
 
-| Example / Folder | Description | Key Features |
-| :--- | :--- | :--- |
-| [**EnvSim**](https://github.com/rwbl/rOpen62541/tree/main/examples/10-EnvSim) | Environment simulation example using rOpen62541.<br><br>*Note: Uses the B4J library [SS_OPCUAClient](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/).* | Simulates sensor data and process variables within the OPC UA address space. |
-| [**MethodCallback**](https://github.com/rwbl/rOpen62541/tree/main/examples/12-MethodCallback) | Demonstration of OPC UA method calls and callbacks. | Implements custom server-side functions that clients can trigger remotely. |
-| [**InOutput**](https://github.com/rwbl/rOpen62541/tree/main/examples/14-InOutput) | Handling of Input (trigger Pushbutton) and Output (LED) arguments for nodes. | Shows how to read, write, and map structured data types between client and server. |
-| [**NodeIDs**](https://github.com/rwbl/rOpen62541/tree/main/examples/16-NodeIDs) | Demonstration of OPC UA system node ID calls. | Shows how to read and parse system node ID data inside the client wrapper layout. |
+The following fully verified, runnable deployment examples are structured into dedicated sub-folders:
+
+* [**10-EnvSim**](10-EnvSim/) — Ambient industrial temperature and humidity data simulation loop. Demonstrates type-agnostic node interceptors using Peter Simpson's B4J `SS_OPCUAClient` library.
+* [**12-MethodCallback**](12-MethodCallback/) — Remote Procedure Call (RPC) execution routing. Demonstrates server-side functions triggered remotely by automation nodes like Node-RED.
+* [**14-InOutput**](14-InOutput/) — Industrial peripheral I/O mapping configurations. Shows how to dynamically read physical hardware states (Pushbuttons) and drive physical outputs (LEDs).
+* [**16-NodeIDs**](16-NodeIDs/) — Low-level standard namespace lookup implementations. Demonstrates querying standard Namespace 0 system variables and parsing complex structure payloads.
+

@@ -1,9 +1,11 @@
-## Project Tutorials & Documentation
+# Project Documentation & Guides
 
-| Guide / Document | Description | Key Highlights |
-| :--- | :--- | :--- |
-| [**Tutorial: Callbacks**](https://github.com/rwbl/rOpen62541/blob/main/docs/TUTORIAL-CALLBACKS.md) | ESP32-S3 cross-core event handling guide. | Covers asynchronous Node Write Triggers and native RPC method execution routing loops. |
-| [**Tutorial: Node ID List**](https://github.com/rwbl/rOpen62541/blob/main/docs/TUTORIAL-NODEID-LIST.md) | Namespace 0 system variables overview. | Explains embedded core memory constraints, server clock setups, and structured byte parsing. |
+Detailed structural walkthroughs and API blueprints are hosted directly within this directory:
 
-*Note: Additional documentation modules and application examples are currently in progress and will be appended as they clear verification loops!*
+* [**Tutorial: Callbacks**](TUTORIAL-CALLBACKS.md) — ESP32-S3 cross-core event handling guide covering Node Write Triggers and native RPC method execution routing loops.
+* [**Tutorial: Node ID List**](TUTORIAL-NODEID-LIST.md) — Namespace 0 system variables framework explaining core memory constraints, server time synchronization, and structured byte parsing.
+* [**Developer Notes**](DEVNOTES.md) — Detailed toolchain architecture notes capturing environment dependencies, board parameters, and the reasoning behind selecting open62541 v1.2.
+* [**Functions Reference**](FUNCTIONS-REFERENCE.md) — Comprehensive B4R class methods reference list detailing signature parameters, types, and thread-safe overloaded methods.
+* [**Troubleshooting Guide**](TROUBLESHOOTING.md) — Quick lookup manual for resolving common connection edge cases, timeout limits, and silent callback hooks.
 
+*Note: Additional documentation modules and application examples are currently in progress.*

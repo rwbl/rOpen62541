@@ -41,29 +41,6 @@ Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unifi
 
 ---
 
-## Development Info
-This B4R rOpen62541 library is:
-- An [open62541](https://open62541.org) protocol stack wrapper using Git-Revision **v1.2-rc1-20-g78a6721b-dirty**.
-	- The [open62541-121-esp32](https://github.com/cmbahadir) opcua-esp32 have been used to obtain the single-file-release open62541.h and open62541.c.
-- Written in C++ using Arduino IDE 2.3.10+, Espressif ESP32 Arduino Core V3.x, and the standard B4Rh2xml parsing pipeline.
-- Was developed and strictly tested with an **ESP32-S3-N16R8** developer kit (32-bit Xtensa lx7 dual-core chip with 16MB Flash and 8MB PSRAM). 
-	- Due to memory allocation sizes and dual-core constraints, utilizing this specific hardware class is highly recommended or mandatory.
-- Is meant for local subnet networks (LAN/WLAN) where no external internet router firewall ports need to be exposed.
-- Tested with B4R 4.00 (64-bit).
-
-<details>
-<summary><b>Architectural Version Selection: Why open62541 v1.2? (Click to expand)</b></summary>
-This library explicitly uses the open62541 v1.2 legacy branch (v1.2-rc1-20-g78a6721b-dirty) instead of v1.3+ or v1.5+ release lines.  
-While modern versions introduce advanced enterprise desktop configurations, version 1.2 is carefully selected for the following critical engineering reasons:
-- Embedded-First Resource footprint: Version 1.2 compiles into a highly lightweight binary footprint. Newer versions contain massive auto-generated internal structures (such as updated Namespace 0 trees) that routinely hit compiler variable-tracking limits, causing the Xtensa compiler toolchain to freeze, link-crash, or hang the B4R IDE.
-- Native lwIP Connection Abstraction: The network socket management layer in v1.2 seamlessly adapts to the ESP32’s native embedded FreeRTOS/lwIP stack out of the box. Newer versions introduce rigid desktop POSIX dependencies (such as <poll.h> and complex desktop mutex types) that create structural friction on microcontrollers.
-- Streamlined Property Configuration: Version 1.2 exposes clean, low-level configuration functions like UA_ServerConfig_setCustomHostname(). Later versions completely refactor these into complex, deeply nested configuration allocation macros that are difficult to manage within an object-oriented B4R C++ wrapper interface.
-- Perfect Functional Match: The v1.2 branch provides 100% of the industrial protocol features required for this proof of concept (including dynamic float, integer, string, and raw binary ByteString node arrays) without any unnecessary software bloat.
-
-</details>
-
----
-
 ## Compatibility & Verified Clients
 
 ### Hardware & Platform Compatibility
@@ -84,13 +61,13 @@ This server implementation complies strictly with core industrial data-modeling 
 Download the ropository from [GitHub](https://github.com/rwbl/rOpen62541).
 - Copy the src sub-folder **rOpen62541** into your B4R **Additional Libraries** folder, keeping the directory structure fully intact.
 - Copy the src file **rOpen62541.xml** into your B4R **Additional Libraries** folder.
-- The folder **examples** holds several usage examples.
 
 ---
 
-## Examples
+## Project Code Examples
+The repository includes complete, ready-to-run environment folders tracking specific implementation patterns:
 
-Includes *EnvSim*, *MethodCallback*, *InOutput*, and other examples within the repository.
+* [**Go to the Project Examples Index**](examples/) — Explore runnable source code frameworks for Environment Simulation, Method Callbacks, Peripheral I/O Mapping, and System Node ID lookups.
 
 ---
 
@@ -100,162 +77,10 @@ Includes *EnvSim*, *MethodCallback*, *InOutput*, and other examples within the r
 
 ---
 
-## Code Example (Snippet)
+## Guides & Documentation
+For detailed tutorials, API blueprints, and environment configurations, please visit our centralized documentation hub:
 
-<details>
-<summary><b>Click to expand the full B4R Example Source Code</b></summary>
-
-```b4x
-    Private VERSION As String = "rOpen62541 EnvSim v20260913"
-
-    ' Communication
-    Public Serial1 As Serial
-    Private WiFi As ESP8266WiFi	' Lib rESP8266WiFi
-    Private SSID As String = "***"
-    Private PW  As String = "***"
-    
-    ' Open62541
-    Private OpcServer As Open62541	' Lib rOpen62541
-    Private PORT As Int = 4840
-
-    Private AppTimer As Timer
-    Private APPTIMER_INTERVAL As ULong = 2000
-    
-    'Helper
-    Private bc As ByteConverter    'ignore
-End Sub
-
-Sub AppStart
-    Serial1.Initialize(115200)
-    Log(CRLF, "[AppStart] ", VERSION)
-
-    ' Init app timer to generate env data
-    AppTimer.Initialize("AppTimer_Tick", APPTIMER_INTERVAL)
-    ' Start after opc server has been initialized and nodes created
-    AppTimer.Enabled = False
-    
-    ' Connect to the network first
-    If WiFi.Connect2(SSID, PW) Then
-        Log("[AppStart] WiFi connected > local ip=", WiFi.LocalIP)
-        ' [AppStart] WiFi connected. IP=NNN.NNN.NNN.NNN
-
-        ' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
-        ' from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
-        RunNative("DisableWiFiSleep", Null)
-                  
-        Log("[AppStart] Init opc server")
-        If InitOpcServer Then
-            ' All good > start the app timer to update nodes
-            AppTimer.Enabled = True
-            Log("[AppStart] Opc server started")
-        End If
-    Else
-        Log("[AppStart][E] WiFi Connection Failed")
-    End If
-End Sub
-
-' InitOpcServer
-' Steps:
-' Init the server with ip, port and client callback
-' Wait till the opc server has been started successfully
-' Add various nodes
-Private Sub InitOpcServer As Boolean
-    Dim TimeoutCounter As Int = 0
-    Dim ServerBootFailed As Boolean = False
-
-    Log("[InitOpcServer] Initializing...")
-    ' Spin up the Core 0 open62541 network engine with callback
-    OpcServer.Initialize(WiFi.LocalIp, PORT, "", "", "OpcCallback")
-    
-    ' Wait for the background thread layout initialization to complete!
-    Log("[InitOpcServer] Awaiting background core network initialization...")
-    Do While OpcServer.IsReady = False
-        Delay(100) ' 100ms yield ticks for the cooperative scheduler
-        
-        TimeoutCounter = TimeoutCounter + 1
-        If TimeoutCounter >= 50 Then ' 50 ticks * 100ms = 5000ms (5 Seconds Timeout)
-            ServerBootFailed = True
-            Exit ' Break out of the endless loop safely!
-        End If
-    Loop
-    
-    If ServerBootFailed Then
-        Log("[InitOpcServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
-        ' Optional: Run local emergency fallback routine or let local sensors run offline
-    Else
-        Log("[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...")
-        ' Add nodes holding data
-        OpcServer.AddFloatNode("Temperature", "Room Temperature", 20.0)
-        OpcServer.AddFloatNode("Humidity", "Room Humidity", 68.0)
-        OpcServer.AddIntNode("Counter", "Total Shift Cycle Count", 0)
-
-        ' Allocate a local test array buffer: 0x19, 0x02, 0x03, 0x04, 0x58
-        Dim RawBuffer() As Byte = Array As Byte(0x19, 0x02, 0x03, 0x04, 0x58)
-    
-        ' Create the standardized ByteString variable node
-        OpcServer.AddByteStringNode("RawTelemetry", "Atomic Hex Package", RawBuffer)
-    
-        ' Add trigger received from the client and call OpcCallback
-        OpcServer.AddStringNode("Trigger", "Remote Action Trigger", "0")
-    End If
-    Return Not(ServerBootFailed)
-End Sub
-
-Sub AppStart
-    ' Core loop logic
-End Sub
-
-Sub AppTimer_Tick
-    ' Only write data if the background server task on Core 0 is fully ready
-    If OpcServer.IsReady Then
-        
-        ' Read real sensor here:
-        ' Dim CurrentTemp As Float = BMP.ReadTemperature
-        Dim CurrentTemp As Float = 24.5 + Rnd(-2.0, 3.0)
-        Dim CurrentHum As Float = 68 + Rnd(-10.0, 11.0)
-        
-        ' PUSH DATA INTO THE NODE CONTAINER
-        OpcServer.UpdateNodeValue("Temperature", CurrentTemp)       
-        OpcServer.UpdateNodeValue("Humidity", CurrentHum)
-
-        ' Log update
-        Log("[AppTimer] Sensor read complete. Updated Node memory with: t=", CurrentTemp, " h=", CurrentHum)
-    End If
-End Sub
-
-' OpcCallback
-Private Sub OpcCallback(buffer() As Byte)
-    Log("[OpcCallback] SCADA/B4J Client clicked the trigger method. command=", bc.StringFromBytes(buffer))
-End Sub
-
-#if C
-#include "esp_wifi.h"
-
-void DisableWiFiSleep(B4R::Object* o) {
-    esp_wifi_set_ps(WIFI_PS_NONE);
-    ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled!");
-}
-#End If
-```
-
-</details>
-
----
-
-## Project Tutorials & Documentation
-
-Refer to the repository documentation folder for detailed callback and node ID guides.
-
----
-
-## Functions Reference
-Refer to the comprehensive [Functions Reference Guide](docs/FUNCTIONS-REFERENCE.md) for a full list of class methods, parameter expectations, and overloaded structures.
-
----
-
-## Troubleshooting
-
-Refer to the [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for quick resolutions regarding node errors, connection timeouts, or silent callback hooks.
+* [**Go to the Project Documentation Hub**](docs/) — Complete step-by-step guides covering Callbacks, Node IDs, Developer Notes, Functions, and Troubleshooting.
 
 ---
 
@@ -269,15 +94,15 @@ Refer to the [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for quick resoluti
 ## Credits
 
 - Developers, maintainers, and open-source contributors of the official [open62541 architecture framework](https://open62541.org), providing an industrial-grade embedded C implementation of OPC UA.
-- Developer of the [opcua-esp32](https://github.com) repository, which served as the foundation for this B4R wrapper.
+- Developer of the [open62541-121-esp32](https://github.com/cmbahadir) `opcua-esp32` repository, which served as the foundation for this B4R wrapper.
 - [Anywhere Software](https://www.b4x.com/) for the B4X suite of RAD development tools.
-- Developer of the [B4J](https://b4x.com) library [SS_OPCUAClient](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/).
+- Developer of the [B4J](https://b4x.com/b4j) library [SS_OPCUAClient](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/).
 - AI for engineering collaboration.
 ---
 
 **Disclaimer**
 
-* All product names, logos, protocols, and brands are property of their respective owners.
+- All product names, logos, protocols, and brands are property of their respective owners.
 - This B4R library is an independent open-source wrapper tracking standard open62541 architectures.
 	- It is neither officially endorsed nor maintained by the primary open62541 project core maintainers.
 - This codebase represents a strict standalone proof-of-concept / learning exercise and is explicitly **not intended for professional, commercial, or critical industrial application**.

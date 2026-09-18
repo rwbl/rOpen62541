@@ -1,7 +1,6 @@
-# rOpen62541 B4R Library
-
-## EnvSim — OPC UA Environment Simulation Example
-This project demonstrates a bi-directional industrial environmental simulator running on the ESP32-S3-N16R8. It acts as an autonomous OPC UA Server, securely exposing live simulated telemetry to networks while intercepting inbound control override parameters from industrial clients (like B4J or Node-RED).
+# EnvSim — OPC UA Environment Simulation Example
+This project demonstrates a bi-directional industrial environmental simulator running on the ESP32-S3-N16R8.  
+It acts as an autonomous OPC UA Server, securely exposing live simulated telemetry to networks while intercepting inbound control override parameters from industrial clients (like B4J or Node-RED).
 
 ------------------------------
 
