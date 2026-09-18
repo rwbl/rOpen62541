@@ -8,7 +8,7 @@
 
 ## How to Use Node IDs (Tutorial & Examples)
 
-The complete, official list of these system node IDs is defined by the OPC Foundation in a standardized document called "Namespace 0 NodeIds" (or Appendix A of the OPC UA specifications). Because these numbers are universally identical for every OPC UA vendor in the world, they are baked directly into open62541 and Milo (the engine behind Peter's B4J library).
+The complete, official list of these system node IDs is defined by the OPC Foundation in a standardized document called "Namespace 0 NodeIds" (or Appendix A of the OPC UA specifications). Because these numbers are universally identical for every OPC UA vendor in the world, they are baked directly into open62541 and Milo (the engine behind the B4J `SS_OPCUAClient` library).
 
 Here are the best places to look up the full list of identifiers:
 
