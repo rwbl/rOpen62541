@@ -91,7 +91,7 @@ For detailed tutorials, API blueprints, and environment configurations, please v
 ## Credits
 
 - Developers, maintainers, and open-source contributors of the official [open62541 architecture framework](https://open62541.org), providing an industrial-grade embedded C implementation of OPC UA.
-- Developer of the [open62541-121-esp32](https://github.com/cmbahadir) `opcua-esp32` repository, which served as the foundation for this B4R wrapper.
+- Developer of the [open62541-121-esp32](https://github.com/cmbahadir/opcua-esp32) repository, which served as the foundation for this B4R wrapper.
 - [Anywhere Software](https://www.b4x.com/) for the B4X suite of RAD development tools.
 - Developer of the [B4J](https://b4x.com/b4j) library [SS_OPCUAClient](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/).
 - AI for engineering collaboration.
