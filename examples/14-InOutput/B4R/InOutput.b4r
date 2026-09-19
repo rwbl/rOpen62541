@@ -12,8 +12,8 @@ Version=4
 #Region Project Header
 '==============================================
 ' Project:		rOpen6241
-' Brief:		Example in- and output.
-' Date:			2026-09-13
+' Brief:		Example in- and output with LE and Pushbutton.
+' Date:			2026-09-19
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	This example uses an LED as output and pushbutton as input.
@@ -24,17 +24,16 @@ Version=4
 '				NodeID Trigger with values 0 or 1
 '				There are 2 scenarios:
 '				Scenario 1
-'				The pushbutton sets the state of the LED on or off.
-'				If the LED state changes, the node with nodeid LedState is updated with 0 = Off, 1 = On.
+'				- The pushbutton sets the state of the LED on or off.
+'				- If the LED state changes, the node with nodeid LedState is updated with 0 = Off, 1 = On.
 '				Scenario 2
-'				The server receives a msg from the connected client with nodeid Trigger.
-'				The value of the msg is used to set the state of the LED, 0 = Off, 1 = On
-'				
+'				- The server receives a msg from the connected client with nodeid Trigger.
+'				- The value of the msg is used to set the state of the LED, 0 = Off, 1 = On			
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
-'				Unleash the 8MB Octal PSRAM footprint
-'				Partitionscheme: HUge App
-'				PSRAM: OPI PSRAM
+'				- Unleash the 8MB Octal PSRAM footprint
+'				- Partitionscheme: Huge App
+'				- PSRAM: OPI PSRAM
 ' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
 '				Arduino Board Manager ESP32 3.3.11.
 ' Wiring:		Output
@@ -53,12 +52,12 @@ Version=4
 #Region Project Attributes
 	#AutoFlushLogs: True
 	#CheckArrayBounds: True
-	#StackBufferSize: 600
+	#StackBufferSize: 900
 #End Region
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 InOutput v20260913"
+	Private VERSION 			As String = "rOpen62541 InOutput v20260918"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -157,6 +156,9 @@ Private Sub InitOpcServer As Boolean
 		
 		' Add trigger received from the client and call event OpcTriggerCallback
 		OpcServer.AddStringNode("Trigger", "Remote Action Trigger", "0")
+		
+		' Register the native executable method node!
+		OpcServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OpcMethodCallback")
 	End If
 	Return Not(ServerBootFailed)
 End Sub
@@ -177,6 +179,26 @@ Private Sub OpcTriggerCallback(buffer() As Byte)
 		' add more
 	End Select
 End Sub
+
+' Fired automatically when a client invokes OpcServer.CallMethod()
+' Bound directly to MethodCallSub execution loop
+Private Sub OpcMethodCallback(InputParams() As Byte)
+	Dim ParamText As String = ByteConv.StringFromBytes(InputParams)
+	Log("[OpcMethodCallback] Client invoked the method node with argument:", _
+		" hex=", ByteConv.StringFromBytes(InputParams), _
+		" string=", ByteConv.HexFromBytes(InputParams))
+    
+	' Evaluate your local logic parameters safely
+	If ParamText = "START_BATCH" Then
+		Log("[OpcMethodCallback] Command accepted. Running production batch code...")
+		' Invoke via your active OpcServer instance prefix!
+		OpcServer.SetMethodReturnCode(100) ' Sends "Success" back to SCADA
+	Else
+		Log("[OpcMethodCallback][E] Command rejected. Invalid parameter format.")
+		' Invoke via your active OpcServer instance prefix!
+		OpcServer.SetMethodReturnCode(400) ' Sends "Fault/Error" back to SCADA
+	End If
+End Sub
 #End Region
 
 #Region Button
@@ -192,10 +214,12 @@ Sub Button_StateChanged (State As Boolean)
 	
 	'The state will be false when the button is clicked because of the PULLUP mode.
 	If Not(State) Then
+		' Set Led state
 		LedRedState = Not(LedRedState)
 		LedRedPin.DigitalWrite(LedRedState)
+		
 		' Update the opc node
-		OpcServer.UpdateNodeValue(LED_NODE_ID, IIf(LedRedState, 1, 0))
+		OpcServer.WriteNumeric(1, LED_NODE_ID, IIf(LedRedState, 1, 0))
 	End If
 End Sub
 #End Region

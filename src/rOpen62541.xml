@@ -73,12 +73,12 @@ passing an input data string and awaiting a direct response token back.
             <name DesignerName="SetMethodReturnCode">SetMethodReturnCode</name>
             <comment>Sets the integer execution status return code code for the currently invoked Method node.
 This function must be invoked inside your B4R method callback subroutine to send
-a success (e.g., 100) or fault (e.g., 400) token response back across the network to the client.
+a success (e.g., 0) or fault (e.g., 400) token response back across the network to the client.
 @param code The status code integer to be bundled into the client's output argument packet.</comment>
             <returntype>B4R::void</returntype>
             <parameter>
                 <name>code</name>
-                <type>int</type>
+                <type>ULong</type>
             </parameter>
         </method>
         <method>
@@ -184,12 +184,17 @@ Perfect for switching hardware relays or reading digital state inputs.
             </parameter>
         </method>
         <method>
-            <name DesignerName="UpdateNodeValue">UpdateNodeValue</name>
+            <name DesignerName="WriteNumeric">WriteNumeric</name>
             <comment>Thread-safely updates an active OPC UA node by automatically resolving its compiled data layout type.
-Supports cross-core type verification for both floating-point and integer structures.
+Supports cross-core type verification for floating-point, integer, and boolean structures inside Namespace 1.
+@param NamespaceIndex The numerical namespace target index (e.g., 0).
 @param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
 @param NewValue The numerical double representation payload to convert and assign.</comment>
             <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NamespaceIndex</name>
+                <type>int</type>
+            </parameter>
             <parameter>
                 <name>NodeIdentifier</name>
                 <type>B4R::B4RString*</type>
@@ -197,6 +202,27 @@ Supports cross-core type verification for both floating-point and integer struct
             <parameter>
                 <name>NewValue</name>
                 <type>double</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="WriteString">WriteString</name>
+            <comment>Thread-safely writes a string text payload into an active OPC UA node.
+Automatically handles string memory copying and verifies target node type data inside Namespace 1.
+@param NamespaceIndex The numerical namespace target index (e.g., 0).
+@param NodeIdentifier The targeting string Node ID (e.g., "DeviceStatus").
+@param NewValue The B4RString payload to write into the node address space.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NamespaceIndex</name>
+                <type>int</type>
+            </parameter>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>NewValue</name>
+                <type>B4R::B4RString*</type>
             </parameter>
         </method>
         <method>
@@ -233,6 +259,34 @@ Thread-safely reads a node value using a string identifier.
                 <type>B4R::B4RString*</type>
             </parameter>
         </method>
+        <field>
+            <name DesignerName="STATUS_GOOD">STATUS_GOOD</name>
+            <comment>Indicates that the operation was successful and results may be used.</comment>
+            <returntype>ULong</returntype>
+        </field>
+        <field>
+            <name DesignerName="STATUS_UNCERTAIN">STATUS_UNCERTAIN</name>
+            <comment>Indicates partial success; results might not fit all purposes.</comment>
+            <returntype>ULong</returntype>
+        </field>
+        <field>
+            <name DesignerName="STATUS_BAD">STATUS_BAD</name>
+            <comment>Indicates the operation failed completely; results cannot be used.</comment>
+            <returntype>ULong</returntype>
+        </field>
+        <field>
+            <name DesignerName="STATUS_SUCCESS">STATUS_SUCCESS</name>
+            <comment>Symmetrical common aliases for developer convenience</comment>
+            <returntype>ULong</returntype>
+        </field>
+        <field>
+            <name DesignerName="STATUS_WARNING">STATUS_WARNING</name>
+            <returntype>ULong</returntype>
+        </field>
+        <field>
+            <name DesignerName="STATUS_FAILURE">STATUS_FAILURE</name>
+            <returntype>ULong</returntype>
+        </field>
     </class>
-    <version>0.69</version>
+    <version>0.7</version>
 </root>

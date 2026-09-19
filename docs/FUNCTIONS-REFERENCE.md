@@ -1,6 +1,6 @@
 # Functions Reference
 
-This document provides a comprehensive API reference list for the **rOpen62541** library classes, tracking types, and data-routing methods.
+This document provides a comprehensive **API reference** list for the **rOpen62541** library classes, tracking types, and data-routing methods.
 
 ---
 
@@ -70,19 +70,32 @@ SetMethodReturnCode (Code As Int)
 
 ---
 
-## Thread-Safe Node Live Updates
+## Write Nodes
 
-### UpdateNodeValue (Boolean)
+### WriteNumeric
 ```b4x
-UpdateNodeValue (NodeIdentifier As String, NewValue As Boolean)
+WriteNumeric(NamespaceIndex As Int, NodeIdentifier As String, NewValue As Double)
 ```
-- An overloaded variation of the thread-safe update engine. It intercepts your B4R boolean statuses, locks the cross-core FreeRTOS semaphore, verifies if the target node registry matches the boolean data signature, and pushes the binary update straight out to your connected SCADA monitors.
+- Writes a numeric payload into an active OPC UA node.
+- Supports cross-core type verification for floating-point, integer, and boolean structures inside Namespace 1.
+- Parameter:
+	- NodeIdentifier The targeting string Node ID (e.g., "Temperature").
+	- NewValue The numerical double representation payload to convert and assign.
+- Examples (namespace 1):
+	- OpcServer.WriteNumeric(1, "Temperature", CurrentTemp)
+	- OpcServer.WriteNumeric(1, "SystemReady", 1) ' Sets boolean state to true
 
-### UpdateNodeValue (Double)
+### WriteString
 ```b4x
-UpdateNodeValue (NodeIdentifier As String, NewValue As Double)
+WriteString(NamespaceIndex As Int, NodeIdentifier As String, NewValue As String)
 ```
-- A type-agnostic, thread-safe method using dynamic variant level checks to safely access server variables across cores.
+- Writes a string text payload into an active OPC UA node.
+- Automatically handles string memory copying and verifies target node type data inside Namespace 1.
+- Parameter:
+	- NodeIdentifier The targeting string Node ID (e.g., "DeviceStatus").
+	- NewValue The B4RString payload to write into the node address space.
+- Example (namespace 1):
+	- OpcServer.WriteString(1, "DeviceStatus", "RUNNING")
 
 ---
 
@@ -91,13 +104,23 @@ UpdateNodeValue (NodeIdentifier As String, NewValue As Double)
 ```b4x
 ReadNumeric(NamespaceIndex As Int, NumericIdentifier As Int)
 ```
-- Thread-safely reads a node value using a numeric identifier.
+- Reads a node value using a numeric identifier.
 - Dynamically converts scalars (Integers, Booleans, Floats, Doubles, Strings, and Datetimes) into a generic string representation.
 - Standard OPC UA DateTime structures are automatically converted and formatted into a universal UTC Zulu timestamp string.
+- Parameter:
+	- NamespaceIndex The targeting name space index (e.g., 0, 1).
+	- NumericIdentifier The targeting numeric identifier (e.g., 2258).
+- Example (namespace 0):
+	- Dim clockText As String = OpcServer.ReadNumeric(0, 2258)
 
 ```b4x
 ReadString(NamespaceIndex As Int, NodeIdentifier A String)
 ```
-- Thread-safely reads a node value using a string identifier.
+- Reads a node value using a string identifier.
 - Dynamically converts scalars (Integers, Booleans, Floats, Doubles, Strings, and Datetimes) into a generic string representation.
 - Standard OPC UA DateTime structures are automatically converted and formatted into a universal UTC Zulu timestamp string.
+- Parameter:
+	- NamespaceIndex The targeting name space index (e.g., 0, 1).
+	- NumericIdentifier The targeting string identifier (e.g., "Temperature").
+- Example (namespace 1):
+	- Dim tempText As String = OpcServer.ReadString(1, "Temperature")

@@ -7,7 +7,7 @@
  *       Mozilla Public License v2.0 as stated in the LICENSE file provided with open62541.
  * @note The custom structural object folder is named "Factory_Floor" (see build buildOpcUaTree) with target "ns=1;s=Factory_Floor" as objectId.
  * @version See below version
- * @date 2026-09-18
+ * @date 2026-09-19
  * @author Robert W. B. Linn (c) 2026 — MIT License provided with rOpen62541.
  */
 
@@ -17,7 +17,7 @@
 // Open 62541 library stored locally
 #include "open62541.h"
 
-//~version: 0.69
+//~version: 0.70
 namespace B4R {
 	//~shortname: Open62541
 	//~Event: MethodTriggered ()
@@ -89,7 +89,7 @@ namespace B4R {
 			void Initialize(B4RString* LocalIP, int Port, B4RString* Username, B4RString* Password, SubVoidArray MethodTriggerSub);
 
 			/**
-			 * ADDNODES
+			 * ADD NODES
 			 */
 
 			/**
@@ -105,10 +105,10 @@ namespace B4R {
 			/**
 			 * Sets the integer execution status return code code for the currently invoked Method node.
 			 * This function must be invoked inside your B4R method callback subroutine to send 
-			 * a success (e.g., 100) or fault (e.g., 400) token response back across the network to the client.
+			 * a success (e.g., 0) or fault (e.g., 400) token response back across the network to the client.
 			 * @param code The status code integer to be bundled into the client's output argument packet.
 			 */
-			void SetMethodReturnCode(int code);
+			void SetMethodReturnCode(ULong code);
 
 			/**
 			 * Dynamically allocates a new floating-point node variable inside the Factory Floor folder.
@@ -153,19 +153,29 @@ namespace B4R {
 			void AddBooleanNode(B4RString* NodeIdentifier, B4RString* DisplayName, bool InitialValue);
 
 			/**
-			 * UPDATES
+			 * WRITE NODES
 			 */
 
 			/**
 			 * Thread-safely updates an active OPC UA node by automatically resolving its compiled data layout type.
-			 * Supports cross-core type verification for both floating-point and integer structures.
+			 * Supports cross-core type verification for floating-point, integer, and boolean structures inside Namespace 1.
+			 * @param NamespaceIndex The numerical namespace target index (e.g., 0).
 			 * @param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
 			 * @param NewValue The numerical double representation payload to convert and assign.
 			 */
-			void UpdateNodeValue(B4RString* NodeIdentifier, double NewValue);
+			void WriteNumeric(int NamespaceIndex, B4RString* NodeIdentifier, double NewValue);
 
 			/**
-			 * READ NODES
+			 * Thread-safely writes a string text payload into an active OPC UA node.
+			 * Automatically handles string memory copying and verifies target node type data inside Namespace 1.
+			 * @param NamespaceIndex The numerical namespace target index (e.g., 0).
+			 * @param NodeIdentifier The targeting string Node ID (e.g., "DeviceStatus").
+			 * @param NewValue The B4RString payload to write into the node address space.
+			 */
+			void WriteString(int NamespaceIndex, B4RString* NodeIdentifier, B4RString* NewValue);
+
+			/**
+			 * READ
 			 */
 
 			/**
@@ -201,6 +211,24 @@ namespace B4R {
 			 * Returns True if online and active.
 			 */
 			bool getIsReady();
+
+			/**
+			 * OFFICIAL OPC UA SEVERITY STATUS CODES (OPC 10000-4 Clause 7.38)
+			 */
+        
+			/** Indicates that the operation was successful and results may be used. */
+			static const ULong STATUS_GOOD = 0x00000000;
+			
+			/** Indicates partial success; results might not fit all purposes. */
+			static const ULong STATUS_UNCERTAIN = 0x40000000;
+			
+			/** Indicates the operation failed completely; results cannot be used. */
+			static const ULong STATUS_BAD = 0x80000000;
+			
+			// Symmetrical common aliases for developer convenience
+			static const ULong STATUS_SUCCESS = 0x00000000;
+			static const ULong STATUS_WARNING = 0x40000000;
+			static const ULong STATUS_FAILURE = 0x80000000;
 
 	};
 }

@@ -1,0 +1,125 @@
+[
+    {
+        "id": "n5",
+        "type": "inject",
+        "z": "f1",
+        "name": "Click Trigger",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "START",
+        "payloadType": "str",
+        "x": 130,
+        "y": 420,
+        "wires": [
+            [
+                "n6"
+            ]
+        ]
+    },
+    {
+        "id": "n6",
+        "type": "OpcUa-Item",
+        "z": "f1",
+        "item": "ns=1;s=Trigger",
+        "datatype": "String",
+        "value": "",
+        "name": "Trigger Node",
+        "x": 310,
+        "y": 420,
+        "wires": [
+            [
+                "fc794852940169e9",
+                "bf7b46a02eaf8206"
+            ]
+        ]
+    },
+    {
+        "id": "fc794852940169e9",
+        "type": "OpcUa-Client",
+        "z": "f1",
+        "endpoint": "fcc17be495ef051a",
+        "action": "write",
+        "deadbandtype": "a",
+        "deadbandvalue": 0,
+        "time": "5",
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "useTransport": false,
+        "maxChunkCount": "",
+        "maxMessageSize": "",
+        "receiveBufferSize": "",
+        "sendBufferSize": "",
+        "setstatusandtime": false,
+        "keepsessionalive": false,
+        "name": "ESP32 Server",
+        "applicationName": "",
+        "applicationUri": "",
+        "x": 500,
+        "y": 420,
+        "wires": [
+            [
+                "bf7b46a02eaf8206"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "bf7b46a02eaf8206",
+        "type": "debug",
+        "z": "f1",
+        "name": "DEBUG ENVSIM",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 730,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "7f1d851acbc3f9a2",
+        "type": "comment",
+        "z": "f1",
+        "name": "Trigger Example",
+        "info": "",
+        "x": 120,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "fcc17be495ef051a",
+        "type": "OpcUa-Endpoint",
+        "name": "ESP32S3",
+        "endpoint": "opc.tcp://192.168.1.175:4840/",
+        "secpol": "None",
+        "secmode": "None",
+        "none": true,
+        "login": false,
+        "usercert": false,
+        "usercertificate": "",
+        "userprivatekey": ""
+    },
+    {
+        "id": "44724cf89f5ea637",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-opcua": "0.2.355"
+        }
+    }
+]

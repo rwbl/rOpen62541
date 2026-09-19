@@ -1,0 +1,12 @@
+﻿ModuleBookmarks0=
+ModuleBookmarks1=
+ModuleBookmarks2=
+ModuleBreakpoints0=
+ModuleBreakpoints1=
+ModuleBreakpoints2=
+ModuleClosedNodes0=
+ModuleClosedNodes1=
+ModuleClosedNodes2=
+NavigationStack=OpcUaClient,Connect,46,0,OpcUaClient,Disconnect,56,0,B4XMainPage,ToLog,297,0,B4XMainPage,GetTime,292,0,OpcUaClient,InjectPythonCoreCode,203,0,B4XMainPage,Py_Notification,178,0,B4XMainPage,Class_Globals,97,0,B4XMainPage,TileIOConnectSwitch_Click,255,2,B4XMainPage,OpcClient_DataChanged,242,6,B4XMainPage,OpcClient_ConnectionChanged,217,1
+SelectedBuild=0
+VisibleModules=1,2

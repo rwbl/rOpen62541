@@ -6,7 +6,7 @@ Version=9.85
 @EndOfDesignText@
 #Region Class Info
 ' Project:		rOpen62541 (OPC UA Server)
-' Brief:		OPC UA client for the Input/Output example.
+' Brief:		OPC UA client for the EnvSim example.
 ' Date:			2026-09-19
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	B4X pages project with the PyBridge to Control the OPC UA Server LED.
@@ -45,7 +45,7 @@ Version=9.85
 '				[StartBackgroundEventLoop] Asynchronous background event Loop started.
 '				[TileIOConnectSwitch_Click] Toggled switch To: True
 '				[TileIOConnectSwitch_Click] Initiating manual connection sequence...
-'				[OpcUaClient] Connecting To Opc.tcp://192.168.1.175:4840...
+'				[OpcUaClient] Connecting To OpcClient.tcp://192.168.1.175:4840...
 '				[StartBackgroundEventLoop] Dispatched Event From Queue name=opc_connection_changed value=True
 '				[OpcClient_ConnectionChanged] connected=True
 '				[OpcClient_ConnectionChanged] Connection verified! Activating subscriptions...
@@ -87,18 +87,20 @@ Sub Class_Globals
 	Public Py 		As PyBridge
 	
 	' OpcUaClient Instance
-	Private Opc 			As OpcUaClient					' Connect url = opc.tcp://192.168.1.175:4840
-	Private IP 				As String = "192.168.1.175"		' Set according ESP32 OPC UA Server
-	Private PORT 			As Int = 4840					' Default port
-	Private LED_NODEID		As String = "ns=1;s=LedState"	' Subscribe to led changes (see OpcClient_ConnectionChanged)
-	Private LED_CMD_ON 		As String = "ledon"				' Trigger command to set led state on (true)
-	Private LED_CMD_OFF 	As String = "ledoff"			' Trigger command to set led state off (false)
+	Private OpcClient 			As OpcUaClient					' Connect url = OpcClient.tcp://192.168.1.175:4840
+	Private IP 					As String = "192.168.1.175"		' Set according ESP32 OPC UA Server
+	Private PORT 				As Int = 4840					' Default port
+	Private NODE_TEMPERATURE 	As String = "ns=1;s=Temperature"
+	Private NODE_HUMIDITY 		As String = "ns=1;s=Humidity"
+	Private NODE_TRIGGER 		As String = "ns=1;s=Trigger"
 		
 	' HMITilesIO View Controls
 	Private TileIOConnectSwitch As HMITilesIO
-	Private TileIOLedSwitch As HMITilesIO
-	Private TileIOLedState As HMITilesIO
 	Private TileIOConnected As HMITilesIO
+	Private TileTemperature As HMITilesIO
+	Private TileHumidity As HMITilesIO
+	Private TileTemperatureGauge As HMITilesIO
+	Private TileHumidityGauge As HMITilesIO
 End Sub
 
 Public Sub Initialize
@@ -118,8 +120,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	TileIOConnectSwitch.State = False
 	TileIOConnected.Value = "Disconnected"
 	TileIOConnected.ValueFontSize = 12
-	'TileIOLedSwitch.State = False
-	'TileIOLedState.State = False
+	
 
 	' PyBridge initialize core layer framework (event Py)
 	Py.Initialize(Me, "Py")
@@ -136,7 +137,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 
 	' OpcUaClient initialize custom Class object reference (event OpcClient)
 	Sleep(50)
-	Opc.Initialize(Me, "OpcClient", Py)
+	OpcClient.Initialize(Me, "OpcClient", Py)
 	
 	' Start the background extraction loop instantly
 	StartBackgroundEventLoop
@@ -144,9 +145,9 @@ End Sub
 
 ' Clean up allocations cleanly when context minimizes or closes
 Private Sub B4XPage_CloseRequest As ResumableSub
-	If Opc.Connected Then
+	If OpcClient.Connected Then
 		Log("[B4XPage_CloseRequest] Opc disconnect")
-		Opc.Disconnect
+		OpcClient.Disconnect
 		Sleep(200)
 		TileIOConnected.Value = "Disconnected"
 	End If
@@ -168,7 +169,6 @@ End Sub
 Private Sub Py_Disconnected
 	Log("[Py_Disconnected] PyBridge dropped.")
 	TileIOConnectSwitch.State = False
-	TileIOLedSwitch.State = False
 End Sub
 
 'Event raised by the python script bridge_instance.raise_event.
@@ -186,7 +186,7 @@ Private Sub StartBackgroundEventLoop
 	
 	Do While True
 		' Ask the custom class if Python has any queued events waiting for us
-		Wait For (Opc.PollNextEvent) Complete (EventData As Object)
+		Wait For (OpcClient.PollNextEvent) Complete (EventData As Object)
 		
 		' If an event is waiting, parse its dictionary parameters safely
 		If EventData <> Null Then
@@ -198,7 +198,7 @@ Private Sub StartBackgroundEventLoop
 			' [StartBackgroundEventLoop] Dispatched Event From Queue name=opc_datachange | value=ns=1;s=LedState 1
 			
 			' Execute 2-parameter signature call
-			Opc.RaiseB4jEvent(EvName, EvValue)
+			OpcClient.RaiseB4jEvent(EvName, EvValue)
 		End If
 		
 		' Sleep for 100ms to allow smooth UI rendering and prevent CPU spikes
@@ -212,7 +212,7 @@ End Sub
 
 ' Raised automatically when Connect or Disconnect completes execution loops
 Private Sub OpcClient_ConnectionChanged (Connected As Boolean)
-	Log($"[OpcClient_ConnectionChanged] connected=${Connected}"$)		'Opc.Connected
+	Log($"[OpcClient_ConnectionChanged] connected=${Connected}"$)		'OpcClient.Connected
 	TileIOConnectSwitch.State = Connected
 	
 	' If successfully online, activate the subscriptions
@@ -220,14 +220,14 @@ Private Sub OpcClient_ConnectionChanged (Connected As Boolean)
 		Log("[OpcClient_ConnectionChanged] Connection verified! Activating subscriptions...")
 		
 		' Subscribe to the read telemetry state node
-		Log("[OpcClient_ConnectionChanged] Subscribing to ns=1;s=LedState")
-		Opc.Subscribe(LED_NODEID)
+		OpcClient.Subscribe(NODE_TEMPERATURE)
+		Sleep(100)
+		OpcClient.Subscribe(NODE_HUMIDITY)
 		
 		' Give the ESP32 network stack a tiny 100ms break to register the table writes
 		Sleep(100)
 		TileIOConnected.Value = "Connected"
 	Else
-		TileIOLedSwitch.State = False
 		TileIOConnected.Value = "Disconnected"
 	End If
 End Sub
@@ -239,15 +239,13 @@ Private Sub OpcClient_DataChanged (NodeId As String, Value As String)
 	
 	' Handles both numeric states and string actions using pure text conditional cases safely
 	Select Case NodeId
-		Case LED_NODEID
-			If Value = "1" Then
-				TileIOLedState.State = True
-			Else
-				TileIOLedState.State = False
-			End If
-			TileIOLedState.Footer = GetTime
-			
-		Case "ns=1;s=Trigger"
+		Case NODE_TEMPERATURE
+			TileTemperature.Value = Value
+			TileTemperatureGauge.Value = Value
+		Case NODE_HUMIDITY
+			TileHumidity.Value = Value
+			TileHumidityGauge.Value = Value
+		Case NODE_TRIGGER
 			Log($"[OpcClient_DataChanged] Trigger Action text=${Value}"$)
 	End Select
 End Sub
@@ -262,39 +260,22 @@ Private Sub TileIOConnectSwitch_Click(State As Boolean, Value As String)
 	Log($"[TileIOConnectSwitch_Click] Toggled switch to ${State}"$)
 	
 	' Freeze switch position in place until background connection status resolves
-	TileIOConnectSwitch.State = Opc.Connected
+	TileIOConnectSwitch.State = OpcClient.Connected
 	
 	If State = True Then
 		Log("[TileIOConnectSwitch_Click] Initiating manual connection sequence...")
 		TileIOConnected.Value = "Connecting"
-		Opc.Connect(IP, PORT)
+		OpcClient.Connect(IP, PORT)
 	Else
 		Log("[TileIOConnectSwitch_Click] Closing connection manually.")
 		TileIOConnected.Value = "Disconnecting"
-		Opc.Disconnect
+		OpcClient.Disconnect
+		TileTemperature.Value = 0
+		TileTemperatureGauge.Value = 0
+		TileHumidity.Value = 0
+		TileHumidityGauge.Value = 0
 	End If
 	TileIOConnected.Footer = GetTime
-End Sub
-
-Private Sub TileIOLedSwitch_Click(State As Boolean, Value As String)
-	' Pure object check safety interlock protection check
-	If Not(Opc.Connected) Then
-		Log("[TileIOLedSwitch_Click][E] Action Aborted: Connect to the OPC UA Server first!")
-		TileIOLedSwitch.State = False
-		Return
-	End If
-
-	State = Not(State)
-	Log($"[TileIOLedSwitch_Click] Toggled switch using Trigger Node state=${State} "$)
-
-	If State = True Then
-		Opc.SendOpcTrigger(LED_CMD_ON)
-	Else
-		Opc.SendOpcTrigger(LED_CMD_OFF)
-	End If
-	
-	TileIOLedSwitch.State = State
-	TileIOLedSwitch.Footer = GetTime
 End Sub
 #End Region
 

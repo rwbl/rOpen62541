@@ -5,16 +5,39 @@ Type=Class
 Version=9.85
 @EndOfDesignText@
 ' Project:		rOpen62541 (OPC UA Server)
-' Brief:		OPC UA server for the envsim example
-' Date:			2026-09-13
+' Brief:		OPC UA client for the Input/Output example.
+' Date:			2026-09-19
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
-' Description:	Experiment to simulate environment data and update nodes.
+' Description:	Control the OPC UA Server LED.
+'				The OPC UA server receives from this OPC UA client a msg with nodeid "Trigger" and value "ledon" or "ledoff".
 ' DependsOn:	SS_OPCUAClient 1.00 (Thanks, see https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/ )
 '				HMITilesIO 0.70 (see https://www.b4x.com/android/forum/threads/hmitilesio.171863/#content )
 ' Hardware:		ESP32-S3-N16R8
 ' Software:		B4J 10.70
+
 ' Log Example:
- 
+'[milo-shared-thread-pool-1] INFO org.eclipse.milo.opcua.sdk.client.OpcUaClient - Java version: 19.0.2
+'[milo-shared-thread-pool-1] INFO org.eclipse.milo.opcua.sdk.client.OpcUaClient - Eclipse Milo OPC UA Stack version: dev
+'[milo-shared-thread-pool-1] INFO org.eclipse.milo.opcua.sdk.client.OpcUaClient - Eclipse Milo OPC UA Client SDK version: dev
+'[milo-nonce-util-secure-random] INFO org.eclipse.milo.opcua.stack.core.util.NonceUtil - SecureRandom seeded in 0ms.
+'[OpcClient_Connected] Connected to ESP32 OPC UA Server!
+'[OpcClient_ReadResult] Node: ns=1;s=LedState | Value: 0 | Status: StatusCode{name=Good, value=0x00000000, quality=good}
+'[OpcClient_SubscriptionValueChanged] Node: ns=1;s=LedState | Value: 0 | Time: 196979
+'[TileLedSetState] state=true
+'[OpcClient_WriteResult] ns=1;s=Trigger | success=true
+'[TileLedSetState] state=false
+'[OpcClient_WriteResult] ns=1;s=Trigger | success=true
+'[TileLedSetState] state=true
+'[OpcClient_WriteResult] ns=1;s=Trigger | success=true
+'[TileLedSetState] state=false
+'[OpcClient_WriteResult] ns=1;s=Trigger | success=true
+'[TileLedSetState] state=true
+'[OpcClient_WriteResult] ns=1;s=Trigger | success=true
+'[OpcClient_Disconnected]
+'*** mainpage: B4XPage_CloseRequest [mainpage]
+'[B4XPage_CloseRequest] Forcefully closing OPC UA Client socket channels.
+'*** mainpage: B4XPage_Disappear [mainpage]
+
 #Region Shared Files
 #CustomBuildAction: folders ready, %WINDIR%\System32\Robocopy.exe,"..\..\Shared Files" "..\Files"
 'Ctrl + click to sync files: ide://run?file=%WINDIR%\System32\Robocopy.exe&args=..\..\Shared+Files&args=..\Files&FilesSync=True
@@ -24,7 +47,7 @@ Version=9.85
 
 Sub Class_Globals
 	' Info
-	Private VERSION As String = "rOpen62541 OPC UA Server EnvSim v20260913"
+	Private VERSION As String = "rOpen62541 OPC UA Server InOutput v20260913"
 	
 	' UI Base
 	Private xui As XUI
@@ -33,18 +56,16 @@ Sub Class_Globals
 	' UI HMITilesIO
 	Private TileConnect As HMITilesIO
 	Private TileConnected As HMITilesIO
-	Private TileTemperature As HMITilesIO
-	Private TileHumidity As HMITilesIO
-	Private TileTemperatureGauge As HMITilesIO
-	Private TileHumidityGauge As HMITilesIO
+	Private TileLedState As HMITilesIO
+	Private TileLedSetState As HMITilesIO
 
 	' Communication OPC UA Server
 	Private ENDPOINT 			As String = "opc.tcp://192.168.1.175:4840"
 	Private OpcClient 			As OPCUAClient 
-	Private SAMPLING_INTERVAL 	As Int = 5000	'ms
+	Private SAMPLING_INTERVAL 	As Int = 500	'ms
 	Private IsConnected 		As Boolean
-	Private NODE_TEMPERATURE 	As String = "ns=1;s=Temperature"
-	Private NODE_HUMIDITY 		As String = "ns=1;s=Humidity"
+	Private NODE_LED_STATE 		As String = "ns=1;s=LedState"
+	Private NODE_TRIGGER 		As String = "ns=1;s=Trigger"
 End Sub
 
 Public Sub Initialize
@@ -68,6 +89,9 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	TileConnected.Value = "Disconnected"
 	TileConnected.ValueFontSize = 14
 	TileConnected.Footer = ""
+	TileLedState.Footer = GetTime
+	TileLedSetState.State = False
+	TileLedSetState.Footer = GetTime
 	
 	' Init the Opc client with events
 	OpcClient.Initialize("OpcClient")
@@ -83,7 +107,7 @@ Private Sub B4XPage_CloseRequest As ResumableSub
 			OpcClient.Disconnect
 		End If
 	Catch
-		Log("Exception caught during shutdown: " & LastException.Message)
+		Log($"[B4XPage_CloseRequest][E] Exception caught during shutdown: ${LastException.Message}"$)
 	End Try
 	Return True
 End Sub
@@ -93,6 +117,7 @@ End Sub
 '==============================================================
 
 Public Sub ConnectToServer
+	Log($"[ConnectToServer] Trying to connect..."$)
 	OpcClient.Connect(ENDPOINT)
 End Sub
 
@@ -100,28 +125,21 @@ Public Sub SubscribeNodes
 	' Subscribe to live changes
 	' ns is namespace index 1; s is the string identifier
 	' These are defined in the B4R program
-	OpcClient.Subscribe(NODE_TEMPERATURE, SAMPLING_INTERVAL)
-	OpcClient.Subscribe(NODE_HUMIDITY, SAMPLING_INTERVAL)
+	OpcClient.Subscribe(NODE_LED_STATE, SAMPLING_INTERVAL)
 	' OpcClient.Subscribe("ns=1;s=RawTelemetry", SAMPLING_INTERVAL)
 End Sub
 
 Public Sub ReadNodes
-	OpcClient.Read(NODE_TEMPERATURE)
-	OpcClient.Read(NODE_HUMIDITY)
+	OpcClient.Read(NODE_LED_STATE)
 End Sub
 
 Public Sub UpdateHMITiles(NodeId As String, Value As Object)
 	Dim s As String = GetNodeIdentifier(NodeId)
-	Dim v As Float = Value
 	Select s 
-		Case "Temperature"
-			TileTemperature.Value = v
-			TileTemperatureGauge.Value = v
-			TileTemperatureGauge.Footer = GetTime
-		Case "Humidity"
-			TileHumidity.Value = v
-			TileHumidityGauge.Value = v
-			TileHumidityGauge.Footer = GetTime
+		Case "LedState"
+			TileLedState.State = IIf(Value.As(Int) == 1, True, False)
+			TileLedState.Footer = GetTime
+			TileLedSetState.State = TileLedState.State
 	End Select
 End Sub
 
@@ -129,17 +147,20 @@ End Sub
 ' OPCUA CLIENT EVENTS
 '==============================================================
 
+' Connect_NoAuth
+' Connect without credentials
+Sub Connect_NoAuth
+	OpcClient.Connect(ENDPOINT)
+End Sub
+
 ' Connected
 ' Triggered if client successfully connects to the OPC UA server
 Sub OpcClient_Connected
-	Log("[Connected] Connected to ESP32 OPC UA Server!")
+	Log("[OpcClient_Connected] Connected to ESP32 OPC UA Server!")
     
 	IsConnected = True
-
 	ReadNodes	
-
 	SubscribeNodes        
-
 	' Update hmitiles
 	TileConnect.State = IsConnected
 	TileConnected.Value = "Connected"
@@ -150,7 +171,7 @@ Sub OpcClient_Disconnected
 	IsConnected = False
 	TileConnect.State = IsConnected
 	TileConnected.Value = "Disconnected"
-	Log("[Disconnected]")
+	Log("[OpcClient_Disconnected]")
 End Sub
 
 ' ConnectionError
@@ -158,38 +179,35 @@ Sub OpcClient_ConnectionError(Error As String)
 	IsConnected = False
 	TileConnect.State = IsConnected
 	TileConnected.Value = "Disconnected"
-	Log($"[ConnectionError][E] ${Error}"$)
+	Log($"[OpcClient_ConnectionError][E] ${Error}"$)
 End Sub
 
 ' SubscriptionValueChanged 
 ' Triggered when subscription value has changed
 Sub OpcClient_SubscriptionValueChanged (NodeId As String, Value As Object, Timestamp As Long)
-	Log($"[SubscriptionValueChanged] Node: ${NodeId} | Value: ${Value} | Time: ${Timestamp}"$)
+	Log($"[OpcClient_SubscriptionValueChanged] Node: ${NodeId} | Value: ${Value} | Time: ${Timestamp}"$)
 	UpdateHMITiles(NodeId, Value)
 End Sub
 
 ' ReadResult
 ' Trap async Read results!
 Sub OpcClient_ReadResult (NodeId As String, Value As Object, Status As String)
-	Log($"[ReadResult] Node: ${NodeId} | Value: ${Value} | Status: ${Status}"$)
+	Log($"[OpcClient_ReadResult] Node: ${NodeId} | Value: ${Value} | Status: ${Status}"$)
 	UpdateHMITiles(NodeId, Value)
 End Sub
 
 ' NodeValueChanged
 ' Event fires when the ESP32 background core updates the value
 Sub OpcClient_NodeValueChanged (NodeId As String, Value As Object)
-	Log($"[NodeValueChanged] Node: ${NodeId} | Value: ${Value}"$)
+	Log($"[OpcClient_NodeValueChanged] Node: ${NodeId} | Value: ${Value}"$)
 	UpdateHMITiles(NodeId, Value)
 End Sub
 
-' Connect_NoAuth
-' Connect without credentials
-Sub Connect_NoAuth
-	OpcClient.Connect(ENDPOINT)
-End Sub
-
+' Event fired write method
+' NodeId contains ns ans s, like WriteResult: ns=1;s=Trigger 
+' Success boolean true or false
 Sub OpcClient_WriteResult(NodeId As String, Success As Boolean)
-	Log("WriteResult: " & NodeId & " success=" & Success)
+	Log($"[OpcClient_WriteResult] ${NodeId} | success=${Success}"$)
 End Sub
 
 '==============================================================
@@ -205,6 +223,18 @@ Private Sub TileConnect_Click(State As Boolean, Value As String)
 	Else
 		TileConnected.Value = "Disconnecting"
 		OpcClient.Disconnect
+	End If
+End Sub
+
+' Set Led state
+Private Sub TileLedSetState_Click(State As Boolean, Value As String)
+	If IsConnected Then
+		State = Not(State)
+		Dim cmd As String = IIf(State, "ledon", "ledoff")
+		OpcClient.Write(NODE_TRIGGER, cmd)
+		TileLedSetState.State = State
+		TileLedState.State = State
+		Log($"[TileLedSetState] state=${State}"$)
 	End If
 End Sub
 

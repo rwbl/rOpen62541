@@ -25,11 +25,12 @@
         "out0type": "",
         "out0typeid": "",
         "out0value": "",
-        "x": 570,
-        "y": 420,
+        "x": 190,
+        "y": 540,
         "wires": [
             [
-                "18809ef90b232878"
+                "18809ef90b232878",
+                "06ecdeeb0375916e"
             ]
         ]
     },
@@ -75,8 +76,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 810,
-        "y": 420,
+        "x": 430,
+        "y": 600,
         "wires": []
     },
     {
@@ -91,11 +92,108 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 330,
-        "y": 420,
+        "x": 190,
+        "y": 480,
         "wires": [
             [
                 "c70d4fefcc1f2a06"
+            ]
+        ]
+    },
+    {
+        "id": "7a9371fe34a4af8c",
+        "type": "switch",
+        "z": "f1",
+        "name": "Response Handler",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "0x80000000",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 630,
+        "y": 540,
+        "wires": [
+            [
+                "b67742fe8d02295d"
+            ],
+            [
+                "ee5a9cfaa019649f"
+            ]
+        ]
+    },
+    {
+        "id": "d529af88cb55e0a1",
+        "type": "comment",
+        "z": "f1",
+        "name": "Method Call Example",
+        "info": "",
+        "x": 140,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "b67742fe8d02295d",
+        "type": "debug",
+        "z": "f1",
+        "name": "DEBUG METHOD CALL GOOD",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 910,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "ee5a9cfaa019649f",
+        "type": "debug",
+        "z": "f1",
+        "name": "DEBUG METHOD CALL FAILURE",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 920,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "06ecdeeb0375916e",
+        "type": "function",
+        "z": "f1",
+        "name": "Convert Result",
+        "func": "/*\nB4R sends like:\nOpcServer.SetMethodReturnCode(OpcServer.STATUS_GOOD) [0x00000000]\nOpcServer.SetMethodReturnCode(OpcServer.STATUS_FAILURE) [0x80000000]\n\nwhich values are then converted from usigned to signed using bit shiftig >>>.\n*/\n\n// Converts -2147483648 into 2147483648 (0x80000000) instantly\nmsg.payload = msg.payload >>> 0;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 540,
+        "wires": [
+            [
+                "7a9371fe34a4af8c"
             ]
         ]
     },
@@ -113,7 +211,7 @@
         "userprivatekey": ""
     },
     {
-        "id": "7fa904010f7b5b24",
+        "id": "9c84179b138bd73e",
         "type": "global-config",
         "env": [],
         "modules": {

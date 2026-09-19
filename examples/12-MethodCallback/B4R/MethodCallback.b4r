@@ -13,33 +13,52 @@ Version=4
 '==============================================
 ' Project:		rOpen6241
 ' Brief:		Example method callback function.
-' Date:			2026-09-12
+' Date:			2026-09-19
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	Node-Red to trigger the Method Call function using this script in the NR function node:
-'				// Clear any default payload string To prevent conflicts
-'				msg.payload = ""; 
-'				// Explicitly populate the target metadata fields that Node-RED looks For
-'				msg.objectId = "ns=1;s=Factory_Floor";
-'				msg.methodId = "ns=1;s=ExecuteJob";
-'				// Supply the single required input argument parameters Array block
-'				msg.inputArguments = [
-'				    {
-'				        dataType: "ByteString",
-'				        value: "START_BATCH"
-'				    }
-'				];
-'				Return msg;
+'				Node-Red Function Node:
+'					// Clear any default payload string To prevent conflicts
+'					msg.payload = ""; 
+'					// Explicitly populate the target metadata fields that Node-RED looks For
+'					msg.objectId = "ns=1;s=Factory_Floor";
+'					msg.methodId = "ns=1;s=ExecuteJob";
+'					// Supply the single required input argument parameters Array block
+'					msg.inputArguments = [
+'					    {
+'					        dataType: "ByteString",
+'					        value: "START_BATCH"
+'					    }
+'					];
+'					Return msg;
 '				Invoking results in NR response:
-'				{
-'				"objectId":"ns=1;s=Factory_Floor",
-'				"methodId":"ns=1;s=ExecuteJob",
-'				"inputArguments":
-'				[{"dataType":15,"value":[83,84,65,82,84,95,66,65,84,67,72],"arrayType":0}],
-'				"outputArguments":[],
-'				"result":{"statusCode":{"value":0},
-'				"outputArguments":[{"dataType":"Int32","arrayType":"Scalar","value":100}]},"output":[{"dataType":"Int32","arrayType":"Scalar","value":100}],"payload":100,"_msgid":"a85f46c06a93c646"}
-'				See below the B4R log handling the event with parameter START_BATCH.
+'					{
+'						"objectId":"ns=1;s=Factory_Floor",
+'						"methodId":"ns=1;s=ExecuteJob",
+'						"inputArguments": [{"dataType":15,"value":[83,84,65,82,84,95,66,65,84,67,72],"arrayType":0}],
+'						"outputArguments":[],
+'						"result":{
+'							"statusCode":{"value":0},
+'							"outputArguments":[
+'								{"dataType":"Int32","arrayType":"Scalar","value":100}]
+'						},
+'						"output":[
+'							{"dataType":"Int32","arrayType":"Scalar","value":100}
+						'],
+'						"payload":0,"_msgid":"a85f46c06a93c646"
+'					}
+' B4R Log:			Receiving the message with argument START_BATCH.
+'					[AppStart] rOpen62541 MethodCallback v20260913
+'					[AppStart] WiFi connected > local IP=192.168.1.175
+'					[AppStart] Init opc server
+'					[InitOpcServer] Initializing...
+'					[InitOpcServer] Awaiting background core network initialization...
+'					[opcuaServerTask] OPC UA Security: Anonymous Access Mode Active!
+'					[opcuaServerTask] OPC UA Server successfully running on Core 0!
+'					[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...
+'					[AppStart] Opc server started
+'					[OnMethodCall] Client invoked the method node with argument: hex=START_BATCH string=53544152545F4241544348
+'					[OnMethodCall] Command accepted. Running production batch code...
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
 '				Unleash the 8MB Octal PSRAM footprint
@@ -48,18 +67,6 @@ Version=4
 ' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
 '				Arduino Board Manager ESP32 3.3.11.
 ' Wiring:		N/A
-' Log:
-'[AppStart] rOpen62541 MethodCallback v20260913
-'[AppStart] WiFi connected > local IP=192.168.1.175
-'[AppStart] Init opc server
-'[InitOpcServer] Initializing...
-'[InitOpcServer] Awaiting background core network initialization...
-'[opcuaServerTask] OPC UA Security: Anonymous Access Mode Active!
-'[opcuaServerTask] OPC UA Server successfully running on Core 0!
-'[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...
-'[AppStart] Opc server started
-'[OpcMethodCallCallback] Client invoked the method node with argument: hex=START_BATCH string=53544152545F4241544348
-'[OpcMethodCallCallback] Command accepted. Running production batch code...
 '==============================================
 #End Region
 
@@ -71,7 +78,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 MethodCallback v20260913"
+	Private VERSION 			As String = "rOpen62541 MethodCallback v20260919"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -121,7 +128,7 @@ Private Sub InitOpcServer As Boolean
 
 	Log("[InitOpcServer] Initializing...")
 	' Spin up the Core 0 open62541 network engine with callback
-	OpcServer.Initialize(WiFi.LocalIp, PORT, "", "", "OpcCallback")
+	OpcServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOpcServer] Awaiting background core network initialization...")
@@ -145,43 +152,55 @@ Private Sub InitOpcServer As Boolean
 		Log("[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...")
 
 		' Register the native executable method node!
-		OpcServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OpcMethodCallCallback")
+		OpcServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OnMethodCall")
 		' Node-RED Example:
 		' objectId = "ns=1;s=Factory_Floor"; methodId = "ns=1;s=ExecuteJob"; msg.inputArguments = [{dataType: "ByteString",value: "START_BATCH"}];
 	End If
 	Return Not(ServerBootFailed)
 End Sub
 
+'==============================================
+' EVENTS
+'==============================================
+
+' OnDataWrite
+' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
+' In OPC UA, when a client changes a variable node, it is executing a Write service. This callback intercepts that write event.
+' Example B4J where the client sends value 68: 
+' OpcClient.Write("ns=1;s=Trigger", 68)
+Private Sub OnDataWrite(buffer() As Byte)
+	Log("[OnDataWrite] OPC UA Client clicked the trigger method. command=", bc.StringFromBytes(buffer))
+	'[OnDataWrite] OPC UA Client clicked the trigger method. command=STOP
+	'[OnDataWrite] OPC UA Client clicked the trigger method. command=68
+End Sub
+
+' OnMethodCall
 ' Fired automatically when a client invokes OpcServer.CallMethod()
-' Bound directly to MethodCallSub execution loop
-Private Sub OpcMethodCallCallback(InputParams() As Byte)
+' In OPC UA, executing a method node uses the standard Call service. This callback handles that explicit method call request.
+' Bound directly to MethodCallSub execution loop.
+' 
+Private Sub OnMethodCall(InputParams() As Byte)
 	Dim ParamText As String = bc.StringFromBytes(InputParams)
-	Log("[OpcMethodCallCallback] Client invoked the method node with argument:", _
-		" hex=", bc.StringFromBytes(InputParams), _
-		" string=", bc.HexFromBytes(InputParams))
+	Log("[OnMethodCall] Client invoked the method node with argument:", _
+		" string=", bc.StringFromBytes(InputParams))
     
 	' Evaluate your local logic parameters safely
 	If ParamText = "START_BATCH" Then
-		Log("[OpcMethodCallCallback] Command accepted. Running production batch code...")
+		Log("[OnMethodCall] Command accepted. Running production batch code...")
         
-		' Invoke via your active OpcServer instance prefix!
-		OpcServer.SetMethodReturnCode(100) ' Sends "Success" back to SCADA
+		' Sends "Success" back to OPC UA client
+		OpcServer.SetMethodReturnCode(OpcServer.STATUS_GOOD)
 	Else
-		Log("[OpcMethodCallCallback] Command rejected. Invalid parameter format.")
+		Log("[OnMethodCall] Command rejected. Invalid parameter format.")
         
-		' Invoke via your active OpcServer instance prefix!
-		OpcServer.SetMethodReturnCode(400) ' Sends "Fault/Error" back to SCADA
+		' Sends "Fault/Error" back to OPC UA client
+		OpcServer.SetMethodReturnCode(OpcServer.STATUS_FAILURE) 
 	End If
 End Sub
 
-' OpcCallback
-' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
-' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
-Private Sub OpcCallback(buffer() As Byte)
-	Log("[OpcCallback] SCADA/B4J Client clicked the trigger method. command=", bc.StringFromBytes(buffer))
-	'[OpcCallback] SCADA/B4J Client clicked the trigger method. command=STOP
-	'[OpcCallback] SCADA/B4J Client clicked the trigger method. command=68
-End Sub
+'==============================================
+' HELPER
+'==============================================
 
 #if C
 #include "esp_wifi.h"

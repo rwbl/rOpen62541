@@ -7,6 +7,6 @@ ModuleBreakpoints2=
 ModuleClosedNodes0=1,4
 ModuleClosedNodes1=
 ModuleClosedNodes2=
-NavigationStack=B4XMainPage,B4XPage_Created,112,6,B4XMainPage,B4XPage_Background,151,2,B4XMainPage,B4XPage_CloseRequest,144,0,B4XMainPage,StartBackgroundEventLoop,206,0,B4XMainPage,OpcClient_ConnectionChanged,221,0,B4XMainPage,GetNodeIdentifier,313,0,B4XMainPage,GetTime,295,0,B4XMainPage,OpcClient_DataChanged,241,1,B4XMainPage,TileIOLedSwitch_Click,288,0,B4XMainPage,TileIOConnectSwitch_Click,269,0
+NavigationStack=B4XMainPage,TileIOLedSwitch_Click,288,0,B4XMainPage,TileIOConnectSwitch_Click,269,0,B4XMainPage,OpcClient_ConnectionChanged,227,0,B4XMainPage,Initialize,100,0,Visual Designer,MainPage.bjl,-100,4,B4XMainPage,B4XPage_Created,114,0,B4XMainPage,Class_Globals,79,0,OpcUaClient,RaiseB4jEvent,150,0,OpcUaClient,Connect,52,0,OpcUaClient,InjectPythonCoreCode,178,0
 SelectedBuild=0
 VisibleModules=1,2
