@@ -10,7 +10,7 @@
 - NEW: GitHub Documention - Additional guides in docs DEV-NOTES, FUNCTIONS-REFERENCE, README, TROUBLESHOOTING, TUTORIAL-CALLBACKS, TUTORIAL-NODEID-LIST.
 - NEW: Example NodeIDs - Low-level standard namespace lookup implementations. Demonstrates querying standard Namespace 0 system variables and parsing complex structure payloads.
 - UPD: Example MethodCall - Revised methods names for the callbacks.
-- UPD: All examples to apply SRAM fix.
+- UPD: All examples to apply critical SRAM fix.
 - DEL: UpdateNodeValue - Replaced by WriteNumeric and WriteString for consistency with the Read functions.
 
 ## v0.68 (Build 20260915)

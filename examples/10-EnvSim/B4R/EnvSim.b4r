@@ -116,9 +116,6 @@ Private Sub InitOpcServer As Boolean
 	Log("[InitOpcServer] Initializing...")
 	' Spin up the Core 0 open62541 network engine with callback
 	OpcServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
-
-	' Sets the maximum timeout ceiling to 120 seconds (120000ms)
-	' OpcServer.SetSessionTimeout(120000.0)
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOpcServer] Awaiting background core network initialization...")
