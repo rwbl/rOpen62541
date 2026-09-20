@@ -28,7 +28,7 @@ The following examples are structured into dedicated sub-folders:
 	- [B4J HMITilesIO Library](https://www.b4x.com/android/forum/threads/hmitilesio.171863/) 0.70
 	- [B4J PyBridge Framework](https://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/) 1.0
 - [Node-RED](https://nodered.org) 5.0.7
-	- [[Node-RED](https://github.com/mikakaraila/node-red-contrib-opcua)  0.2.355
+	- [Node-RED OPC UA Nodes](https://github.com/mikakaraila/node-red-contrib-opcua)  0.2.355
 - [Node.js node-opcua stack](https://node-opcua.github.io) 2.174.0
 - [Arduino IDE](https://docs.arduino.cc/software/ide/) 2.3.10
 	- [Arduino core for the ESP32 family of SoCs](https://github.com/espressif/arduino-esp32) 3.3.12
