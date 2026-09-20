@@ -7,7 +7,7 @@ Version=9.85
 #Region Class Info
 ' Project:		rOpen62541 (OPC UA Server)
 ' Brief:		OPC UA client for the EnvSim example.
-' Date:			2026-09-19
+' Date:			2026-09-20
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	B4X pages project with the PyBridge to Control the OPC UA Server LED.
 '				The OPC UA server receives from this OPC UA client a msg with nodeid "Trigger" and value "ledon" or "ledoff".
@@ -78,7 +78,7 @@ Version=9.85
 #Macro: Title, Export B4XPages, ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 
 Sub Class_Globals
-	Private VERSION As String = "rOpc62541 InOut Example v20260915"
+	Private VERSION As String = "rOpc62541 InOut Example v20260920"
 	' UI
 	Private xui As XUI
 	Private Root As B4XView

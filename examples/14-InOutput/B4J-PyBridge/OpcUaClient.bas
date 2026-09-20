@@ -8,7 +8,7 @@ Version=10.7
 ' Project:      rOpen62541 (OPC UA Server Client Module)
 ' File:         OpcUaClient.bas
 ' Brief:        Proper Object-Oriented Class for managing OPC UA via PyBridge.
-' Date:         2026-09-15
+' Date:         2026-09-20
 ' Author:       Robert W.B. Linn (c) 2026 - MIT
 ' Description:  Manages asynchronous OPC UA connections and live telemetry 
 '               subscriptions using a decoupled producer-consumer memory queue.
@@ -23,8 +23,11 @@ Sub Class_Globals
 	' Events
 	Private mTarget As Object
 	Private mEventName As String
+	
+	' OPC
 	Private EVENT_OPC_CONNECTION_CHANGED	As String = "opc_connection_changed"
 	Private EVENT_OPC_DATACHANGED 			As String = "opc_datachange"			' Python uses data_change, but B4J event data_changed to align with other B4J events
+	Private EVENT_OPC_BROWSE_ITEM			As String = "opc_browse_item"
 	
 	' PyBridge Instance
 	Private Py As PyBridge
@@ -145,6 +148,30 @@ Public Sub RaiseB4jEvent (EventName As String, Value As Object)
 					CallSub3(mTarget, mEventName & "_DataChanged", NodeId, RealValue)
 				End If
 			End If
+			
+		Case EVENT_OPC_BROWSE_ITEM
+			' Value arrives as a combined pipelined text row entry string: "NodeID|DisplayName|NodeClass"
+			Dim RowLine As String = Value
+			Dim Parts() As String = Regex.Split("\|", RowLine)
+			
+			If Parts.Length >= 3 Then
+				Dim DiscoveredNodeId As String = Parts(0).Trim
+				Dim DiscoveredName As String = Parts(1).Trim
+				Dim DiscoveredClass As String = Parts(2).Trim
+				
+				' Package into a standard B4X Map mirroring your Milo output structure perfectly
+				Dim ItemMap As Map
+				ItemMap.Initialize
+				ItemMap.Put("NodeId", DiscoveredNodeId)
+				ItemMap.Put("DisplayName", DiscoveredName)
+				ItemMap.Put("NodeClass", DiscoveredClass)
+				
+				' Forward the structured element up to your active MainPage callback handler hook
+				If xui.SubExists(mTarget, mEventName & "_BrowseItemFound", 1) Then
+					CallSub2(mTarget, mEventName & "_BrowseItemFound", ItemMap)
+				End If
+			End If
+
 		Case Else
 			Log($"[OpcUaClient][W] RaiseB4jEvent unknown event name=${EventName} | value=${Value}"$)			
 	End Select
@@ -213,7 +240,7 @@ class OpcSyncWorker:
             if not self.is_connected:
                 return
             
-            # FIX: Create ONE single master subscription session container if it doesn't exist yet
+            # Create ONE single master subscription session container if it doesn't exist yet
             if not hasattr(self, 'master_sub') or self.master_sub is None:
                 handler = SyncSubHandler()
                 self.master_sub = self.client.create_subscription(100, handler)
@@ -224,6 +251,7 @@ class OpcSyncWorker:
             print(f"[OpcUaClient] Subscribed cleanly to {node_str}", flush=True)
         except Exception as err:
             print(f"[OpcUaClient][E] Subscription error: {err}", flush=True)
+			# [OpcUaClient][E] Subscription error: The node id refers to a node that does not exist in the server address space.(BadNodeIdUnknown)
 
     def write_trigger(self, value_str):
         try:
@@ -234,6 +262,43 @@ class OpcSyncWorker:
             trigger_node.write_value(payload)
         except Exception as err:
             print(f"[OpcUaClient][E] Write error: {err}", flush=True)
+
+    def browse_and_sync_nodes(self, start_node_str):
+        """
+        Generically browses any provided starting NodeID, discovers all immediate 
+        child variable configurations, and marshals them back to B4J.
+        """
+        global global_event_queue
+        try:
+            if not self.is_connected or not self.client:
+                print("[OpcUaClient][W] Discovery skipped - Client is offline", flush=True)
+                return
+            
+            # 1. Target the requested node dynamically (e.g. "ns=1;s=Factory_Floor")
+            target_node = self.client.get_node(start_node_str)
+            child_nodes = target_node.get_children()
+            
+            print(f"[PyBridge Browser] Found {len(child_nodes)} children under {start_node_str}", flush=True)
+            
+            for node in child_nodes:
+                # 2. Extract internal structural parameters natively from wire descriptors
+                node_id_str = node.nodeid.to_string()
+                browse_name = node.read_browse_name().Name
+                display_name = node.read_display_name().Text
+                
+                # Fetch node class type safely to verify it's a variable node
+                node_class_int = node.read_node_class()
+                node_class_str = "Variable" if node_class_int == 2 else "Object"
+                
+                # 3. Serialize metadata into a safe, uniform string layout block
+                # Format layout pattern: "NodeID|DisplayName|NodeClass"
+                serialized_payload = f"{node_id_str}|{display_name}|{node_class_str}"
+                
+                # 4. Append directly into the event consumer queue to trigger RaiseB4jEvent
+                global_event_queue.append({"event": "opc_browse_item", "value": serialized_payload})
+                
+        except Exception as err:
+            print(f"[OpcUaClient][E] Dynamic Python browsing failed: {err}", flush=True)
 
 def InjectPythonCoreCode():
     return "Ready"

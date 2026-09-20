@@ -13,7 +13,7 @@ Version=4
 '==============================================
 ' Project:		rOpen6241
 ' Brief:		Example in- and output with LE and Pushbutton.
-' Date:			2026-09-19
+' Date:			2026-09-20
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	This example uses an LED as output and pushbutton as input.
@@ -57,7 +57,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 InOutput v20260918"
+	Private VERSION 			As String = "rOpen62541 InOutput v20260920"
 
 	' Communication
 	Public Serial1 				As Serial

@@ -6,10 +6,11 @@ Version=9.85
 @EndOfDesignText@
 ' Project:		rOpen62541 (OPC UA Server)
 ' Brief:		OPC UA client for reading system nodes id's (ns=0).
-' Date:			2026-09-13
+' Date:			2026-09-20
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
-' Description:	Read the standard system node ids. Some of the nodes deliver 0 or null:
-'				See TUTORIAL_NODEIDS.md
+' Description:	Several tests:
+'				- Read the standard system node ids. Some of the nodes deliver 0 or null: See TUTORIAL_NODEIDS.md
+'				- Browse the root folder "ns=1;s=Factory_Floor"
 ' DependsOn:	SS_OPCUAClient 1.00 (Thanks, see https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/ )
 '				HMITilesIO 0.70 (see https://www.b4x.com/android/forum/threads/hmitilesio.171863/#content )
 '				ByteConverter
@@ -49,10 +50,8 @@ Version=9.85
 '--- ESP32 Server Status Summary (Fixed-Parsed) ---
 'Open62541 Build Version: 1.2.0-rc1-20-g78a6721b-dirty
 'Compile Baseline Date: Sep 17 2026 10:38:23
-'*** mainpage: B4XPage_CloseRequest [mainpage]
 '[B4XPage_CloseRequest] Forcefully closing OPC UA Client socket channels.
 '[OpcClient_Disconnected]
-'*** mainpage: B4XPage_Disappear [mainpage]
 
 #Region Shared Files
 #CustomBuildAction: folders ready, %WINDIR%\System32\Robocopy.exe,"..\..\Shared Files" "..\Files"
@@ -63,7 +62,7 @@ Version=9.85
 
 Sub Class_Globals
 	' Info
-	Private VERSION As String = "rOpen62541 OPC UA Server NodeIDs v20260917"
+	Private VERSION As String = "rOpen62541 OPC UA Server NodeIDs v20260920"
 	
 	' UI Base
 	Private xui As XUI
@@ -73,18 +72,25 @@ Sub Class_Globals
 	Private TileConnect As HMITilesIO
 	Private TileConnected As HMITilesIO
 	Private TileNodeIDs As HMITilesIO
+	Private TileBrowse As HMITilesIO
 
 	' Communication OPC UA Server
-	Private ENDPOINT 			As String = "opc.tcp://192.168.1.175:4840"
-	Private OpcClient 			As OPCUAClient 
-	Private IsConnected 		As Boolean
+	Private ENDPOINT 					As String = "opc.tcp://192.168.1.175:4840"
+	Private OpcClient 					As OPCUAClient 
+	Private IsConnected 				As Boolean
 
-	Private NODEID_SERVERSTATUS As String = "ns=0;i=2256"			' | ServerStatus | Parent structure containing all runtime states. |
-	Private NODEID_CURRENTTIME As String = "ns=0;i=2258"			' | CurrentTime | The exact server clock timestamp NODE you just viewed. |
-	Private NODEID_STARTTIME As String = "ns=0;i=2259"				' | StartTime | Shows exactly when the ESP32 server booted up. |
-	Private NODEID_SECONDSTILLSHUTDOWN As String = "ns=0;i=2262"	' | SecondsTillShutdown | Used To warn clients before a server restarts. |
-	Private NODEID_STATE As String = "ns=0;i=2295"					' | State | Returns an integer indicating server health (0=Running, 1=Failed). |
-	Private NODEID_BUILDINFO As String = "ns=0;i=2261"				' | BuildInfo | Sub-folder holding the firmware manufacturer and engine version details. |
+	' NodeIDs
+	' These are variable nodes without children and not an folder or object node.
+	' ns=0 is a static Namespace 0 system variable.
+	Private NODEID_SERVERSTATUS 		As String = "ns=0;i=2256"	' | ServerStatus | Parent structure containing all runtime states. |
+	Private NODEID_CURRENTTIME 			As String = "ns=0;i=2258"	' | CurrentTime | The exact server clock timestamp NODE. |
+	Private NODEID_STARTTIME 			As String = "ns=0;i=2259"	' | StartTime | Shows exactly when the ESP32 server booted up. |
+	Private NODEID_SECONDSTILLSHUTDOWN	As String = "ns=0;i=2262"	' | SecondsTillShutdown | Used To warn clients before a server restarts. |
+	Private NODEID_STATE 				As String = "ns=0;i=2295"	' | State | Returns an integer indicating server health (0=Running, 1=Failed). |
+	Private NODEID_BUILDINFO 			As String = "ns=0;i=2261"	' | BuildInfo | Sub-folder holding the firmware manufacturer and engine version details. |
+
+	' Custom root folder string which has children > this node can be browsed
+	Private NODEID_ROOTFOLDER 			As String = "ns=1;s=Factory_Floor"	' 
 End Sub
 
 Public Sub Initialize
@@ -122,7 +128,7 @@ End Sub
 Private Sub B4XPage_CloseRequest As ResumableSub
 	Log("[B4XPage_CloseRequest] Forcefully closing OPC UA Client socket channels.")
 	Try
-		' If your client object is active, shut it down to clear the PC's socket cache
+		' If the client object is active, shut it down to clear the PC's socket cache
 		If OpcClient.IsConnected Then
 			OpcClient.Disconnect
 		End If
@@ -171,8 +177,10 @@ Sub OpcClient_Connected
 	Log("[OpcClient_Connected] Connected to ESP32 OPC UA Server!")
     
 	IsConnected = True
+	
 	ReadNodes	
-	SubscribeNodes        
+	SubscribeNodes      
+	  
 	' Update hmitiles
 	TileConnect.State = IsConnected
 	TileConnected.Value = "Connected"
@@ -208,6 +216,7 @@ Sub OpcClient_NodeValueChanged (NodeId As String, Value As Object)
 	UpdateHMITiles(NodeId, Value)
 End Sub
 
+' WriteResult
 ' Event fired write method
 ' NodeId contains ns ans s, like WriteResult: ns=1;s=Trigger 
 ' Success boolean true or false
@@ -234,19 +243,19 @@ Sub OpcClient_ReadResult (NodeId As String, Value As Object, Status As String)
             
 				Dim BC As ByteConverter
             
-				' 1. The Build Tag ("1.2.0-rc1-20-g78a6721b-dirty") is exactly 28 bytes long.
-				' In your dump, its 4-byte length prefix (34) starts at index 80, meaning the text starts at 84.
+				' The Build Tag ("1.2.0-rc1-20-g78a6721b-dirty") is exactly 28 bytes long.
+				' In the dump, its 4-byte length prefix (34) starts at index 80, meaning the text starts at 84.
 				Dim SoftwareVersionBytes(28) As Byte
 				BC.ArrayCopy(RawBytes, 88, SoftwareVersionBytes, 0, 28)
 				Dim SoftwareVersion As String = BC.StringFromBytes(SoftwareVersionBytes, "ASCII")
             
 				' 2. The Compile Date ("Sep 17 2026 10:38:23") is exactly 20 bytes long.
-				' In your dump, its 4-byte length prefix (20) starts at index 112, meaning the text starts at 116.
+				' In the dump, its 4-byte length prefix (20) starts at index 112, meaning the text starts at 116.
 				Dim BuildTimeBytes(20) As Byte
 				BC.ArrayCopy(RawBytes, 120, BuildTimeBytes, 0, 20)
 				Dim BuildTime As String = BC.StringFromBytes(BuildTimeBytes, "ASCII")
             
-				Log("--- ESP32 Server Status Summary (Fixed-Parsed) ---")
+				Log("[OpcClient_ReadResult] ESP32 Server Status Summary (Fixed-Parsed):")
 				Log("Open62541 Build Version: " & SoftwareVersion.Trim)
 				Log("Compile Baseline Date: " & BuildTime.Trim)
 			End If
@@ -258,9 +267,8 @@ Sub OpcClient_ReadResult (NodeId As String, Value As Object, Status As String)
 			Dim DateTimeObj As JavaObject = Value
 			Dim JavaDate As Object = DateTimeObj.RunMethod("getJavaDate", Null)
         
-			' Print the clean, formatted object string to your UI or log window
-			Log("--- ESP32 Server Clock Sync ---")
-			Log("Verified Server Time: " & JavaDate)
+			' Print the clean, formatted object string
+			Log($"[OpcClient_ReadResult] ESP32 Server Clock Sync > Verified Server Time: ${JavaDate}"$)
 			' Verified Server Time: Thu Sep 17 11:35:46 CEST 2026
 
 		Case NODEID_STARTTIME
@@ -273,6 +281,14 @@ Sub OpcClient_ReadResult (NodeId As String, Value As Object, Status As String)
 			' [OpcClient_ReadResult] value=ExtensionObject{encoded=ByteString{bytes=[64, -62, 81, -42, -34, -79, -99, 1, -104, -39, 92, -70, -120, 70, -35, 1, 0, 0, 0, 0, 20, 0, 0, 0, 104, 116, 116, 112, 58, 47, 47, 111, 112, 101, 110, 54, 50, 53, 52, 49, 46, 111, 114, 103, 9, 0, 0, 0, 111, 112, 101, 110, 54, 50, 53, 52, 49, 23, 0, 0, 0, 111, 112, 101, 110, 54, 50, 53, 52, 49, 32, 79, 80, 67, 32, 85, 65, 32, 83, 101, 114, 118, 101, 114, 28, 0, 0, 0, 49, 46, 50, 46, 48, 45, 114, 99, 49, 45, 50, 48, 45, 103, 55, 56, 97, 54, 55, 50, 49, 98, 45, 100, 105, 114, 116, 121, 20, 0, 0, 0, 83, 101, 112, 32, 49, 55, 32, 50, 48, 50, 54, 32, 49, 48, 58, 51, 56, 58, 50, 51, 106, 77, 81, -42, -34, -79, -99, 1, 0, 0, 0, 0, 0]}, encodingId=NodeId{ns=0, id=864}}
 	End Select
 	
+End Sub
+
+' BrowseResult
+Sub OpcClient_BrowseResult(Nodes As List)
+	Log($"[BrowseResult] nodes found= ${Nodes.Size}"$)
+	For Each n As Object In Nodes
+		Log(n)
+	Next
 End Sub
 
 '==============================================================
@@ -310,6 +326,21 @@ Private Sub TileNodeIDs_Click(State As Boolean, Value As String)
 	End If
 End Sub
 
+Private Sub TileBrowse_Click(State As Boolean, Value As String)
+	If IsConnected Then
+		Log($"[TileBrowse] nodeidstring=${NODEID_ROOTFOLDER}"$)
+		OpcClient.BrowseFull(NODEID_ROOTFOLDER)
+		' Result:
+'	[TileBrowse] nodeidstring=ns=1;s=Factory_Floor
+'	[BrowseResult] nodes found= 5
+'	(MyMap) {NodeId=ns=1;s=Temperature, DisplayName=Room Temperature, NodeClass=Variable}
+'	(MyMap) {NodeId=ns=1;s=Humidity, DisplayName=Room Humidity, NodeClass=Variable}
+'	(MyMap) {NodeId=ns=1;s=Counter, DisplayName=Total Shift Cycle Count, NodeClass=Variable}
+'	(MyMap) {NodeId=ns=1;s=RawTelemetry, DisplayName=Atomic Hex Package, NodeClass=Variable}
+'	(MyMap) {NodeId=ns=1;s=Trigger, DisplayName=Remote Action Trigger, NodeClass=Variable}		
+	End If
+End Sub
+
 '==============================================================
 ' HELPER
 '==============================================================
@@ -333,5 +364,3 @@ Public Sub GetNodeIdentifier(msg As String) As String
 	End If
 	Return result
 End Sub
-
-

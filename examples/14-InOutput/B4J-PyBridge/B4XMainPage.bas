@@ -7,7 +7,7 @@ Version=9.85
 #Region Class Info
 ' Project:		rOpen62541 (OPC UA Server)
 ' Brief:		OPC UA client for the Input/Output example.
-' Date:			2026-09-19
+' Date:			2026-09-20
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	B4X pages project with the PyBridge to Control the OPC UA Server LED.
 '				The OPC UA server receives from this OPC UA client a msg with nodeid "Trigger" and value "ledon" or "ledoff".
@@ -78,7 +78,7 @@ Version=9.85
 #Macro: Title, Export B4XPages, ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 
 Sub Class_Globals
-	Private VERSION As String = "rOpc62541 InOut Example v20260915"
+	Private VERSION As String = "rOpc62541 InOut Example v20260920"
 	' UI
 	Private xui As XUI
 	Private Root As B4XView
@@ -87,18 +87,25 @@ Sub Class_Globals
 	Public Py 		As PyBridge
 	
 	' OpcUaClient Instance
-	Private Opc 			As OpcUaClient					' Connect url = opc.tcp://192.168.1.175:4840
-	Private IP 				As String = "192.168.1.175"		' Set according ESP32 OPC UA Server
-	Private PORT 			As Int = 4840					' Default port
-	Private LED_NODEID		As String = "ns=1;s=LedState"	' Subscribe to led changes (see OpcClient_ConnectionChanged)
-	Private LED_CMD_ON 		As String = "ledon"				' Trigger command to set led state on (true)
-	Private LED_CMD_OFF 	As String = "ledoff"			' Trigger command to set led state off (false)
-		
+	Private Opc 					As OpcUaClient					' Connect url = opc.tcp://192.168.1.175:4840
+	Private IP 						As String = "192.168.1.175"		' Set according ESP32 OPC UA Server
+	Private PORT 					As Int = 4840					' Default port
+
+	' NodeIDs
+	Private NODEID_LED				As String = "ns=1;s=LedState"	' Subscribe to led changes (see OpcClient_ConnectionChanged)
+	Private NODEID_TRIGGER			as string = "ns=1;s=Trigger"
+	Private NODEID_FACTORY_FLOOR	As String = "ns=1;s=Factory_Floor"
+
+	' Trigger Commands
+	Private LED_CMD_ON 				As String = "ledon"				' Trigger command to set led state on (true)
+	Private LED_CMD_OFF 			As String = "ledoff"			' Trigger command to set led state off (false)
+
 	' HMITilesIO View Controls
 	Private TileIOConnectSwitch As HMITilesIO
 	Private TileIOLedSwitch As HMITilesIO
 	Private TileIOLedState As HMITilesIO
 	Private TileIOConnected As HMITilesIO
+	Private TileIOBrowse As HMITilesIO
 End Sub
 
 Public Sub Initialize
@@ -206,6 +213,18 @@ Private Sub StartBackgroundEventLoop
 	Loop
 End Sub
 
+' Generically triggers background node tree crawling workflows inside PyBridge.
+' Parameters -> StartNodeId: Target node string context path, like "ns=1;s=Factory_Floor"
+Public Sub BrowseFull (StartNodeId As String)
+	Dim CodeExec As String = $"
+def CallBrowse(target_start_node):
+    if global_worker:
+        global_worker.browse_and_sync_nodes(target_start_node)
+    return "OK"
+"$
+	Py.RunCode("CallBrowse", Array(StartNodeId), CodeExec)
+End Sub
+
 '=============================================================================
 ' OPCUA CLASS CALLBACK EVENTS RAISED AUTOMATICALLY
 '=============================================================================
@@ -221,7 +240,7 @@ Private Sub OpcClient_ConnectionChanged (Connected As Boolean)
 		
 		' Subscribe to the read telemetry state node
 		Log("[OpcClient_ConnectionChanged] Subscribing to ns=1;s=LedState")
-		Opc.Subscribe(LED_NODEID)
+		Opc.Subscribe(NODEID_LED)
 		
 		' Give the ESP32 network stack a tiny 100ms break to register the table writes
 		Sleep(100)
@@ -239,7 +258,7 @@ Private Sub OpcClient_DataChanged (NodeId As String, Value As String)
 	
 	' Handles both numeric states and string actions using pure text conditional cases safely
 	Select Case NodeId
-		Case LED_NODEID
+		Case NODEID_LED
 			If Value = "1" Then
 				TileIOLedState.State = True
 			Else
@@ -247,7 +266,7 @@ Private Sub OpcClient_DataChanged (NodeId As String, Value As String)
 			End If
 			TileIOLedState.Footer = GetTime
 			
-		Case "ns=1;s=Trigger"
+		Case NODEID_TRIGGER
 			Log($"[OpcClient_DataChanged] Trigger Action text=${Value}"$)
 	End Select
 End Sub
@@ -296,6 +315,11 @@ Private Sub TileIOLedSwitch_Click(State As Boolean, Value As String)
 	TileIOLedSwitch.State = State
 	TileIOLedSwitch.Footer = GetTime
 End Sub
+
+Private Sub TileIOBrowse_Click(State As Boolean, Value As String)
+	BrowseFull(NODEID_FACTORY_FLOOR)	
+End Sub
+
 #End Region
 
 '==============================================================
@@ -321,4 +345,3 @@ Public Sub GetNodeIdentifier(msg As String) As String
 	End If
 	Return result
 End Sub
-

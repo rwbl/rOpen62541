@@ -6,7 +6,7 @@ Version=9.85
 @EndOfDesignText@
 ' Project:		rOpen62541 (OPC UA Server)
 ' Brief:		OPC UA server for the envsim example
-' Date:			2026-09-19
+' Date:			2026-09-20
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	Experiment to simulate environment data and update nodes.
 ' DependsOn:	SS_OPCUAClient 1.00 (Thanks, see https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/ )
@@ -24,7 +24,7 @@ Version=9.85
 
 Sub Class_Globals
 	' Info
-	Private VERSION As String = "rOpen62541 OPC UA Server EnvSim v20260913"
+	Private VERSION As String = "rOpen62541 OPC UA Server EnvSim v20260920"
 	
 	' UI Base
 	Private xui As XUI
@@ -151,8 +151,8 @@ Sub OpcClient_Disconnected
 	TileConnect.State = IsConnected
 	TileConnected.Value = "Disconnected"
 	
-	TileTemperature.Value = 0
-	TileHumidity.Value = 0
+	TileTemperature.Value = "--"
+	TileHumidity.Value = "--"
 	TileTemperatureGauge.Value = 0
 	TileHumidityGauge.Value = 0
 
