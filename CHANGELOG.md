@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.90.0 (Build 20261002)
+## v0.90 (Build 20261002)
 **Focus: Major development improvements**
 
 - NEW: Node identifiers are no longer restricted to namespace 1.
