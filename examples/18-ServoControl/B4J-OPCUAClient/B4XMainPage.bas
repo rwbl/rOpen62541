@@ -52,7 +52,7 @@ Sub Class_Globals
 	Private IsConnected 		As Boolean
 	' Nodes
 	Private NODEID_TRIGGER 		As String = "ns=1;s=trigger"
-	Private NODEID_GATE_STATE 	As String = "ns=2;s=gatestate"
+	Private NODEID_GATE_STATE 	As String = "ns=1;s=gatestate"
 	' Commands
 	Private CMD_GATE_OPEN 		As String = "gateopen"
 	Private CMD_GATE_CLOSE 		As String = "gateclose"
@@ -133,6 +133,8 @@ Public Sub SubscribeNodes
 End Sub
 
 Public Sub ReadNodes
+	OPCUAClient.BrowseFull("ns=0;i=85")
+	OPCUAClient.BrowseFull("ns=1;s=Factory_Floor")
 	OPCUAClient.Read(NODEID_GATE_STATE)
 End Sub
 
@@ -162,8 +164,9 @@ Sub OPCUAClient_Connected
 	Log("[OPCUAClient_Connected] Connected to ESP32 OPC UA Server!")
     
 	IsConnected = True
-	ReadNodes	
 	SubscribeNodes        
+	Sleep(50)
+	ReadNodes
 	' Update hmitiles
 	TileConnect.State = IsConnected
 	TileConnected.Value = "Connected"
@@ -200,6 +203,14 @@ End Sub
 Sub OPCUAClient_ReadResult (NodeId As String, Value As Object, Status As String)
 	Log($"[OPCUAClient_ReadResult] Node: ${NodeId} | Value: ${Value} | Status: ${Status}"$)
 	UpdateHMITiles(NodeId, Value)
+End Sub
+
+' BrowseResult
+Sub OPCUAClient_BrowseResult(Nodes As List)
+	Log($"[BrowseResult] nodes found= ${Nodes.Size}"$)
+	For Each n As Object In Nodes
+		Log(n)
+	Next
 End Sub
 
 ' NodeValueChanged

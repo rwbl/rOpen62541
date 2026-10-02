@@ -61,9 +61,12 @@ Sub Process_Globals
 	Private OPCUAServer			As Open62541						' Lib rOpen62541
 	Private PORT 				As Int = 4840
 	' Nodes (lowercase) using for tests different name spaces
+	Private NODEID_TRIGGER		As String = "ns=1;s=trigger"		'
+	Private NODEID_STATE 		As String = "ns=1;s=gatestate"		'
+
 	Private NAMESPACEINDEX		As Byte = 1
-	Private NODEID_TRIGGER		As String = "ns=1;s=trigger"		' 
-	Private NODEID_STATE 		As String = "ns=2;s=gatestate"		' 
+	Private NODEID_STATE_STRING	As String = "gatestate"		'
+
 	' Commands
 	Private CMD_GATE_OPEN 		As String = "gateopen"
 	Private CMD_GATE_CLOSE 		As String = "gateclose"
@@ -207,8 +210,8 @@ Private Sub SetServoOpen
 	LedRedPin.DigitalWrite(LedRedState)
 	LedGreenState = True
 	LedGreenPin.DigitalWrite(LedGreenState)
-	OPCUAServer.WriteNumeric(NAMESPACEINDEX, NODEID_STATE, STATE_GATE_OPEN)
-	' OPCUAServer.WriteByteString(NAMESPACEINDEX, NODEID_STATE, Array As Byte(0x19, 0x01, 0x58))
+	OPCUAServer.WriteNumeric(NAMESPACEINDEX, NODEID_STATE_STRING, STATE_GATE_OPEN)
+	' OPCUAServer.WriteByteString(NAMESPACEINDEX, NODEID_STATE_STRING, Array As Byte(0x19, 0x01, 0x58))
 	'
 	SetServo(Servo, SERVO_PIN_NR, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_ANGLE)
 End Sub
@@ -218,8 +221,8 @@ Private Sub SetServoClosed
 	LedRedPin.DigitalWrite(LedRedState)
 	LedGreenState = False
 	LedGreenPin.DigitalWrite(LedGreenState)
-	OPCUAServer.WriteNumeric(NAMESPACEINDEX, NODEID_STATE, STATE_GATE_CLOSED)
-	' OPCUAServer.WriteByteString(NAMESPACEINDEX, NODEID_STATE, Array As Byte(0x19, 0x00, 0x58))
+	OPCUAServer.WriteNumeric(NAMESPACEINDEX, NODEID_STATE_STRING, STATE_GATE_CLOSED)
+	' OPCUAServer.WriteByteString(NAMESPACEINDEX, NODEID_STATE_STRING, Array As Byte(0x19, 0x00, 0x58))
 	'
 	SetServo(Servo, SERVO_PIN_NR, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MAX_ANGLE)
 End Sub
