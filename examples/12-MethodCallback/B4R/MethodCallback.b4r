@@ -13,7 +13,7 @@ Version=4
 '==============================================
 ' Project:		rOpen6241
 ' Brief:		Example method callback function.
-' Date:			2026-09-19
+' Date:			2026-10-02
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	Node-Red to trigger the Method Call function using this script in the NR function node:
@@ -78,7 +78,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 MethodCallback v20260919"
+	Private VERSION 			As String = "rOpen62541 MethodCallback v20261002"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -87,8 +87,10 @@ Sub Process_Globals
 	Private PW 					As String = "***"
 	
 	' Open62541
-	Private OpcServer			As Open62541						' Lib rOpen62541
+	Private OPCUAServer			As Open62541						' Lib rOpen62541
 	Private PORT 				As Int = 4840
+	Private NODEID_TRIGGER		As String = "ns=1;s=trigger"		'
+	Private NODEID_CALLMETHOD	As String = "ns=1;s=ExecuteJob"
 	
 	'Helper
 	Private bc As ByteConverter	'ignore
@@ -103,36 +105,37 @@ Sub AppStart
 		Log("[AppStart] WiFi connected > local ip=", WiFi.LocalIP)
 		' [AppStart] WiFi connected. IP=192.168.1.68
 
-		' CRITICAL HARDWARE FIX: DISABLE WI-FI SLEEP LAYERS
+		' DISABLE WI-FI SLEEP LAYERS
 		' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
 		' from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
 		RunNative("DisableWiFiSleep", Null)
 			       
-		Log("[AppStart] Init opc server")
-		If InitOpcServer Then
-			Log("[AppStart] Opc server started")
+		Log("[AppStart] Init OPCUAServer server")
+		If InitOPCUAServerServer Then
+			Log("[AppStart] OPCUAServer server started")
 		End If
 	Else
 		Log("[AppStart][E] WiFi Connection Failed")
 	End If
 End Sub
 
-' InitOpcServer
+' InitOPCUAServerServer
 ' Steps:
 ' Init the server with ip, port and client callback
 ' Wait till the opc server has been started successfully
 ' Add various nodes
-Private Sub InitOpcServer As Boolean
+Private Sub InitOPCUAServerServer As Boolean
 	Dim TimeoutCounter As Int = 0
 	Dim ServerBootFailed As Boolean = False
 
-	Log("[InitOpcServer] Initializing...")
+	Log("[InitOPCUAServerServer] Initializing...")
+
 	' Spin up the Core 0 open62541 network engine with callback
-	OpcServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOpcServer] Awaiting background core network initialization...")
-	Do While OpcServer.IsReady = False
+	Do While OPCUAServer.IsReady = False
 		' 100ms yield ticks for the cooperative scheduler
 		Delay(100) 
         
@@ -146,15 +149,20 @@ Private Sub InitOpcServer As Boolean
 	Loop
     
 	If ServerBootFailed Then
-		Log("[InitOpcServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
+		Log("[InitOPCUAServer][E] Initialization TIMEOUT! Core 0 failed.")
 		' Optional: Run local emergency fallback routine or let local sensors run offline
 	Else
-		Log("[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...")
+		Log("[InitOPCUAServer] Core 0 online! Spawning dynamic address space nodes...")
+
+		' Add trigger received from the client and call event OnDataWrite
+		' The clients sends the commands to set the state of the gate to open or closed.
+		OPCUAServer.AddStringNode(NODEID_TRIGGER, "Remote Trigger OnDataWrite", "0")
 
 		' Register the native executable method node!
-		OpcServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OnMethodCall")
+		OPCUAServer.AddMethodNode(NODEID_CALLMETHOD, "Remote Call Method", "OnMethodCall")
 		' Node-RED Example:
 		' objectId = "ns=1;s=Factory_Floor"; methodId = "ns=1;s=ExecuteJob"; msg.inputArguments = [{dataType: "ByteString",value: "START_BATCH"}];
+
 	End If
 	Return Not(ServerBootFailed)
 End Sub
@@ -167,7 +175,7 @@ End Sub
 ' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
 ' In OPC UA, when a client changes a variable node, it is executing a Write service. This callback intercepts that write event.
 ' Example B4J where the client sends value 68: 
-' OpcClient.Write("ns=1;s=Trigger", 68)
+' OPCUAClient.Write("ns=1;s=Trigger", 68)
 Private Sub OnDataWrite(buffer() As Byte)
 	Log("[OnDataWrite] OPC UA Client clicked the trigger method. command=", bc.StringFromBytes(buffer))
 	'[OnDataWrite] OPC UA Client clicked the trigger method. command=STOP
@@ -178,7 +186,8 @@ End Sub
 ' Fired automatically when a client invokes OpcServer.CallMethod()
 ' In OPC UA, executing a method node uses the standard Call service. This callback handles that explicit method call request.
 ' Bound directly to MethodCallSub execution loop.
-' 
+' [OnMethodCall] Client invoked the method node with argument: string=START_BATCH
+' [OnMethodCall] Command accepted. Running production batch code...
 Private Sub OnMethodCall(InputParams() As Byte)
 	Dim ParamText As String = bc.StringFromBytes(InputParams)
 	Log("[OnMethodCall] Client invoked the method node with argument:", _
@@ -189,12 +198,12 @@ Private Sub OnMethodCall(InputParams() As Byte)
 		Log("[OnMethodCall] Command accepted. Running production batch code...")
         
 		' Sends "Success" back to OPC UA client
-		OpcServer.SetMethodReturnCode(OpcServer.STATUS_GOOD)
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
 	Else
 		Log("[OnMethodCall] Command rejected. Invalid parameter format.")
         
 		' Sends "Fault/Error" back to OPC UA client
-		OpcServer.SetMethodReturnCode(OpcServer.STATUS_FAILURE) 
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_FAILURE)
 	End If
 End Sub
 

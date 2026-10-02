@@ -2,7 +2,7 @@
 
 > [!WARNING]
 > **Final Testing & Documentation In Progress**  
-> Core server developments are complete and in final testing, meaning minor API changes may still occur before the formal release. Documentation and project examples are actively being written and updated.
+> The core server functionality is implemented and the API is approaching stability. Final testing, documentation, and project examples are still in progress, and minor API changes may occur before the v1.0.0 release.
 
 **rOpen62541** is an open-source [B4R](https://www.b4x.com/b4r.html) library wrapper for the industrial open62541 OPC UA protocol stack, specifically optimized for the ESP32-S3 Dual-Core architecture. 
 It provides thread-safe cross-core communication, dynamic string-node creation, and type-agnostic runtime write diagnostics.
@@ -59,7 +59,7 @@ This server implementation complies strictly with core industrial data-modeling 
 Download the repository from [GitHub](https://github.com/rwbl/rOpen62541).
 - Copy the src sub-folder **rOpen62541** into your B4R **Additional Libraries** folder, keeping the folder structure fully intact.
 - Copy the src file **rOpen62541.xml** into your B4R **Additional Libraries** folder.
-
+*Note:* [B4R](http://www.b4x.com/b4r.html) installation instructions in case not installed.
 ---
 
 ## Project Code Examples

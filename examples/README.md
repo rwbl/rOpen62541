@@ -18,6 +18,9 @@ The following examples are structured into dedicated sub-folders:
 	- Demonstrates querying standard Namespace 0 (`ns=0`) system variables and parsing complex structure payloads.
 	- Example 1 B4J with the `SS_OPCUAClient` library, `HMITilesIO` for the Dashboard.
 	- Example 2 Node.js with the `node-opcua` stack.
+- [**18-ServoControl**](16-ServoControl/) — Control the position of a servo motor connected to the ESP32S3. 
+	- Demonstrates using the Trigger callback to control an output device and show its state on Traffic Light LEDs.
+	- Example 1 B4J with the `SS_OPCUAClient` library, `HMITilesIO` for the Dashboard.
 
 ---
 

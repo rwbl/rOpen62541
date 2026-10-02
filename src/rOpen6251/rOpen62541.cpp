@@ -16,7 +16,7 @@ static char espIpAddress[32] = "127.0.0.1"; 			// Default ESP32 IP address which
 
 static SemaphoreHandle_t open62541Mutex = NULL; 
 
-// Trigger Method initiated from OPCUA client ("Trigger"
+// Trigger Method initiated from OPCUA client ("Trigger" or "trigger")
 static volatile bool scadaTriggerCalled = false; 		// Flag for method calls
 static uint8_t globalTriggerBuffer[64]; 				// Cache for incoming raw byte payloads (String, Int, Float, etc.)
 static volatile size_t globalTriggerLength = 0;
@@ -25,7 +25,7 @@ static volatile size_t globalTriggerLength = 0;
 static volatile bool scadaMethodCalled = false;			// Flag for method calls
 static uint8_t globalMethodInputBuffer[64];      		// Cache for incoming method arguments
 static volatile size_t globalMethodInputLength = 0;
-static volatile ULong globalMethodOutputResult = 0;	// Return parameter sent back to SCADA
+static volatile ULong globalMethodOutputResult = 0;		// Return parameter sent back to SCADA
 
 // User Auth Management
 static char uaUsername[32] = "";
@@ -130,7 +130,7 @@ namespace B4R {
     // OPC UA Server Execution Task (Runs completely on Core 0)
     // ============================================================================
 
-void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
+	void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
         freopen("/dev/null", "w", stdout);
 
         server = UA_Server_new();
@@ -188,62 +188,118 @@ void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
     // Address Space Construction (Base Setup Only)
     // ============================================================================
 
-    void B4ROPEN62541::buildOpcUaTree() {
-        // Create the base folder. Nodes will be attached here dynamically later.
-        UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
-        oAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Factory_Floor");
-        
-        UA_Server_addObjectNode(server, 
-                                UA_NODEID_STRING(1, (char*)"Factory_Floor"), 
-                                UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER), 
-                                UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),     
-                                UA_QUALIFIEDNAME(1, (char*)"Factory_Floor"),         
-                                UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE),
-                                oAttr, NULL, &folderNodeId);
-    }
+	void B4ROPEN62541::buildOpcUaTree() {
+		// Create the base folder. Nodes will be attached here dynamically later.
+		UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
+		oAttr.displayName = UA_LOCALIZEDTEXT("en-US", "Factory_Floor");
+
+		folderNodeId = UA_NODEID_STRING(1, (char*)"Factory_Floor");
+
+		UA_Server_addObjectNode(
+			server,
+			folderNodeId,
+			UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER),
+			UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES),
+			UA_QUALIFIEDNAME(1, (char*)"Factory_Floor"),
+			UA_NODEID_NUMERIC(0, UA_NS0ID_BASEOBJECTTYPE),
+			oAttr,
+			NULL,
+			NULL);
+	}
+
+    // ============================================================================
+	// HELPER CREATING & ADDING NODES
+    // ============================================================================
+
+	UA_NodeId CreateNodeId(B4RString* NodeIdentifier)
+	{
+		const char* identifier = (char*)NodeIdentifier->data;
+
+		UA_UInt16 namespaceIndex = 1;
+		const char* nodeId = identifier;
+
+		if (strncmp(identifier, "ns=", 3) == 0)
+		{
+			namespaceIndex = atoi(identifier + 3);
+
+			const char* separator = strchr(identifier, ';');
+
+			if (separator != NULL && strncmp(separator + 1, "s=", 2) == 0)
+			{
+				nodeId = separator + 3;
+			}
+		}
+
+		return UA_NODEID_STRING(namespaceIndex, (char*)nodeId);
+	}
+
+	const char* GetStringIdentifier(B4RString* NodeIdentifier)
+	{
+		const char* identifier = (char*)NodeIdentifier->data;
+
+		if (strncmp(identifier, "ns=", 3) == 0)
+		{
+			const char* separator = strchr(identifier, ';');
+
+			if (separator != NULL && strncmp(separator + 1, "s=", 2) == 0)
+				return separator + 3;
+		}
+
+		return identifier;
+	}
 
     // ============================================================================
     // Flexible Dynamic Node Management (Public Methods API)
     // ============================================================================
 
-    void B4ROPEN62541::AddMethodNode(B4RString* MethodName, B4RString* DisplayName, SubVoidArray MethodCallSub) {
-        if (server == NULL) return;
-        this->MethodCallSub = MethodCallSub;
+	void B4ROPEN62541::AddMethodNode(
+		B4RString* MethodName,
+		B4RString* DisplayName,
+		SubVoidArray MethodCallSub) {
 
-        if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
-            
-            UA_Argument inputArgument;
-            UA_Argument_init(&inputArgument);
-            inputArgument.description = UA_LOCALIZEDTEXT("en-US", "Command Payload Code");
-            inputArgument.name = UA_STRING("InputData");
-            inputArgument.dataType = UA_TYPES[UA_TYPES_BYTESTRING].typeId; 
-            inputArgument.valueRank = UA_VALUERANK_SCALAR;
+		if (server == NULL) return;
 
-            UA_Argument outputArgument;
-            UA_Argument_init(&outputArgument);
-            outputArgument.description = UA_LOCALIZEDTEXT("en-US", "Execution Return Code");
-            outputArgument.name = UA_STRING("ReturnStatus");
-            outputArgument.dataType = UA_TYPES[UA_TYPES_INT32].typeId;
-            outputArgument.valueRank = UA_VALUERANK_SCALAR;
+		this->MethodCallSub = MethodCallSub;
 
-            UA_MethodAttributes mAttr = UA_MethodAttributes_default;
-            mAttr.displayName = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
-            mAttr.executable = true;
-            mAttr.userExecutable = true;
+		if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
 
-            UA_Server_addMethodNode(server, 
-                UA_NODEID_STRING(1, (char*)MethodName->data),
-                UA_NODEID_STRING(1, (char*)"Factory_Floor"),
-                UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
-                UA_QUALIFIEDNAME(1, (char*)MethodName->data),
-                mAttr, &B4ROPEN62541::opcuaMethodBridge, 
-                1, &inputArgument, 
-                1, &outputArgument, 
-                NULL, NULL);
+			UA_Argument inputArgument;
+			UA_Argument_init(&inputArgument);
+			inputArgument.description = UA_LOCALIZEDTEXT("en-US", "Command Payload Code");
+			inputArgument.name = UA_STRING("InputData");
+			inputArgument.dataType = UA_TYPES[UA_TYPES_BYTESTRING].typeId;
+			inputArgument.valueRank = UA_VALUERANK_SCALAR;
 
-            xSemaphoreGive(open62541Mutex);
-        }
-    }
+			UA_Argument outputArgument;
+			UA_Argument_init(&outputArgument);
+			outputArgument.description = UA_LOCALIZEDTEXT("en-US", "Execution Return Code");
+			outputArgument.name = UA_STRING("ReturnStatus");
+			outputArgument.dataType = UA_TYPES[UA_TYPES_INT32].typeId;
+			outputArgument.valueRank = UA_VALUERANK_SCALAR;
+
+			UA_MethodAttributes mAttr = UA_MethodAttributes_default;
+			mAttr.displayName = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
+			mAttr.executable = true;
+			mAttr.userExecutable = true;
+
+			UA_NodeId methodNodeId = CreateNodeId(MethodName);
+			const char* methodIdentifier = GetStringIdentifier(MethodName);
+
+			UA_Server_addMethodNode(
+				server,
+				methodNodeId,
+				folderNodeId,
+				UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+				UA_QUALIFIEDNAME(1, (char*)methodIdentifier),
+				mAttr,
+				&B4ROPEN62541::opcuaMethodBridge,
+				1, &inputArgument,
+				1, &outputArgument,
+				NULL, NULL);
+
+			xSemaphoreGive(open62541Mutex);
+		}
+	}
 
     UA_StatusCode B4ROPEN62541::opcuaMethodBridge(UA_Server *server,
         const UA_NodeId *sessionId, void *sessionContext,
@@ -326,11 +382,14 @@ void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
             vAttr.displayName = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
             vAttr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
             
+			UA_NodeId targetNodeId = CreateNodeId(NodeIdentifier);
+			const char* stringIdentifier = GetStringIdentifier(NodeIdentifier);
+			
             UA_Server_addVariableNode(server, 
-                                      UA_NODEID_STRING(1, (char*)NodeIdentifier->data), 
-                                      UA_NODEID_STRING(1, (char*)"Factory_Floor"),                               
+                                      targetNodeId, 
+                                      folderNodeId,                               
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT), 
-                                      UA_QUALIFIEDNAME(1, (char*)NodeIdentifier->data), 
+                                      UA_QUALIFIEDNAME(1, (char*)stringIdentifier), 
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), 
                                       vAttr, NULL, NULL);
                                       
@@ -348,14 +407,14 @@ void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
             vAttr.displayName = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
             vAttr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
             
-            UA_NodeId targetNodeId = UA_NODEID_STRING(1, (char*)NodeIdentifier->data);
+			UA_NodeId targetNodeId = CreateNodeId(NodeIdentifier);
+			const char* stringIdentifier = GetStringIdentifier(NodeIdentifier);
             
-            // 1. Create the variable node normally
             UA_Server_addVariableNode(server, 
                                       targetNodeId, 
-                                      UA_NODEID_STRING(1, (char*)"Factory_Floor"),                               
+                                      folderNodeId,                               
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT), 
-                                      UA_QUALIFIEDNAME(1, (char*)NodeIdentifier->data), 
+                                      UA_QUALIFIEDNAME(1, (char*)stringIdentifier), 
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), 
                                       vAttr, NULL, NULL);
                                       
@@ -374,20 +433,22 @@ void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
 			vAttr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
 			
 			// Use a persistent NodeId instance copy for tracking
-			UA_NodeId targetNodeId = UA_NODEID_STRING(1, (char*)NodeIdentifier->data);
+			UA_NodeId targetNodeId = CreateNodeId(NodeIdentifier);
+			const char* stringIdentifier = GetStringIdentifier(NodeIdentifier);
 			
 			// Add the variable node to the address space first!
 			UA_Server_addVariableNode(server, 
 									  targetNodeId, 
-									  UA_NODEID_STRING(1, (char*)"Factory_Floor"),                               
+									  folderNodeId,                               
 									  UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT), 
-									  UA_QUALIFIEDNAME(1, (char*)NodeIdentifier->data), 
+                                      UA_QUALIFIEDNAME(1, (char*)stringIdentifier), 
 									  UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), 
 									  vAttr, NULL, NULL);
 
             // Attach string interceptor
-            if (strcmp((char*)NodeIdentifier->data, "Trigger") == 0) {
-                UA_ValueCallback callback;
+			if (strcmp(stringIdentifier, "Trigger") == 0 ||
+				strcmp(stringIdentifier, "trigger") == 0) {		
+				UA_ValueCallback callback;
                 callback.onRead = NULL;
                 callback.onWrite = [](UA_Server *server, const UA_NodeId *sessionId, 
                                      void *sessionContext, const UA_NodeId *nodeId, 
@@ -469,13 +530,15 @@ void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
             vAttr.displayName = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
             vAttr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
             
-            UA_NodeId targetNodeId = UA_NODEID_STRING(1, (char*)NodeIdentifier->data);
+            // UA_NodeId targetNodeId = UA_NODEID_STRING(1, (char*)NodeIdentifier->data);
+			UA_NodeId targetNodeId = CreateNodeId(NodeIdentifier);
+			const char* stringIdentifier = GetStringIdentifier(NodeIdentifier);
             
             UA_Server_addVariableNode(server, 
                                       targetNodeId, 
-                                      UA_NODEID_STRING(1, (char*)"Factory_Floor"),                               
+                                      folderNodeId,                               
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT), 
-                                      UA_QUALIFIEDNAME(1, (char*)NodeIdentifier->data), 
+                                      UA_QUALIFIEDNAME(1, (char*)stringIdentifier), 
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), 
                                       vAttr, NULL, NULL);
                                       
@@ -494,13 +557,14 @@ void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
             vAttr.displayName = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
             vAttr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
             
-            UA_NodeId targetNodeId = UA_NODEID_STRING(1, (char*)NodeIdentifier->data);
+			UA_NodeId targetNodeId = CreateNodeId(NodeIdentifier);
+			const char* stringIdentifier = GetStringIdentifier(NodeIdentifier);
             
             UA_Server_addVariableNode(server, 
                                       targetNodeId, 
-                                      UA_NODEID_STRING(1, (char*)"Factory_Floor"),                               
+                                      folderNodeId,                               
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT), 
-                                      UA_QUALIFIEDNAME(1, (char*)NodeIdentifier->data), 
+                                      UA_QUALIFIEDNAME(1, (char*)stringIdentifier), 
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), 
                                       vAttr, NULL, NULL);
                                       
@@ -570,6 +634,28 @@ void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
             xSemaphoreGive(open62541Mutex);
         }
     }
+
+	void B4ROPEN62541::WriteByteString(int NamespaceIndex, B4RString* NodeIdentifier, ArrayByte* Data) {
+		if (server == NULL || !globalIsReady || Data == NULL) return;
+
+		if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
+			UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)NodeIdentifier->data);
+
+			UA_ByteString byteString;
+			byteString.length = Data->length;
+			byteString.data = (UA_Byte*)Data->data;
+
+			UA_Variant value;
+			UA_Variant_init(&value);
+
+			UA_Variant_setScalarCopy(&value, &byteString, &UA_TYPES[UA_TYPES_BYTESTRING]);
+			UA_Server_writeValue(server, targetNodeId, value);
+
+			UA_Variant_clear(&value);
+
+			xSemaphoreGive(open62541Mutex);
+		}
+	}
 
     // ============================================================================
     // READ
@@ -647,6 +733,37 @@ void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
 		return s;
 	}
 
+	ArrayByte* B4ROPEN62541::ReadByteString(int NamespaceIndex, B4RString* NodeIdentifier) {
+		if (server == NULL || !globalIsReady) return NULL;
+
+		ArrayByte* result = NULL;
+
+		if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
+			UA_NodeId targetNodeId =
+				UA_NODEID_STRING(NamespaceIndex, (char*)NodeIdentifier->data);
+
+			UA_Variant value;
+			UA_Variant_init(&value);
+
+			if (UA_Server_readValue(server, targetNodeId, &value) == UA_STATUSCODE_GOOD) {
+				if (value.type == &UA_TYPES[UA_TYPES_BYTESTRING] &&
+					value.data != NULL) {
+
+					UA_ByteString* byteString = (UA_ByteString*)value.data;
+
+					result = CreateStackMemoryObject(ArrayByte);
+					result->data = (Byte*)byteString->data;
+					result->length = byteString->length;
+				}
+			}
+
+			UA_Variant_clear(&value);
+			xSemaphoreGive(open62541Mutex);
+		}
+
+		return result;
+	}
+
     // ============================================================================
     // OPC UA Callbacks & Event Handling
     // ============================================================================
@@ -657,7 +774,7 @@ void B4ROPEN62541::opcuaServerTask(void *pvParameters) {
         void *objectContext, size_t inputSize, const UA_Variant *input,
         size_t outputSize, UA_Variant *output) {
         
-		// Flip the atomic cross-core flag to true
+		// Signal the B4R looper that the Trigger node was written.
         scadaTriggerCalled = true; 
 		
 		// Return a good status code back to the B4J Milo Client immediately

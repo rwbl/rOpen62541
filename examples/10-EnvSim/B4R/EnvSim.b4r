@@ -13,27 +13,27 @@ Version=4
 '==============================================
 ' Project:		rOpen6241
 ' Brief:		Example simulating sensor data and listening to client callback.
-' Date:			2026-09-19
+' Date:			2026-09-20
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	Simulating temperature and humidity sensor data.
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
 '				Unleash the 8MB Octal PSRAM footprint
-'				Partitionscheme: HUge App
+'				Partitionscheme: Huge App
 '				PSRAM: OPI PSRAM
 ' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
 '				Arduino Board Manager ESP32 3.3.11.
 ' Wiring:		N/A
 ' Log:
-'[AppStart] rOpen62541 EnvSim v20260912
+'[AppStart] rOpen62541 EnvSim v20260920
 '[AppStart] WiFi connected > local IP=192.168.1.175
 '[AppStart] Init opc server
-'[InitOpcServer] Initializing...
-'[InitOpcServer] Awaiting background core network initialization...
+'[InitOPCUAServer] Initializing...
+'[InitOPCUAServer] Awaiting background core network initialization...
 '[opcuaServerTask] OPC UA Security: Anonymous Access Mode Active!
 '[opcuaServerTask] OPC UA Server successfully running on Core 0!
-'[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...
+'[InitOPCUAServer] Core 0 online! Spawning dynamic address space nodes...
 '[AppStart] Opc server started
 '[AppTimer] Sensor read complete. Updated Node memory with: t=25.5000 h=74
 '[OpcCallback] SCADA/B4J Client clicked the trigger method. command=STOP
@@ -53,7 +53,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 EnvSim v20260913"
+	Private VERSION 			As String = "rOpen62541 EnvSim v20260920"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -62,9 +62,16 @@ Sub Process_Globals
 	Private PW 					As String = "***"
 	
 	' Open62541
-	Private OpcServer			As Open62541						' Lib rOpen62541
+	Private OPCUAServer			As Open62541						' Lib rOpen62541
 	Private PORT 				As Int = 4840
 	Private NAMESPACE_INDEX 	As Int = 1
+	' Nodes
+	Private NODEID_TEMPERATURE	As String = "ns=1;s=Temperature"
+	Private NODEID_HUMIDITY		As String = "ns=1;s=Humidity"
+	Private NODEID_COUNTER		As String = "ns=1;s=Counter"
+	Private NODEID_TRIGGER		As String = "ns=1;s=Trigger"
+	Private NODEID_RAWTELEMETRY	As String = "ns=1;s=RawTelemetry"
+
 
 	Private AppTimer As Timer
 	Private APPTIMER_INTERVAL As ULong = 2000
@@ -93,33 +100,36 @@ Sub AppStart
 		RunNative("DisableWiFiSleep", Null)
 		RunNative("InitSystemClock", Null)
 		
-		Log("[AppStart] Init opc server")
-		If InitOpcServer Then
+		Log("[AppStart] Init OPC UA server")
+		If InitOPCUAServer Then
 			' All good > start the app timer to update nodes
 			AppTimer.Enabled = True
-			Log("[AppStart] Opc server started")
+			Log("[AppStart] OPC UA server started")
 		End If
 	Else
 		Log("[AppStart][E] WiFi Connection Failed")
 	End If
 End Sub
 
-' InitOpcServer
+' InitOPCUAServer
 ' Steps:
 ' Init the server with ip, port and client callback
 ' Wait till the opc server has been started successfully
 ' Add various nodes
-Private Sub InitOpcServer As Boolean
+Private Sub InitOPCUAServer As Boolean
 	Dim TimeoutCounter As Int = 0
 	Dim ServerBootFailed As Boolean = False
 
-	Log("[InitOpcServer] Initializing...")
+	Log("[InitOPCUAServer] Initializing...")
 	' Spin up the Core 0 open62541 network engine with callback
-	OpcServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
+
+	' Sets the maximum timeout ceiling to 120 seconds (120000ms)
+	' OPCUAServer.SetSessionTimeout(120000.0)
 	
 	' Wait for the background thread layout initialization to complete!
-	Log("[InitOpcServer] Awaiting background core network initialization...")
-	Do While OpcServer.IsReady = False
+	Log("[InitOPCUAServer] Awaiting background core network initialization...")
+	Do While OPCUAServer.IsReady = False
 		Delay(100) ' 100ms yield ticks for the cooperative scheduler
         
 		TimeoutCounter = TimeoutCounter + 1
@@ -130,30 +140,30 @@ Private Sub InitOpcServer As Boolean
 	Loop
     
 	If ServerBootFailed Then
-		Log("[InitOpcServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
+		Log("[InitOPCUAServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
 		' Optional: Run local emergency fallback routine or let local sensors run offline
 	Else
-		Log("[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...")
+		Log("[InitOPCUAServer] Core 0 online! Spawning dynamic address space nodes...")
 		' Add nodes holding data
-		OpcServer.AddFloatNode("Temperature", "Room Temperature", 20.0)
-		OpcServer.AddFloatNode("Humidity", "Room Humidity", 68.0)
-		OpcServer.AddIntNode("Counter", "Total Shift Cycle Count", 0)
+		OPCUAServer.AddFloatNode(NODEID_TEMPERATURE, "Room Temperature", 20.0)
+		OPCUAServer.AddFloatNode(NODEID_HUMIDITY, "Room Humidity", 68.0)
+		OPCUAServer.AddIntNode(NODEID_COUNTER, "Total Shift Cycle Count", 0)
 
 		' Allocate a local test array buffer: 0x19, 0x02, 0x03, 0x04, 0x58
 		Dim RawBuffer() As Byte = Array As Byte(0x19, 0x02, 0x03, 0x04, 0x58)
     
 		' Create the standardized ByteString variable node
-		OpcServer.AddByteStringNode("RawTelemetry", "Atomic Hex Package", RawBuffer)
+		OPCUAServer.AddByteStringNode(NODEID_RAWTELEMETRY, "Atomic Hex Package", RawBuffer)
     
 		' Add trigger received from the client and call OpcCallback
-		OpcServer.AddStringNode("Trigger", "Remote Action Trigger", "0")
+		OPCUAServer.AddStringNode(NODEID_TRIGGER, "Remote Action Trigger", "0")
 	End If
 	Return Not(ServerBootFailed)
 End Sub
 
 Sub AppTimer_Tick
     ' Only write data if the background server task on Core 0 is fully ready
-    If OpcServer.IsReady Then
+    If OPCUAServer.IsReady Then
         
         ' Read real sensor here: 
 		' Dim CurrentTemp As Float = BMP.ReadTemperature
@@ -168,10 +178,10 @@ Sub AppTimer_Tick
 		' ns=1;s=Temperature (Namespace 1, String identifier).
 
 		' The client simply asks the server for that exact identifier.
-		OpcServer.WriteNumeric(NAMESPACE_INDEX, "Temperature", CurrentTemp)
+		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, "Temperature", CurrentTemp)
 
 		' Humidity following same as Temperature
-		OpcServer.WriteNumeric(NAMESPACE_INDEX, "Humidity", CurrentHum)
+		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, "Humidity", CurrentHum)
 		
         ' Log update
 		' Log("[AppTimer] Sensor read complete. Updated Node memory with: t=", CurrentTemp, " h=", CurrentHum)
@@ -184,7 +194,7 @@ End Sub
 
 ' OnDataWrite
 ' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
-' OPC UA Cliet Examples:
+' OPC UA Client Examples:
 ' B4J sends value 68 (Int): OpcClient.Write("ns=1;s=Trigger", 68)
 ' Node-Red sends value START (String): {"payload":"START","topic":"ns=1;s=Trigger","datatype":"String","browseName":"Trigger Node"}
 Private Sub OnDataWrite(buffer() As Byte)

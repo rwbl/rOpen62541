@@ -7,7 +7,7 @@ Version=9.85
 #Region Class Info
 ' Project:		rOpen62541 (OPC UA Server)
 ' Brief:		OPC UA client for the EnvSim example.
-' Date:			2026-09-20
+' Date:			2026-10-02
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	B4X pages project with the PyBridge to Control the OPC UA Server LED.
 '				The OPC UA server receives from this OPC UA client a msg with nodeid "Trigger" and value "ledon" or "ledoff".
@@ -78,7 +78,7 @@ Version=9.85
 #Macro: Title, Export B4XPages, ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 
 Sub Class_Globals
-	Private VERSION As String = "rOpc62541 InOut Example v20260920"
+	Private VERSION As String = "rOpc62541 EnvSim Example v20261002"
 	' UI
 	Private xui As XUI
 	Private Root As B4XView
@@ -87,10 +87,11 @@ Sub Class_Globals
 	Public Py 		As PyBridge
 	
 	' OpcUaClient Instance
-	Private OpcClient 			As OpcUaClient					' Connect url = OpcClient.tcp://192.168.1.175:4840
-	Private IP 					As String = "192.168.1.175"		' Set according ESP32 OPC UA Server
-	Private PORT 				As Int = 4840					' Default port
-	Private NODE_TEMPERATURE 	As String = "ns=1;s=Temperature"
+	Private OpcClient 			As OpcUaClient						' Connect url = OpcClient.tcp://192.168.1.175:4840
+	Private IP 					As String = "192.168.1.175"			' Set according ESP32 OPC UA Server
+	Private PORT 				As Int = 4840						' Default port
+																	' Nodes using namespace 1
+	Private NODE_TEMPERATURE 	As String = "ns=1;s=Temperature"	
 	Private NODE_HUMIDITY 		As String = "ns=1;s=Humidity"
 	Private NODE_TRIGGER 		As String = "ns=1;s=Trigger"
 		

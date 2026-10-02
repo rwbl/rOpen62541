@@ -2,7 +2,7 @@
 
 Project: rOpen62541
 Brief: Object-Oriented Class for rOpen62541 with Asynchronous Data Subscription.
-Date: 20260919
+Date: 20260914
 Author: Robert W.B. Linn (c) 2026 - MIT
 Dependencies: asyncua library (https://pypi.org)
 

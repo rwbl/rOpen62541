@@ -77,12 +77,12 @@ Sub OpcClient_ReadResult (NodeId As String, Value As Object, Status As String)
                 Dim RawBytes() As Byte = Body.RunMethod("bytes", Null)
                 Dim BC As ByteConverter
                 
-                ' 1. Extract Software Build Tag (Exact length 28, text starts at index 88)
+                ' Extract Software Build Tag (Exact length 28, text starts at index 88)
                 Dim SoftwareVersionBytes(28) As Byte
                 BC.ArrayCopy2(RawBytes, 88, SoftwareVersionBytes, 0, 28)
                 Dim SoftwareVersion As String = BC.StringFromBytes(SoftwareVersionBytes, "ASCII")
                 
-                ' 2. Extract Compile Baseline Date (Exact length 20, text starts at index 120)
+                ' Extract Compile Baseline Date (Exact length 20, text starts at index 120)
                 Dim BuildTimeBytes(20) As Byte
                 BC.ArrayCopy2(RawBytes, 120, BuildTimeBytes, 0, 20)
                 Dim BuildTime As String = BC.StringFromBytes(BuildTimeBytes, "ASCII")

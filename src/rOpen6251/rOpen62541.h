@@ -7,7 +7,7 @@
  *       Mozilla Public License v2.0 as stated in the LICENSE file provided with open62541.
  * @note The custom structural object folder is named "Factory_Floor" (see build buildOpcUaTree) with target "ns=1;s=Factory_Floor" as objectId.
  * @version See below version
- * @date 2026-09-19
+ * @date 2026-10-02
  * @author Robert W. B. Linn (c) 2026 — MIT License provided with rOpen62541.
  */
 
@@ -17,7 +17,7 @@
 // Open 62541 library stored locally
 #include "open62541.h"
 
-//~version: 0.70
+//~version: 0.90
 namespace B4R {
 	//~shortname: Open62541
 	//~Event: MethodTriggered ()
@@ -78,7 +78,8 @@ namespace B4R {
 			 */
 
 			/**
-			 * Initializes the OPC UA Server engine, builds the network configuration, and registers the B4R callback.
+			 * Initializes the OPC UA Server engine, builds the network configuration, and registers the B4R method trigger callback.
+			 * Important: Initialize must be called only once during application startup.
 			 * If Username is empty "", it defaults to anonymous access.
 			 * @param LocalIP The target TCP network IP.
 			 * @param Port The target listening TCP network port (typically 4840).
@@ -94,8 +95,9 @@ namespace B4R {
 
 			/**
 			 * Dynamically allocates a new executable RPC Method node inside the Factory Floor folder.
-			 * This allows SCADA/Node-RED clients to execute true industrial method commands natively,
+			 * This allows clients to execute true industrial method commands natively,
 			 * passing an input data string and awaiting a direct response token back.
+			 * Maximum method input payload: 63 bytes.
 			 * @param MethodName The targeting unique string Node ID for the method (e.g., "ExecuteJob").
 			 * @param DisplayName The human-readable string representation exposed to SCADA clients.
 			 * @param MethodCallSub The function pointer address targeting your B4R method handling subroutine callback.
@@ -112,7 +114,7 @@ namespace B4R {
 
 			/**
 			 * Dynamically allocates a new floating-point node variable inside the Factory Floor folder.
-			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "Temperature").
+			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "ns=1;s=Temperature").
 			 * @param DisplayName The human-readable string representation exposed to SCADA clients.
 			 * @param InitialValue The starting float value assigned to the node space on boot.
 			 */
@@ -120,7 +122,7 @@ namespace B4R {
 
 			/**
 			 * Dynamically allocates a new signed 32-bit integer node variable inside the Factory Floor folder.
-			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "Counter").
+			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "ns=1;s=Counter").
 			 * @param DisplayName The human-readable string representation exposed to SCADA clients.
 			 * @param InitialValue The starting integer value assigned to the node space on boot.
 			 */
@@ -128,7 +130,7 @@ namespace B4R {
 
 			/**
 			 * Dynamically allocates a new string node variable inside the Factory Floor folder.
-			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "Counter").
+			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "ns=1;s=Counter").
 			 * @param DisplayName The human-readable string representation exposed to SCADA clients.
 			 * @param InitialValue The starting string value assigned to the node space on boot.
 			 */
@@ -137,7 +139,7 @@ namespace B4R {
 			/**
 			 * Dynamically allocates a new raw ByteString variable node inside the Factory Floor folder.
 			 * Perfect for transferring B4RSerializator binary buffers or plain byte sets.
-			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "BinaryData").
+			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "ns=1;s=BinaryData").
 			 * @param DisplayName The human-readable string representation exposed to SCADA clients.
 			 * @param InitialBytes The starting B4R ArrayByte buffer package payload to assign on boot.
 			 */
@@ -146,7 +148,7 @@ namespace B4R {
 			/**
 			 * Dynamically allocates a new Boolean node variable inside the Factory Floor folder.
 			 * Perfect for switching hardware relays or reading digital state inputs.
-			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "Relay1").
+			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "ns=1;s=Relay1").
 			 * @param DisplayName The human-readable string representation exposed to SCADA clients.
 			 * @param InitialValue The starting Boolean flag status assigned on boot.
 			 */
@@ -158,8 +160,8 @@ namespace B4R {
 
 			/**
 			 * Thread-safely updates an active OPC UA node by automatically resolving its compiled data layout type.
-			 * Supports cross-core type verification for floating-point, integer, and boolean structures inside Namespace 1.
-			 * @param NamespaceIndex The numerical namespace target index (e.g., 0).
+			 * Supports cross-core type verification for floating-point (Float), integer (Int32), and Boolean structures inside Namespace 1.
+			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
 			 * @param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
 			 * @param NewValue The numerical double representation payload to convert and assign.
 			 */
@@ -167,12 +169,21 @@ namespace B4R {
 
 			/**
 			 * Thread-safely writes a string text payload into an active OPC UA node.
-			 * Automatically handles string memory copying and verifies target node type data inside Namespace 1.
-			 * @param NamespaceIndex The numerical namespace target index (e.g., 0).
+			 * Automatically handles string memory copying and verifies the target node data type.
+			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
 			 * @param NodeIdentifier The targeting string Node ID (e.g., "DeviceStatus").
 			 * @param NewValue The B4RString payload to write into the node address space.
 			 */
 			void WriteString(int NamespaceIndex, B4RString* NodeIdentifier, B4RString* NewValue);
+
+			/**
+			 * OPC UA Standard Write Service.
+			 * Thread-safely writes a binary ByteString payload into an active OPC UA node.
+			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
+			 * @param NodeIdentifier The targeting string Node ID (e.g., "DeviceData").
+			 * @param Data The B4R ArrayByte payload to write into the node address space.
+			 */
+			void WriteByteString(int NamespaceIndex, B4RString* NodeIdentifier, ArrayByte* Data);
 
 			/**
 			 * READ
@@ -181,20 +192,29 @@ namespace B4R {
 			/**
 			 * OPC UA Standard Read Service.
 			 * Thread-safely reads a node value using a numeric identifier.
-			 * @param NamespaceIndex The numerical namespace target index (e.g., 0).
+			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
 			 * @param NumericIdentifier The unique numerical identifier key (e.g., 2258).
-			 * @return A B4RString pointer containing the text-formatted UTC value payload.
+			 * @return Returns the scalar node value formatted as a B4R String.
 			 */
 			B4RString* ReadNumeric(int NamespaceIndex, int NumericIdentifier);
 
 			/**
 			 * OPC UA Standard Read Service.
 			 * Thread-safely reads a node value using a string identifier.
-			 * @param NamespaceIndex The numerical namespace target index (e.g., 1).
+			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
 			 * @param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
 			 * @return A B4RString pointer containing the text-formatted value payload.
 			 */
 			B4RString* ReadString(int NamespaceIndex, B4RString* NodeIdentifier);
+
+			/**
+			 * OPC UA Standard Read Service.
+			 * Thread-safely reads a binary ByteString value using a string identifier.
+			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
+			 * @param NodeIdentifier The targeting string Node ID (e.g., "DeviceData").
+			 * @return An ArrayByte pointer containing the binary ByteString payload.
+			 */
+			ArrayByte* ReadByteString(int NamespaceIndex, B4RString* NodeIdentifier);
 
 			/**
 			 * SETTER/GETTER
@@ -226,8 +246,14 @@ namespace B4R {
 			static const ULong STATUS_BAD = 0x80000000;
 			
 			// Symmetrical common aliases for developer convenience
+
+			/** Indicates that the operation was successful and results may be used. */
 			static const ULong STATUS_SUCCESS = 0x00000000;
+			
+			/** Indicates partial success; results might not fit all purposes. */
 			static const ULong STATUS_WARNING = 0x40000000;
+			
+			/** Indicates the operation failed completely; results cannot be used. */
 			static const ULong STATUS_FAILURE = 0x80000000;
 
 	};

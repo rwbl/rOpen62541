@@ -6,7 +6,7 @@ Version=9.85
 @EndOfDesignText@
 ' Project:		rOpen62541 (OPC UA Server)
 ' Brief:		OPC UA server for the envsim example
-' Date:			2026-09-20
+' Date:			2026-10-02
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	Experiment to simulate environment data and update nodes.
 ' DependsOn:	SS_OPCUAClient 1.00 (Thanks, see https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/ )
@@ -24,7 +24,7 @@ Version=9.85
 
 Sub Class_Globals
 	' Info
-	Private VERSION As String = "rOpen62541 OPC UA Server EnvSim v20260920"
+	Private VERSION As String = "rOpen62541 OPC UA Server EnvSim v20261002"
 	
 	' UI Base
 	Private xui As XUI
@@ -40,9 +40,10 @@ Sub Class_Globals
 
 	' Communication OPC UA Server
 	Private ENDPOINT 			As String = "opc.tcp://192.168.1.175:4840"
-	Private OpcClient 			As OPCUAClient 
 	Private SAMPLING_INTERVAL 	As Int = 1000	'ms
+	Private OpcClient 			As OPCUAClient
 	Private IsConnected 		As Boolean
+	' 
 	Private NODE_TEMPERATURE 	As String = "ns=1;s=Temperature"
 	Private NODE_HUMIDITY 		As String = "ns=1;s=Humidity"
 	Private NODE_TRIGGER 		As String = "ns=1;s=Trigger"		'ignore
@@ -151,8 +152,8 @@ Sub OpcClient_Disconnected
 	TileConnect.State = IsConnected
 	TileConnected.Value = "Disconnected"
 	
-	TileTemperature.Value = "--"
-	TileHumidity.Value = "--"
+	TileTemperature.Value = 0
+	TileHumidity.Value = 0
 	TileTemperatureGauge.Value = 0
 	TileHumidityGauge.Value = 0
 

@@ -1,0 +1,9 @@
+﻿ModuleBookmarks0=
+ModuleBookmarks1=
+ModuleBreakpoints0=
+ModuleBreakpoints1=
+ModuleClosedNodes0=
+ModuleClosedNodes1=
+NavigationStack=B4XMainPage,Connect_NoAuth,147,0,B4XMainPage,OPCUAClient_ReadResult,194,0,B4XMainPage,OPCUAClient_NodeValueChanged,204,0,B4XMainPage,TileConnect_Click,219,0,B4XMainPage,OPCUAClient_Disconnected,171,0,B4XMainPage,OPCUAClient_ConnectionError,180,0,B4XMainPage,ByteStringToBytes,285,6,B4XMainPage,GetNodeIdentifier,267,0,B4XMainPage,OPCUAClient_SubscriptionValueChanged,187,6,B4XMainPage,Class_Globals,46,6,B4XMainPage,TileServoSetState_Click,234,0
+SelectedBuild=0
+VisibleModules=1
