@@ -6,12 +6,17 @@ Version=9.85
 @EndOfDesignText@
 ' Project:		rOpen62541 (OPC UA Server)
 ' Brief:		OPC UA client for the ServoControl example.
-' Date:			2026-10-02
+' Date:			2026-10-03
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	Set the position of a servo connected to the ESP32 OPC UA Server.
 '				The servo acts as a gate with position open or closed.
-'				The nodeid mist use namespace ns=1. Other name spaces are not yet supported by the rOpen62541 library.
-'				
+' Node Structure:
+'				Root Folder = BrowseFull("ns=0;i=85")
+'				NodeId=ns=0;i=2253, DisplayName=Server, NodeClass=Object
+'				NodeId=ns=1;s=Factory_Floor, DisplayName=Factory_Floor, NodeClass=Object
+'				Factory_Floor Folder = BrowseFull("ns=1;s=Factory_Floor")
+'				NodeId=ns=1;s=gatestate, DisplayName=Gate State, NodeClass=Variable
+'				NodeId=ns=1;s=trigger, DisplayName=Remote Action Trigger, NodeClass=Variable
 ' DependsOn:	SS_OPCUAClient 1.00 (Thanks, see https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/ )
 '				HMITilesIO 0.70 (see https://www.b4x.com/android/forum/threads/hmitilesio.171863/#content )
 ' Hardware:		ESP32-S3-N16R8
@@ -41,19 +46,33 @@ Sub Class_Globals
 	Private TileServoSetState As HMITilesIO
 	Private TileServoGauge As HMITilesIO
 
-	Private GAUGE_GATE_OPEN As Int = 90
-	Private GAUGE_GATE_CLOSED As Int = 0
+	Private GAUGE_GATE_OPEN As Int = 0
+	Private GAUGE_GATE_CLOSED As Int = 90
 
 
-	' Communication OPC UA Server
+	' OPC UA Server
+	Private OPCUAClient 		As OPCUAClient
+	' OPC UA server IP tcp address
 	Private ENDPOINT 			As String = "opc.tcp://192.168.1.175:4840"
-	Private OPCUAClient 		As OPCUAClient 
+	' Suscribe data sampling
 	Private SAMPLING_INTERVAL 	As Int = 500	'ms
 	Private IsConnected 		As Boolean
-	' Nodes
-	Private NODEID_TRIGGER 		As String = "ns=1;s=trigger"
-	Private NODEID_GATE_STATE 	As String = "ns=1;s=gatestate"
-	' Commands
+
+	' OPC UA Nodes
+	' All nodes are added to the default folder Factory_Floor (NodeId=ns=1;s=Factory_Floor)
+
+	' Name space index for all nodes 
+	Private NAMESPACE_INDEX		As Int = 1
+
+	' Node Trigger - Received from the client ns=1;s=trigger > triggers event OnDataWrite
+	Private NODEID_TRIGGER		As String = "trigger"
+	Private NODE_TRIGGER 		As String = $"ns=${NAMESPACE_INDEX};s=${NODEID_TRIGGER}"$
+
+	' Node Gate State - Transmitted to the client ns=1;s=gatestate
+	Private NODEID_GATESTATE	As String = "gatestate"
+	Private NODE_GATESTATE 		As String = $"ns=${NAMESPACE_INDEX};s=${NODEID_GATESTATE}"$
+	
+	' Commands - Transmitted from the client to the server
 	Private CMD_GATE_OPEN 		As String = "gateopen"
 	Private CMD_GATE_CLOSE 		As String = "gateclose"
 	
@@ -119,6 +138,9 @@ End Sub
 ' OPCUA SERVER HELPER
 '==============================================================
 
+' ConnectToServer
+' Connect to the OPC UA server.
+' Triggers event Connected or ConnectionError
 Public Sub ConnectToServer
 	Log($"[ConnectToServer] Trying to connect..."$)
 	OPCUAClient.Connect(ENDPOINT)
@@ -126,26 +148,29 @@ End Sub
 
 Public Sub SubscribeNodes
 	' Subscribe to live changes
-	' ns is namespace index 1; s is the string identifier
-	' These are defined in the B4R program
-	OPCUAClient.Subscribe(NODEID_GATE_STATE, SAMPLING_INTERVAL)
-	' OPCUAClient.Subscribe("ns=1;s=RawTelemetry", SAMPLING_INTERVAL)
+	OPCUAClient.Subscribe(NODE_GATESTATE, SAMPLING_INTERVAL)
 End Sub
 
+' Read the state of the nodeid gate state
+' Triggers Read_Result
 Public Sub ReadNodes
-	OPCUAClient.BrowseFull("ns=0;i=85")
-	OPCUAClient.BrowseFull("ns=1;s=Factory_Floor")
-	OPCUAClient.Read(NODEID_GATE_STATE)
+	OPCUAClient.Read(NODE_GATESTATE)
 End Sub
 
-Public Sub UpdateHMITiles(NodeId As String, Value As Object)
-	Dim s As String = GetNodeIdentifier(NodeId)
-	Select s 
-		Case "ServoState"
-			TileServoState.State = IIf(Value.As(Int) == 1, True, False)
-			TileServoState.Footer = GetTime
-			TileServoSetState.State = TileServoState.State
-	End Select
+' Browse thru all nodes
+' Triggers Browse_Result
+Public Sub BrowseNodes
+	' Root Folder
+	OPCUAClient.BrowseFull("ns=0;i=85")
+	' 	[BrowseResult] nodes found= 2
+	' (MyMap) {NodeId=ns=0;i=2253, DisplayName=Server, NodeClass=Object}
+	' (MyMap) {NodeId=ns=1;s=Factory_Floor, DisplayName=Factory_Floor, NodeClass=Object}
+	
+	' Folder Factory_Floor (subfolder from the root folder)
+	OPCUAClient.BrowseFull("ns=1;s=Factory_Floor")
+	' [BrowseResult] nodes found= 2
+	' (MyMap) {NodeId=ns=1;s=gatestate, DisplayName=Gate State, NodeClass=Variable}
+	' (MyMap) {NodeId=ns=1;s=trigger, DisplayName=Remote Action Trigger, NodeClass=Variable}
 End Sub
 
 '==============================================================
@@ -166,6 +191,7 @@ Sub OPCUAClient_Connected
 	IsConnected = True
 	SubscribeNodes        
 	Sleep(50)
+	BrowseNodes
 	ReadNodes
 	' Update hmitiles
 	TileConnect.State = IsConnected
@@ -206,6 +232,13 @@ Sub OPCUAClient_ReadResult (NodeId As String, Value As Object, Status As String)
 End Sub
 
 ' BrowseResult
+'	[BrowseResult] nodes found= 2
+'	(MyMap) {NodeId=ns=0;i=2253, DisplayName=Server, NodeClass=Object}
+'	(MyMap) {NodeId=ns=1;s=Factory_Floor, DisplayName=Factory_Floor, NodeClass=Object}
+'	[BrowseResult] nodes found= 2
+'	(MyMap) {NodeId=ns=1;s=gatestate, DisplayName=Gate State, NodeClass=Variable}
+'	(MyMap) {NodeId=ns=1;s=trigger, DisplayName=Remote Action Trigger, NodeClass=Variable}
+'	[OPCUAClient_ReadResult] Node: ns=1;s=gatestate | Value: 1 | Status: StatusCode{name=Good, Value=0x00000000, quality=good}
 Sub OPCUAClient_BrowseResult(Nodes As List)
 	Log($"[BrowseResult] nodes found= ${Nodes.Size}"$)
 	For Each n As Object In Nodes
@@ -220,7 +253,8 @@ Sub OPCUAClient_NodeValueChanged (NodeId As String, Value As Object)
 	UpdateHMITiles(NodeId, Value)
 End Sub
 
-' Event fired write method
+' WriteResult
+' Event fired by the write method.
 ' NodeId contains ns ans s, like WriteResult: ns=1;s=Trigger 
 ' Success boolean true or false
 Sub OPCUAClient_WriteResult(NodeId As String, Success As Boolean)
@@ -228,10 +262,24 @@ Sub OPCUAClient_WriteResult(NodeId As String, Success As Boolean)
 End Sub
 
 '==============================================================
-' HMITILESIO Events
+' HMITILESIO METHODS & EVENTS
 '==============================================================
 
-' Connect to the endpoint > triggers event Connected
+Public Sub UpdateHMITiles(NodeId As String, Value As Object)
+	Log($"[UpdateHMITiles] nodeid=${NodeId}, value=${Value}"$)
+
+	Dim s As String = GetNodeIdentifier(NodeId)
+
+	Select s
+		Case NODEID_GATESTATE
+			TileServoState.State = IIf(Value.As(Int) == 1, True, False)
+			TileServoState.Footer = GetTime
+			TileServoSetState.State = TileServoState.State
+	End Select
+End Sub
+
+' TileConnect_Click
+' Connect to or disconnect from the endpoint > triggers event Connected.
 Private Sub TileConnect_Click(State As Boolean, Value As String)
 	State = Not(State)
 	If State Then
@@ -243,18 +291,23 @@ Private Sub TileConnect_Click(State As Boolean, Value As String)
 	End If
 End Sub
 
-' Set state of the servo to open or close
+' TileServoSetState_Click
+' Set state of the servo to open or close.
+' The node trigger is written to the server with string command gateopen or gateclose.
 Private Sub TileServoSetState_Click(State As Boolean, Value As String)
 	If IsConnected Then
 		State = Not(State)
+
 		Dim cmd As String = IIf(State, CMD_GATE_OPEN, CMD_GATE_CLOSE)
+		OPCUAClient.Write(NODE_TRIGGER, cmd)
 
-		OPCUAClient.Write(NODEID_TRIGGER, cmd)
+		' Update HMITileIO
 		TileServoSetState.State = State
+		TileServoSetState.Footer = GetTime
 		TileServoState.State = State
-
-		TileServoGauge.Value = IIf(State, GAUGE_GATE_CLOSED, GAUGE_GATE_OPEN)
-		Log($"[TileServoSetState] state=${State}"$)
+		TileServoGauge.Value = IIf(State, GAUGE_GATE_OPEN, GAUGE_GATE_CLOSED)
+		TileServoGauge.Footer = IIf(State, "OPEN", "CLOSED")
+		Log($"[TileServoSetState] newstate=${State}"$)
 	End If
 End Sub
 
@@ -282,6 +335,8 @@ Public Sub GetNodeIdentifier(msg As String) As String
 	Return result
 End Sub
 
+' ByteStringToBytes
+' Convert milo bytestring to B4R bytearray
 ' [ByteStringToBytes] org.eclipse.milo.opcua.stack.core.types.builtin.ByteString | ByteString{bytes=[25, 0, 88]}
 Public Sub ByteStringToBytes(value As Object) As Byte()
 	Log($"[ByteStringToBytes] ${GetType(value)} | ${value}"$)
