@@ -74,28 +74,24 @@ SetMethodReturnCode (Code As Int)
 
 ### WriteNumeric
 ```b4x
-WriteNumeric(NamespaceIndex As Int, NodeIdentifier As String, NewValue As Double)
+WriteNumeric(NodeIdentifier As String, NewValue As Double)
 ```
 - Writes a numeric payload into an active OPC UA node.
 - Supports cross-core type verification for floating-point, integer, and boolean structures inside Namespace 1.
 - Parameter:
 	- NodeIdentifier The targeting string Node ID (e.g., "Temperature").
 	- NewValue The numerical double representation payload to convert and assign.
-- Examples (namespace 1):
-	- OpcServer.WriteNumeric(1, "Temperature", CurrentTemp)
-	- OpcServer.WriteNumeric(1, "SystemReady", 1) ' Sets boolean state to true
 
 ### WriteString
 ```b4x
-WriteString(NamespaceIndex As Int, NodeIdentifier As String, NewValue As String)
+WriteByteString(NamespaceIndex As Int, NodeIdentifier As String, Data As Byte())
 ```
-- Writes a string text payload into an active OPC UA node.
+- Writes a binary ByteString payload into an active OPC UA node.
 - Automatically handles string memory copying and verifies target node type data inside Namespace 1.
 - Parameter:
-	- NodeIdentifier The targeting string Node ID (e.g., "DeviceStatus").
-	- NewValue The B4RString payload to write into the node address space.
-- Example (namespace 1):
-	- OpcServer.WriteString(1, "DeviceStatus", "RUNNING")
+	- NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
+	- NodeIdentifier The targeting string Node ID (e.g., "DeviceData").
+	- Data The B4R ArrayByte payload to write into the node address space.
 
 ---
 
@@ -110,8 +106,6 @@ ReadNumeric(NamespaceIndex As Int, NumericIdentifier As Int)
 - Parameter:
 	- NamespaceIndex The targeting name space index (e.g., 0, 1).
 	- NumericIdentifier The targeting numeric identifier (e.g., 2258).
-- Example (namespace 0):
-	- Dim clockText As String = OpcServer.ReadNumeric(0, 2258)
 
 ```b4x
 ReadString(NamespaceIndex As Int, NodeIdentifier A String)
@@ -122,5 +116,13 @@ ReadString(NamespaceIndex As Int, NodeIdentifier A String)
 - Parameter:
 	- NamespaceIndex The targeting name space index (e.g., 0, 1).
 	- NumericIdentifier The targeting string identifier (e.g., "Temperature").
-- Example (namespace 1):
-	- Dim tempText As String = OpcServer.ReadString(1, "Temperature")
+
+```b4x
+ReadByteString(NamespaceIndex As Int, NodeIdentifier A String) As Byte()
+```
+- Reads a binary ByteString value using a string identifier.
+- Parameter:
+	- NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
+	- NodeIdentifier The targeting string Node ID (e.g., "DeviceData").
+- Return 
+	- Array As Byte containing the binary ByteString payload.
