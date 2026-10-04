@@ -34,10 +34,12 @@ Version=4
 ' Wiring:		Output
 '				ESP32S3 = REDLED; IO42 = Signal; GND = GND
 '				ESP32S3 = GREENLED; IO40 = Signal; GND = GND
+'
 '				Input
-'				ESP32S3 = Servo; IO14 = Signal; 5V = VCC; GND = GND
 '				ESP32S3 = Pushbutton (DFRobot); IO4 = Signal; 3.3V = VCC; GND = GND
-' Log:
+'				ESP32S3 = Servo; IO14 = Signal; Ext. Power 5V = VCC; GND = Common GND
+' 				WARNING: Connect Servo VCC to an external 5V power supply; powering it directly from the ESP32 5V pin can cause instability or damage due to high current draw.
+' 				NOTE: Ensure the external power supply GND is tied together with the ESP32 GND to create a common ground rail.
 '==============================================
 #End Region
 
