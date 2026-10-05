@@ -5,7 +5,8 @@ The API is freezed and complete final testing before releasing as v1.0.0.
 ### Status
 The current B4R API has been tested, documented, and is stable enough that existing client applications should not need API changes.
 
-## Add more Examples
+## More Examples & Improve Documentation
+* README.md for every example.
 * Communication between B4R and B4J using the B4R Serializator - methods `WriteByteString` and `ReadByteString` as added in v0.90.
 ### Status
 Not started
