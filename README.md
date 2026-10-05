@@ -38,6 +38,51 @@ Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unifi
 
 ---
 
+## Node Hierarchy
+
+`rOpen62541` uses a simple, flat node hierarchy.
+
+All application nodes are added directly below the root object:
+
+```text
+Objects (ns=0;i=85)
+└── Factory_Floor (ns=1;s=Factory_Floor)
+    ├── Temperature
+    ├── Humidity
+    ├── Pump1_Status
+    ├── Pump1_Speed
+    ├── Valve1_Status
+    ├── Production_Count
+    └── Trigger
+````
+
+Folders and additional hierarchical levels are not supported by the current B4R wrapper. This is an intentional design choice to keep the B4R API simple and to minimize RAM usage and processing overhead on ESP32-class microcontrollers.
+
+For applications requiring a logical structure, **prefix naming** can be used to organize nodes while retaining the flat hierarchy. This is similar to the tag-naming approach commonly used in industrial automation systems:
+
+```text
+Factory_Floor
+├── Tank1_Temperature
+├── Tank1_Level
+├── Tank1_Pressure
+├── Pump1_Status
+├── Pump1_Speed
+├── Pump2_Status
+└── Pump2_Speed
+```
+
+For example:
+
+```basic
+OPCUAServer.AddFloatNode("Tank1_Temperature", "Tank 1 Temperature", 22.5)
+OPCUAServer.AddFloatNode("Tank1_Level", "Tank 1 Level", 75.0)
+OPCUAServer.AddBooleanNode("Pump1_Status", "Pump 1 Status", False)
+```
+
+This approach provides a simple and predictable OPC UA address space while keeping the wrapper lightweight and well suited for embedded ESP32 applications.
+
+---
+
 ## Compatibility & Verified Clients
 
 ### Hardware & Platform Compatibility
