@@ -1,0 +1,12 @@
+﻿ModuleBookmarks0=
+ModuleBookmarks1=
+ModuleBookmarks2=
+ModuleBreakpoints0=
+ModuleBreakpoints1=
+ModuleBreakpoints2=
+ModuleClosedNodes0=
+ModuleClosedNodes1=
+ModuleClosedNodes2=
+NavigationStack=OpcUaClient,CheckConnection,80,0,OpcUaClient,InjectPythonCoreCode,198,1,B4XMainPage,StartBackgroundEventLoop,198,6,B4XMainPage,Py_Notification,133,0,B4XMainPage,OpcClient_ConnectionChanged,202,1,B4XMainPage,OpcClient_DataChanged,229,6,Visual Designer,MainPage.bjl,-100,5,B4XMainPage,Py_Disconnected,128,3,B4XMainPage,Class_Globals,30,6,B4XMainPage,B4XPage_Created,78,5
+SelectedBuild=0
+VisibleModules=1,2

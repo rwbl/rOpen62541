@@ -11,9 +11,9 @@ Version=4
 @EndOfDesignText@
 #Region Project Header
 '==============================================
-' Project:		rOpen6241
+' Project:		rOpen62541
 ' Brief:		Example simulating sensor data and listening to client callback.
-' Date:			2026-09-20
+' Date:			2026-10-05
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	Simulating temperature and humidity sensor data.
@@ -22,26 +22,9 @@ Version=4
 '				Unleash the 8MB Octal PSRAM footprint
 '				Partitionscheme: Huge App
 '				PSRAM: OPI PSRAM
-' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
-'				Arduino Board Manager ESP32 3.3.11.
+' Software:		B4R 4.00 (64 bit), B4R IDE Board selected: ESP32S3 Dev Module COM15
+'				Arduino Board Manager ESP32 3.3.12.
 ' Wiring:		N/A
-' Log:
-'[AppStart] rOpen62541 EnvSim v20260920
-'[AppStart] WiFi connected > local IP=192.168.1.175
-'[AppStart] Init opc server
-'[InitOPCUAServer] Initializing...
-'[InitOPCUAServer] Awaiting background core network initialization...
-'[opcuaServerTask] OPC UA Security: Anonymous Access Mode Active!
-'[opcuaServerTask] OPC UA Server successfully running on Core 0!
-'[InitOPCUAServer] Core 0 online! Spawning dynamic address space nodes...
-'[AppStart] Opc server started
-'[AppTimer] Sensor read complete. Updated Node memory with: t=25.5000 h=74
-'[OpcCallback] SCADA/B4J Client clicked the trigger method. command=STOP
-'This means
-'1. The B4R setup engine yields And waits: [AppStart] Awaiting background core network initialization...
-'2. Core 0 spins up silently, selects the security mode, And mounts the PORT: OPC UA Security: Anonymous Access Mode Active! And OPC UA Server successfully running on Core 0!
-'3. B4R breaks out of the safety Loop And dynamically attaches the nodes: [AppStart] Core 0 online! Spawning dynamic address space nodes...
-'4. The background FreeRTOS value-callback intercepts the B4J write And safely executes the B4R Sub: [OpcCallback] SCADA/B4J Client clicked the trigger method!
 '==============================================
 #End Region
 
@@ -53,7 +36,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 EnvSim v20260920"
+	Private VERSION 			As String = "rOpen62541 EnvSim v20261005"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -72,10 +55,9 @@ Sub Process_Globals
 	Private NODEID_TRIGGER		As String = "ns=1;s=Trigger"
 	Private NODEID_RAWTELEMETRY	As String = "ns=1;s=RawTelemetry"
 
-
+	' Timer simulating sensor data
 	Private AppTimer As Timer
 	Private APPTIMER_INTERVAL As ULong = 2000
-	' Private BMP As B4RBMP280 ' Your physical sensor object
 	
 	'Helper
 	Private bc As ByteConverter	'ignore

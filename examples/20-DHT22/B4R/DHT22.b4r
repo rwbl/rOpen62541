@@ -1,0 +1,224 @@
+﻿Build1=Default,B4RDev
+Group=Default Group
+Library1=rcore
+Library2=resp8266wifi
+Library3=ropen62541
+Library4=rrandomaccessfile
+Library5=resp32dht
+NumberOfFiles=0
+NumberOfLibraries=5
+NumberOfModules=0
+Version=4
+@EndOfDesignText@
+#Region Project Header
+'==============================================
+' Project:		rOpen62541
+' Brief:		Example DHT22 temperature & humidity
+' Date:			2026-10-04
+' Author: 		Robert W.B. Linn (c) 2026 - MIT
+' Description:	Read and write the DHT22 sensor data Temperature and Humidity as float.
+' OPC UA Nodes:	4 children under ns=1;s=Factory_Floor
+'				value=ns=1;s=Temperature|Temperature|Variable
+'				value=ns=1;s=Humidity|Humdity|Variable
+'				value=ns=1;s=Trigger|Remote Action Trigger|Variable
+'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Object
+' Hardware:		ESP32-S3-N16R8
+'				Board settings:
+'				- Unleash the 8MB Octal PSRAM footprint
+'				- Partitionscheme: Huge App
+'				- PSRAM: OPI PSRAM
+' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
+'				Arduino Board Manager ESP32 3.3.11.
+'				rOpen62541, rESP32DHT, rRandomAccessFile
+' Wiring:		Requires 4.7K resistor R between signal and VCC.
+'				DHT22 = ESP32S3
+'				VCC = 3.3V - after R
+'				Signal = IO17
+'				Signal > R = 3.3V
+'				GND = GND
+'==============================================
+#End Region
+
+#Region Project Attributes
+	#AutoFlushLogs: True
+	#CheckArrayBounds: True
+	#StackBufferSize: 900
+#End Region
+'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
+
+Sub Process_Globals
+	Private VERSION 			As String = "rOpen62541 DHT22 v20261004"
+
+	' Communication
+	Public Serial1 				As Serial
+	Private WiFi 				As ESP8266WiFi						' Lib rESP8266WiFi
+	Private SSID				As String = "***"
+	Private PW 					As String = "***"
+
+	' DHT22
+	Private Dht As ESP32DHT											'Lib rESP32DHT
+	Private DHT_PIN_NUMBER		As Byte = 17						'DHT signal connected ESP32S3 pin #IO17
+	Private Temperature 		As Float = 0
+	Private Humidity 			As Float = 0
+
+	
+	' Open62541
+	Private OPCUAServer			As Open62541						' Lib rOpen62541
+	Private PORT 				As Int = 4840
+
+	' Nodes	
+	Private NAMESPACE_INDEX		As Int = 1
+	Private NODE_TRIGGER		As String = "ns=1;s=Trigger"		' Triggers event OnDataWrite
+
+	Private NODE_TEMPERATURE	As String = "ns=1;s=Temperature"	' Register node
+	Private NODEID_TEMPERATURE 	As String = "Temperature"			' Write node value
+	Private NODE_HUMIDITY		As String = "ns=1;s=Humidity"		' Register node
+	Private NODEID_HUMIDITY 	As String = "Humidity"				' Write node value
+	
+	'Helper
+	Private ByteConv As ByteConverter	'ignore
+End Sub
+
+Sub AppStart
+	Serial1.Initialize(115200)
+	Log(CRLF, "[AppStart] ", VERSION)
+	
+	' Init Sensor
+	Dht.Initialize(Dht.DHT22, DHT_PIN_NUMBER, "OnDHTStateChanged")
+	' Read first time
+	Log("[Main.AppStart] t=",Dht.Temperature, ", h=",Dht.Humidity)
+	
+	' Connect to the network
+	If WiFi.Connect2(SSID, PW) Then
+		Log("[AppStart] WiFi connected > local ip=", WiFi.LocalIP)
+		' [AppStart] WiFi connected. IP=192.168.1.68
+
+		' DISABLE WI-FI SLEEP LAYERS
+		' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
+		' from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
+		RunNative("DisableWiFiSleep", Null)
+	       
+		Log("[AppStart] Init OPC UA server")
+		If InitOPCUAServer Then
+			Log("[AppStart] OPC UA server started")
+		End If
+	Else
+		Log("[AppStart][E] WiFi Connection Failed")
+	End If
+End Sub
+
+#Region OPCUAServer
+' InitOPCUAServer
+' Steps:
+' Init the server with ip, port and client callback
+' Wait till the opc server has been started successfully
+' Add various nodes
+Private Sub InitOPCUAServer As Boolean
+	Dim TimeoutCounter As Int = 0
+	Dim ServerBootFailed As Boolean = False
+
+	Log("[InitOPCUAServer] Initializing...")
+	' Spin up the Core 0 open62541 network engine with callback
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
+	
+	' Wait for the background thread layout initialization to complete!
+	Log("[InitOPCUAServer] Awaiting background core network initialization...")
+	Do While OPCUAServer.IsReady = False
+		' 100ms yield ticks for the cooperative scheduler
+		Delay(100) 
+        
+		TimeoutCounter = TimeoutCounter + 1
+		' 50 ticks * 100ms = 5000ms (5 Seconds Timeout)
+		If TimeoutCounter >= 50 Then 
+			ServerBootFailed = True
+			' Break out of the endless loop safely!
+			Exit 
+		End If
+	Loop
+    
+	If ServerBootFailed Then
+		Log("[InitOPCUAServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
+		' Optional: Run local emergency fallback routine or let local sensors run offline
+	Else
+		Log("[InitOPCUAServer] OPC UA Server initialized > Register nodes...")
+		
+		' Register state of the temperature & humidty
+		OPCUAServer.AddFloatNode(NODE_TEMPERATURE, "Temperature", 0)
+		OPCUAServer.AddFloatNode(NODE_HUMIDITY, "Humdity", 0)
+		
+		' Register trigger method received from the client and call event OnDataWrite
+		OPCUAServer.AddStringNode(NODE_TRIGGER, "Remote Action Trigger", "0")
+		
+		' Register native executable method node and call event OnMethodCall
+		OPCUAServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OnMethodCall")
+
+		Log("[InitOPCUAServer] Register nodes OK")
+	End If
+	Return Not(ServerBootFailed)
+End Sub
+
+'==============================================
+' EVENTS
+'==============================================
+
+Private Sub OnDHTStateChanged(t As Float, h As Float)
+	Log("[OnDHTStateChanged] t=",t, ", h=",h)
+	If IsNumber(t) Then
+		Temperature = t
+		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_TEMPERATURE, Temperature)
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
+	Else
+		Log("[OnDHTStateChanged][E] t=nan")
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_BAD)
+	End If
+	If IsNumber(h) Then
+		Humidity = h
+		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_HUMIDITY, Humidity)
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
+	Else
+		Log("[OnDHTStateChanged][E] h=nan")
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_BAD)
+	End If
+End Sub
+
+' OnDataWrite
+' This event is fired when client triggers the method over the network using namespace 1 and string identifier Trigger
+' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
+Private Sub OnDataWrite(buffer() As Byte)
+	Log("[OnDataWrite] Client trigger method ", ByteConv.StringFromBytes(buffer))
+	OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_TEMPERATURE, Dht.Temperature)
+	OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_HUMIDITY, Dht.Humidity)
+End Sub
+
+' OnMethodCall
+' This event is fired automatically when a client invokes OPCUAServer.CallMethod()
+Private Sub OnMethodCall(InputParams() As Byte)
+	Dim ParamText As String = ByteConv.StringFromBytes(InputParams)
+	Log("[OnMethodCall] Client invoked the method node with argument:", _
+		" hex=", ByteConv.StringFromBytes(InputParams), _
+		" string=", ByteConv.HexFromBytes(InputParams))
+    
+	' Evaluate your local logic parameters safely
+	If ParamText = "REQUEST_DATA" Then
+		Log("[OnMethodCall] Command accepted.")
+		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_TEMPERATURE, Dht.Temperature)
+		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_HUMIDITY, Dht.Humidity)
+		' Invoke via your active OPCUAServer instance prefix!
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
+	Else
+		Log("[OnMethodCall][E] Command rejected. Invalid parameter format.")
+		' Invoke via your active OPCUAServer instance prefix!
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_BAD) 
+	End If
+End Sub
+#End Region
+
+#if C
+#include "esp_wifi.h"
+
+void DisableWiFiSleep(B4R::Object* o) {
+    // Force Espressif lwIP stack to set Power Save to NONE
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
+}
+#End If

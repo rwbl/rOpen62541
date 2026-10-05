@@ -4,23 +4,26 @@ The following examples are structured into dedicated sub-folders:
 
 - [**10-EnvSim**](10-EnvSim/) — Ambient industrial temperature and humidity data simulation loop. 
 	- Demonstrates type-agnostic node interceptors.
-	- Example 1 B4J with the `SS_OPCUAClient` library, `HMITilesIO` for the Dashboard.
-	- Example 2 B4J with the `PyBridge` framework with Python package `asyncua`, `HMITilesIO` for the Dashboard.
-- [**12-MethodCallback**](12-MethodCallback/) — Remote Procedure Call (RPC) execution routing. 
+	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
+	- Example 2 B4J with the `PyBridge` framework and Python package `asyncua`, `HMITilesIO` (Dashboard).
+- [**12-MethodCall**](12-MethodCall/) — Remote Procedure Call (RPC) execution routing. 
 	- Demonstrates server-side functions triggered remotely by automation nodes like Node-RED.
-	- Uses the B4J `SS_OPCUAClient` library, `HMITilesIO` for the Dashboard.
-	- Uses `Node-RED` with `node-red-contrib-opcua` nodes.
+	- Example 1 `Node-RED` with `node-red-contrib-opcua` nodes.
+	- Example 1 `Python` with `asyncua` package.
 - [**14-InOutput**](14-InOutput/) — Industrial peripheral I/O mapping configurations. 
 	- Shows how to dynamically read physical hardware states (Pushbuttons) and drive physical outputs (LEDs).
-	- Example 1 B4J with the `SS_OPCUAClient` library, `HMITilesIO` for the Dashboard.
-	- Example 2 B4J with `PyBridge` framework with Python package `asyncua`, `HMITilesIO` for the Dashboard.
+	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
+	- Example 2 B4J with `PyBridge` framework and Python package `asyncua`, `HMITilesIO` (Dashboard).
 - [**16-NodeIDs**](16-NodeIDs/) — Low-level standard namespace lookup implementations. 
 	- Demonstrates querying standard Namespace 0 (`ns=0`) system variables and parsing complex structure payloads.
-	- Example 1 B4J with the `SS_OPCUAClient` library, `HMITilesIO` for the Dashboard.
+	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
 	- Example 2 Node.js with the `node-opcua` stack.
 - [**18-ServoControl**](16-ServoControl/) — Control the position of a servo motor connected to the ESP32S3. 
-	- Demonstrates using the Trigger callback to control an output device and show its state on Traffic Light LEDs.
-	- Example 1 B4J with the `SS_OPCUAClient` library, `HMITilesIO` for the Dashboard.
+	- Demonstrates using the `Trigger` callback to control an output device servo motor and show its state on Traffic Light LEDs.
+	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
+- [**20-DHT22**](16-DHT22/) — Read live telemetry sensor data from a DHT22 sensor. 
+	- Example 1 B4J with `PyBridge` framework and Python package `asyncua` and additional library `HMITilesIO` (Dashboard).
+	- Example 2 `Home Assistant`with `Node-RED` and `node-red-contrib-opcua` nodes.
 
 ---
 

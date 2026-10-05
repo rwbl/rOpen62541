@@ -11,60 +11,21 @@ Version=4
 @EndOfDesignText@
 #Region Project Header
 '==============================================
-' Project:		rOpen6241
-' Brief:		Example method callback function.
-' Date:			2026-10-02
-' Author: 		Robert W.B. Linn
-' License:		MIT — see LICENSE file.
-' Description:	Node-Red to trigger the Method Call function using this script in the NR function node:
-'				Node-Red Function Node:
-'					// Clear any default payload string To prevent conflicts
-'					msg.payload = ""; 
-'					// Explicitly populate the target metadata fields that Node-RED looks For
-'					msg.objectId = "ns=1;s=Factory_Floor";
-'					msg.methodId = "ns=1;s=ExecuteJob";
-'					// Supply the single required input argument parameters Array block
-'					msg.inputArguments = [
-'					    {
-'					        dataType: "ByteString",
-'					        value: "START_BATCH"
-'					    }
-'					];
-'					Return msg;
-'				Invoking results in NR response:
-'					{
-'						"objectId":"ns=1;s=Factory_Floor",
-'						"methodId":"ns=1;s=ExecuteJob",
-'						"inputArguments": [{"dataType":15,"value":[83,84,65,82,84,95,66,65,84,67,72],"arrayType":0}],
-'						"outputArguments":[],
-'						"result":{
-'							"statusCode":{"value":0},
-'							"outputArguments":[
-'								{"dataType":"Int32","arrayType":"Scalar","value":100}]
-'						},
-'						"output":[
-'							{"dataType":"Int32","arrayType":"Scalar","value":100}
-						'],
-'						"payload":0,"_msgid":"a85f46c06a93c646"
-'					}
-' B4R Log:			Receiving the message with argument START_BATCH.
-'					[AppStart] rOpen62541 MethodCallback v20260913
-'					[AppStart] WiFi connected > local IP=192.168.1.175
-'					[AppStart] Init opc server
-'					[InitOpcServer] Initializing...
-'					[InitOpcServer] Awaiting background core network initialization...
-'					[opcuaServerTask] OPC UA Security: Anonymous Access Mode Active!
-'					[opcuaServerTask] OPC UA Server successfully running on Core 0!
-'					[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...
-'					[AppStart] Opc server started
-'					[OnMethodCall] Client invoked the method node with argument: hex=START_BATCH string=53544152545F4241544348
-'					[OnMethodCall] Command accepted. Running production batch code...
+' Project:		rOpen62541
+' Brief:		Example callmethod function.
+' Date:			2026-10-05
+' Author: 		Robert W.B. Linn (c) 2026 - MIT — see LICENSE file.
+' Description:	Listen to commands received from the connected OPC UA client.
+'				The call method is used with nodeid ExecuteJob and value START_BATCH.
+'				The B4R logs shows:
+'				[OnMethodCall] Client invoked the method node with argument: string=START_BATCH
+'				[OnMethodCall] Command accepted. Running production batch code...
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
 '				Unleash the 8MB Octal PSRAM footprint
-'				Partitionscheme: HUge App
+'				Partitionscheme: Huge App
 '				PSRAM: OPI PSRAM
-' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
+' Software:		B4R 4.00 (64 bit), B4R IDE Board selected ESP32S3 Dev Module COM15
 '				Arduino Board Manager ESP32 3.3.11.
 ' Wiring:		N/A
 '==============================================
@@ -78,7 +39,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 MethodCallback v20261002"
+	Private VERSION 			As String = "rOpen62541 MethodCallback v20261005"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -89,7 +50,7 @@ Sub Process_Globals
 	' Open62541
 	Private OPCUAServer			As Open62541						' Lib rOpen62541
 	Private PORT 				As Int = 4840
-	Private NODEID_TRIGGER		As String = "ns=1;s=trigger"		'
+	Private NODEID_TRIGGER		As String = "ns=1;s=Trigger"		'
 	Private NODEID_CALLMETHOD	As String = "ns=1;s=ExecuteJob"
 	
 	'Helper
@@ -178,8 +139,7 @@ End Sub
 ' OPCUAClient.Write("ns=1;s=Trigger", 68)
 Private Sub OnDataWrite(buffer() As Byte)
 	Log("[OnDataWrite] OPC UA Client clicked the trigger method. command=", bc.StringFromBytes(buffer))
-	'[OnDataWrite] OPC UA Client clicked the trigger method. command=STOP
-	'[OnDataWrite] OPC UA Client clicked the trigger method. command=68
+	'[OnDataWrite] OPC UA Client clicked the trigger method. command=START_BATCH
 End Sub
 
 ' OnMethodCall

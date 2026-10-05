@@ -1,16 +1,9 @@
 # CHANGELOG
 
-## v0.90 (Build 20261002)
-**Focus: Major development improvements**
-
-- NEW: Node identifiers are no longer restricted to namespace 1.
-	- Supports OPC UA string NodeIds such as `ns=2;s=ledstate`.
-	- Existing identifiers such as `ledstate` continue to use namespace 1, i.e. `ns=1;s=ledstate`.
-- NEW: Added `WriteByteString` and `ReadByteString`.
-- NEW: Added a shared root folder NodeId for dynamically added nodes.
-	- The default root folder is `Factory_Floor`.
-	- All added nodes and methods are attached to this root folder.
-- NEW: Added example ServoControl to demonstrate usage of the Trigger callback.
+## v0.91 (Build 20261005)
+**Focus: Testing & Examples**
+- NEW: Added example DHT22 to demonstrate usage of real sensor data Temperature & Humidity with Home Assistant client (using Node-RED).
+- UPD: All examples.
 
 ### Development Status
 B4R-facing OPC UA server API implements:
@@ -26,6 +19,17 @@ B4R-facing OPC UA server API implements:
 - Shared root folder handling
 - IsReady status
 - Thread protection around open62541 access
+
+## v0.90 (Build 20261002)
+**Focus: Major development improvements**
+- NEW: Node identifiers are no longer restricted to namespace 1.
+	- Supports OPC UA string NodeIds such as `ns=2;s=ledstate`.
+	- Existing identifiers such as `ledstate` continue to use namespace 1, i.e. `ns=1;s=ledstate`.
+- NEW: Added `WriteByteString` and `ReadByteString`.
+- NEW: Added a shared root folder NodeId for dynamically added nodes.
+	- The default root folder is `Factory_Floor`.
+	- All added nodes and methods are attached to this root folder.
+- NEW: Added example ServoControl to demonstrate usage of the Trigger callback.
 
 ## v0.70 (Build 20260919)
 - FIX: Optimized OPC UA server task stack size from 64KB to 16KB to force internal SRAM allocation, preventing silent cross-core PSRAM memory corruption and network lockouts during client disconnections.

@@ -6,7 +6,7 @@ Callbacks bridge these cores safely using background event routing.
 
 There are two types of callbacks:
 
-- **Data Write Event Handler** (automatically attached when intercepting nodeid "ns=1;s=Trigger"
+- **Data Write Event Handler** (automatically attached when intercepting nodeid `ns=1;s=Trigger`)
 	- Runs when an OPC UA Client performs a network write operation to the OPC UA Server using namespace 1 (ns=1) and string identifier Trigger (s=Trigger or s=trigger).
 		- Fires the background execution subroutine registered inside the server's Initialize method.
 		- Accepted are String, Int16, Int32, Float, Double, ByteString.
@@ -17,7 +17,7 @@ There are two types of callbacks:
 		- When a client invokes a method created via AddMethodNode, the open62541 callback routes the method request to the registered B4R subroutine. 
 		- The B4R callback can then provide the method result using SetMethodReturnCode.
 		- Method callbacks are processed sequentially. The library is designed for one outstanding method invocation at a time.
-		- B4R define Node ID "ns=1;s=ExecuteJob" (this nodeid is an example, any node id can be defined) with Event OnMethodCall.
+		- B4R define Node ID `ns=1;s=ExecuteJob` (this nodeid is an example, any node id can be defined) with Event OnMethodCall.
 
 ## Path
 
@@ -61,7 +61,7 @@ opcuaMethodBridge()
 
 ---
 
-## Data Write Event Handler
+## Data Write Event Handler (Trigger)
 
 **NodeID**
 ```
@@ -118,7 +118,8 @@ End Sub
 
 ---
 
-## Native Executable Method Call Event Handler
+## Native Executable Method Call Event Handler (CallMethod)
+
 **ObjectID**
 ```
 ns=1;s=Factory_Floor
