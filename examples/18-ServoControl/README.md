@@ -12,11 +12,13 @@ This project demonstrates controling the position of a servo motor connected to 
 
 ## Operational Pipeline
 
+```
 [ Industrial Client / SCADA ]
       │
       ├─── (1) SUBSCRIBE / READ ───►  [ ns=1;s=gatestate ]   (Int, Live Telemetry)
       │
       └─── (2) WRITE (Str/Int/Flt) ─►  [ ns=1;s=Trigger ]    (String, Universal Interceptor) ──► Fires B4R Callback
+```
 
 *Note:* The library only supports flat hierarchy under the root node `Factory_Floor`)
 

@@ -8,6 +8,7 @@ It acts as an autonomous OPC UA Server, securely exposing live simulated telemet
 
 ## Operational Pipeline
 
+```
 [ Industrial Client / SCADA ]
       │
       ├─── (1) SUBSCRIBE / READ ───►  [ ns=1;s=Temperature ]   (Float, Live Telemetry)
@@ -16,6 +17,7 @@ It acts as an autonomous OPC UA Server, securely exposing live simulated telemet
       ├─── (4) SUBSCRIBE / READ ───►  [ ns=1;s=RawTelemetry ]  (ByteString, Live Telemetry)
       │
       └─── (5) WRITE (Str/Int/Flt) ─►  [ ns=1;s=Trigger ]      (String, Universal Interceptor) ──► Fires B4R Callback
+```
 
 *Note:* The library only supports flat hierarchy under the root node `Factory_Floor`)
 
