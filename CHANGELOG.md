@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v0.91 (Build 20261005)
+## v0.91 (Build 20261006)
 **Focus: Testing & Examples**
 - NEW: Added example DHT22 to demonstrate usage of real sensor data Temperature & Humidity with Home Assistant client (using Node-RED).
 - UPD: All examples.

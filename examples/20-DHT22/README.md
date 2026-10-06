@@ -1,7 +1,7 @@
 # rOpen62541 B4R Library
 
 ## DHT22 - OPC UA Environment Example
-This project demonstrates a bi-directional industrial environmental system using a DHT22 sensor running on the ESP32-S3-N16R8.  
+This project demonstrates a bi-directional industrial environmental system using a DHT22 sensor connected to the ESP32-S3-N16R8 running as OPC UA server.  
 It acts as an autonomous OPC UA Server, securely exposing live telemetry to networks while intercepting inbound control override parameters from clients (like B4J or Node-RED).
 
 ------------------------------
@@ -10,10 +10,10 @@ It acts as an autonomous OPC UA Server, securely exposing live telemetry to netw
 ```
 [ Industrial Client / SCADA ]
       │
-      ├─── (1) SUBSCRIBE / READ ───►  [ ns=1;s=Temperature ]  (Float, DHT22 Live Telemetry)
-      ├─── (2) SUBSCRIBE / READ ───►  [ ns=1;s=Humidity ]  (Float, DHT22 Live Telemetry)
+      ├─── (1) SUBSCRIBE / READ ─►  [ ns=1;s=Temperature ]  (Float, DHT22 Live Telemetry)
+      ├─── (2) SUBSCRIBE / READ ─►  [ ns=1;s=Humidity ]  (Float, DHT22 Live Telemetry)
       │
-      └─── (3) WRITE (Str/Int/Flt) ─►  [ ns=1;s=Trigger ] (String, Universal Interceptor) ──► Fires B4R Callback (value must be set, but is not used as always fires callback)
+      └─── (3) WRITE            ─►  [ ns=1;s=Trigger ] (String, Universal Interceptor) ─► Fires B4R Callback (value must be set, but is not used as always fires callback)
 ```
 
 *Note:* The library only supports flat hierarchy under the root node `Factory_Floor`)
@@ -83,7 +83,6 @@ The client can also execute a remote command action over the network, your B4R c
 ---
 
 ## Wiring
-Requires 4.7K resistor R between signal and VCC.
 ```
 DHT22 = ESP32S3
 VCC = 3.3V - after R
@@ -92,5 +91,17 @@ Signal > R = 3.3V
 GND = GND
 ```
 
-
-
+**Schematic**
+```
+DHT22
+VCC - SIGNAL - N/A - GND
+|       |             |
++---R---+             |
+|       |             | 
+3V3 - SIGNAL - N/A - GND
+ESP32S3
+R=4.7K
+```
+**Notes**
+* The Pull-Up Resistor (4.7 kΩ): This is essential because the DHT22 uses an open-drain data line. The resistor pulls the signal line up to a stable logic high (3.3V) when no data is being transmitted.
+* Voltage Selection (3.3V): The DHT22 operates safely between 3V and 5.5V. Because the ESP32-S3 GPIO pins are not 5V tolerant, powering the sensor with 3.3V is the best practice. This prevents damaging the microcontroller's signal pin.

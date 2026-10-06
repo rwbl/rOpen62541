@@ -13,22 +13,23 @@ Version=4
 #Region Project Header
 '==============================================
 ' Project:		rOpen62541
-' Brief:		Example DHT22 temperature & humidity
-' Date:			2026-10-04
+' Brief:		Example writing DHT22 sensor data temperature & humidity.
+' Date:			2026-10-06
 ' Author: 		Robert W.B. Linn (c) 2026 - MIT
-' Description:	Read and write the DHT22 sensor data Temperature and Humidity as float.
+' Description:	Read and write the DHT22 sensor data Temperature and Humidity as float on every change.
+'				DHT22 event [OnDHTStateChanged] t=19.5000, h=57.7000.
 ' OPC UA Nodes:	4 children under ns=1;s=Factory_Floor
-'				value=ns=1;s=Temperature|Temperature|Variable
-'				value=ns=1;s=Humidity|Humdity|Variable
-'				value=ns=1;s=Trigger|Remote Action Trigger|Variable
-'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Object
+'				value=ns=1;s=Temperature|Temperature|Variable|Write
+'				value=ns=1;s=Humidity|Humdity|Variable|Write					
+'				value=ns=1;s=Trigger|Remote Action Trigger|Variable|Read
+'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Object|Read
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
 '				- Unleash the 8MB Octal PSRAM footprint
 '				- Partitionscheme: Huge App
 '				- PSRAM: OPI PSRAM
 ' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
-'				Arduino Board Manager ESP32 3.3.11.
+'				Arduino Board Manager ESP32 3.3.12.
 '				rOpen62541, rESP32DHT, rRandomAccessFile
 ' Wiring:		Requires 4.7K resistor R between signal and VCC.
 '				DHT22 = ESP32S3
@@ -47,7 +48,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 DHT22 v20261004"
+	Private VERSION 			As String = "rOpen62541 DHT22 v20261006"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -83,9 +84,9 @@ Sub AppStart
 	Serial1.Initialize(115200)
 	Log(CRLF, "[AppStart] ", VERSION)
 	
-	' Init Sensor
+	' Init DHT sensor
 	Dht.Initialize(Dht.DHT22, DHT_PIN_NUMBER, "OnDHTStateChanged")
-	' Read first time
+	' Read DHT sensor data first time
 	Log("[Main.AppStart] t=",Dht.Temperature, ", h=",Dht.Humidity)
 	
 	' Connect to the network
@@ -219,6 +220,6 @@ End Sub
 void DisableWiFiSleep(B4R::Object* o) {
     // Force Espressif lwIP stack to set Power Save to NONE
     esp_wifi_set_ps(WIFI_PS_NONE);
-    ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
+    ::Serial.println("[DisableWiFiSleep] Disabled > Radio set to high-performance mode.");
 }
 #End If

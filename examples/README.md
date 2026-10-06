@@ -31,8 +31,8 @@ The following examples are structured into dedicated sub-folders:
 - [B4R](https://www.b4x.com/b4r.html) 4.0
 - [B4J](https://www.b4x.com/b4j.html) 10.7
 	- [B4J SS_OPCUAClient Library](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/) 1.0
-	- [B4J HMITilesIO Library](https://www.b4x.com/android/forum/threads/hmitilesio.171863/) 0.70
 	- [B4J PyBridge Framework](https://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/) 1.0
+	- [B4J HMITilesIO Library](https://www.b4x.com/android/forum/threads/hmitilesio.171863/) 0.70
 - [Node-RED](https://nodered.org) 5.0.7
 	- [Node-RED OPC UA Nodes](https://github.com/mikakaraila/node-red-contrib-opcua)  0.2.355
 - [Node.js node-opcua stack](https://node-opcua.github.io) 2.174.0
