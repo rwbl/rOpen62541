@@ -18,11 +18,11 @@ Version=4
 ' Author: 		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	Read and write the DHT22 sensor data Temperature and Humidity as float on every change.
 '				DHT22 event [OnDHTStateChanged] t=19.5000, h=57.7000.
-' OPC UA Nodes:	4 children under ns=1;s=Factory_Floor
+' OPC UA Nodes:	4 children under ns=1;s=Factory_Floor|BaseObject
 '				value=ns=1;s=Temperature|Temperature|Variable|Write
 '				value=ns=1;s=Humidity|Humdity|Variable|Write					
 '				value=ns=1;s=Trigger|Remote Action Trigger|Variable|Read
-'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Object|Read
+'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Method|Read
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
 '				- Unleash the 8MB Octal PSRAM footprint
@@ -30,7 +30,7 @@ Version=4
 '				- PSRAM: OPI PSRAM
 ' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
 '				Arduino Board Manager ESP32 3.3.12.
-'				rOpen62541, rESP32DHT, rRandomAccessFile
+'				rOpen62541 0.90, rESP32DHT 1.00, rRandomAccessFile 1.91.
 ' Wiring:		Requires 4.7K resistor R between signal and VCC.
 '				DHT22 = ESP32S3
 '				VCC = 3.3V - after R
@@ -98,6 +98,7 @@ Sub AppStart
 		' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
 		' from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
 		RunNative("DisableWiFiSleep", Null)
+		RunNative("InitSystemClock", Null)
 	       
 		Log("[AppStart] Init OPC UA server")
 		If InitOPCUAServer Then
@@ -221,5 +222,14 @@ void DisableWiFiSleep(B4R::Object* o) {
     // Force Espressif lwIP stack to set Power Save to NONE
     esp_wifi_set_ps(WIFI_PS_NONE);
     ::Serial.println("[DisableWiFiSleep] Disabled > Radio set to high-performance mode.");
+}
+
+
+// RunNative("InitSystemClock", Null)
+void InitSystemClock(B4R::Object* o) {
+    // Configures the system to poll pool.ntp.org with a standard global UTC offset
+    // Adjust the 3600 (seconds) based on your target local timezone offset (e.g. 3600 = UTC+1)
+    configTime(3600, 0, "pool.ntp.org", "time.nist.gov");
+    ::Serial.println("[Hardware Engine] SNTP Client started. Synchronizing baseline...");
 }
 #End If
