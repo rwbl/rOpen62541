@@ -92,11 +92,11 @@ This approach provides a simple and predictable OPC UA address space while keepi
 ### Verified OPC UA Clients
 This server implementation complies strictly with core industrial data-modeling specs and has been successfully verified across multiple desktop, terminal, and automation client ecosystems:
 
-* [**Node-RED**](https://nodered.org) - Fully interoperable using the standard `node-red-contrib-opcua` flow palette node module.
-* [**opcua-commander**](https://github.com/node-opcua/opcua-commander) - Validated using the interactive, keyboard-driven terminal curses explorer (TUI).
 * [**B4J (Native Client)**](https//www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/) - Integration with OPC UA Client library for B4J.
 * [**B4J with PyBridge**](https://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/#content) - Working via Python-backend socket communication routing bridges PyBridge framework.
+* [**opcua-commander**](https://github.com/node-opcua/opcua-commander) - Validated using the interactive, keyboard-driven terminal curses explorer (TUI).
 * [**Node.js OPC UA Stack**](https://node-opcua.github.io) — Working via simple TypeScript client example.
+* [**Node-RED**](https://nodered.org) - Fully interoperable using the standard `node-red-contrib-opcua` flow palette node module.
 
 ---
 
@@ -104,7 +104,7 @@ This server implementation complies strictly with core industrial data-modeling 
 Download the repository from [GitHub](https://github.com/rwbl/rOpen62541).
 - Copy the src sub-folder **rOpen62541** into your B4R **Additional Libraries** folder, keeping the folder structure fully intact.
 - Copy the src file **rOpen62541.xml** into your B4R **Additional Libraries** folder.
-*Note:* [B4R](http://www.b4x.com/b4r.html) installation instructions in case not installed.
+*Note:* Read the [B4R](http://www.b4x.com/b4r.html) installation instructions.
 ---
 
 ## Project Code Examples
