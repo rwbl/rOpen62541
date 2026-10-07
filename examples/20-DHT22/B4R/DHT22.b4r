@@ -14,15 +14,16 @@ Version=4
 '==============================================
 ' Project:		rOpen62541
 ' Brief:		Example writing DHT22 sensor data temperature & humidity.
-' Date:			2026-10-06
+' Date:			2026-10-07
 ' Author: 		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	Read and write the DHT22 sensor data Temperature and Humidity as float on every change.
 '				DHT22 event [OnDHTStateChanged] t=19.5000, h=57.7000.
 ' OPC UA Nodes:	4 children under ns=1;s=Factory_Floor|BaseObject
-'				value=ns=1;s=Temperature|Temperature|Variable|Write
-'				value=ns=1;s=Humidity|Humdity|Variable|Write					
-'				value=ns=1;s=Trigger|Remote Action Trigger|Variable|Read
-'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Method|Read
+'				value=ns=1;s=Sensor.Temperature|Temperature|Variable|Float|Write
+'				value=ns=1;s=Sensor.Humidity|Humdity|Variable|Float|Write					
+'				value=ns=1;s=System.AvailableRAM|AvailableRAM|Variable|Float|Write					
+'				value=ns=1;s=Trigger|Remote Action Trigger|Variable|String|Read
+'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Method|String|Read
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
 '				- Unleash the 8MB Octal PSRAM footprint
@@ -48,33 +49,35 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 DHT22 v20261006"
+	Private VERSION 			As String = "rOpen62541 DHT22 v20261007"
 
 	' Communication
 	Public Serial1 				As Serial
-	Private WiFi 				As ESP8266WiFi						' Lib rESP8266WiFi
+	Private WiFi 				As ESP8266WiFi								' Lib rESP8266WiFi
 	Private SSID				As String = "***"
 	Private PW 					As String = "***"
 
 	' DHT22
-	Private Dht As ESP32DHT											'Lib rESP32DHT
-	Private DHT_PIN_NUMBER		As Byte = 17						'DHT signal connected ESP32S3 pin #IO17
+	Private Dht As ESP32DHT													' Lib rESP32DHT
+	Private DHT_PIN_NUMBER		As Byte = 17								' DHT signal connected ESP32S3 pin #IO17
 	Private Temperature 		As Float = 0
 	Private Humidity 			As Float = 0
 
 	
 	' Open62541
-	Private OPCUAServer			As Open62541						' Lib rOpen62541
+			Private OPCUAServer			As Open62541						' Lib rOpen62541
 	Private PORT 				As Int = 4840
 
-	' Nodes	
-	Private NAMESPACE_INDEX		As Int = 1
-	Private NODE_TRIGGER		As String = "ns=1;s=Trigger"		' Triggers event OnDataWrite
+	' Nodes
+	Private NAMESPACE_INDEX		As Int = 1									' Mandatory; must be 1.
+	Private NODE_TRIGGER		As String = "ns=1;s=Trigger"				' Triggers event OnDataWrite
 
-	Private NODE_TEMPERATURE	As String = "ns=1;s=Temperature"	' Register node
-	Private NODEID_TEMPERATURE 	As String = "Temperature"			' Write node value
-	Private NODE_HUMIDITY		As String = "ns=1;s=Humidity"		' Register node
-	Private NODEID_HUMIDITY 	As String = "Humidity"				' Write node value
+	Private NODE_TEMPERATURE	As String = "ns=1;s=Sensor.Temperature"		' Register node
+	Private NODEID_TEMPERATURE 	As String = "Sensor.Temperature"			' Write node value
+	Private NODE_HUMIDITY		As String = "ns=1;s=Sensor.Humidity"		' Register node
+	Private NODEID_HUMIDITY 	As String = "Sensor.Humidity"				' Write node value
+	Private NODE_AVAILABLERAM	As String = "ns=1;s=System.AvailableRAM"	' Register node
+	Private NODEID_AVAILABLERAM	As String = "System.AvailableRAM"			' Write node value
 	
 	'Helper
 	Private ByteConv As ByteConverter	'ignore
@@ -87,7 +90,7 @@ Sub AppStart
 	' Init DHT sensor
 	Dht.Initialize(Dht.DHT22, DHT_PIN_NUMBER, "OnDHTStateChanged")
 	' Read DHT sensor data first time
-	Log("[Main.AppStart] t=",Dht.Temperature, ", h=",Dht.Humidity)
+	Log("[Main.AppStart] t=",Dht.Temperature, ", h=",Dht.Humidity, ", r=", AvailableRAM)
 	
 	' Connect to the network
 	If WiFi.Connect2(SSID, PW) Then
@@ -107,6 +110,8 @@ Sub AppStart
 	Else
 		Log("[AppStart][E] WiFi Connection Failed")
 	End If
+
+	AvailableRAM
 End Sub
 
 #Region OPCUAServer
@@ -144,9 +149,12 @@ Private Sub InitOPCUAServer As Boolean
 	Else
 		Log("[InitOPCUAServer] OPC UA Server initialized > Register nodes...")
 		
-		' Register state of the temperature & humidty
+		' Register state sensor data temperature & humidty
 		OPCUAServer.AddFloatNode(NODE_TEMPERATURE, "Temperature", 0)
 		OPCUAServer.AddFloatNode(NODE_HUMIDITY, "Humdity", 0)
+
+		' Register AvailableRAM
+		OPCUAServer.AddFloatNode(NODE_AVAILABLERAM,"AvailableRAM", AvailableRAM)
 		
 		' Register trigger method received from the client and call event OnDataWrite
 		OPCUAServer.AddStringNode(NODE_TRIGGER, "Remote Action Trigger", "0")
@@ -164,7 +172,7 @@ End Sub
 '==============================================
 
 Private Sub OnDHTStateChanged(t As Float, h As Float)
-	Log("[OnDHTStateChanged] t=",t, ", h=",h)
+	Log("[OnDHTStateChanged] t=",t, ", h=",h, ", r=", AvailableRAM)
 	If IsNumber(t) Then
 		Temperature = t
 		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_TEMPERATURE, Temperature)
@@ -181,6 +189,8 @@ Private Sub OnDHTStateChanged(t As Float, h As Float)
 		Log("[OnDHTStateChanged][E] h=nan")
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_BAD)
 	End If
+	' Allways update available ram
+	OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_AVAILABLERAM, AvailableRAM)
 End Sub
 
 ' OnDataWrite

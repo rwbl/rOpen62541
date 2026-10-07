@@ -1,0 +1,542 @@
+[
+    {
+        "id": "29c14dcdb14a6011",
+        "type": "tab",
+        "label": "OPC UA Test",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "6104392eae7aec40",
+        "type": "comment",
+        "z": "29c14dcdb14a6011",
+        "name": "Overview",
+        "info": "Subscribe to OPC UA server nodes:\n* ns=1;s=Sensor.Temperature\n* ns=1;s=Sensor.Humidity\nand display the values in HA entities:\n* sensor.opcua_temperature\n* sensor.opcua_humidity\n\n",
+        "x": 120,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "251574711ea540bb",
+        "type": "OpcUa-Client",
+        "z": "29c14dcdb14a6011",
+        "endpoint": "cc8fa9a6aeb62ef8",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "setstatusandtime": false,
+        "keepsessionalive": false,
+        "name": "",
+        "applicationName": "",
+        "applicationUri": "",
+        "x": 360,
+        "y": 100,
+        "wires": [
+            [
+                "ec3669961cc116f5",
+                "96c3142df190b78e"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "bac7c68327f9fc57",
+        "type": "inject",
+        "z": "29c14dcdb14a6011",
+        "name": "Humidity",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "ns=1;s=Sensor.Humidity",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 160,
+        "wires": [
+            [
+                "251574711ea540bb"
+            ]
+        ]
+    },
+    {
+        "id": "892147e8de744d36",
+        "type": "debug",
+        "z": "29c14dcdb14a6011",
+        "name": "DEBUG OPC UA",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1050,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "e78a0ecfd9c77249",
+        "type": "ha-sensor",
+        "z": "29c14dcdb14a6011",
+        "name": "OPC UA Humidity",
+        "entityConfig": "48d4b659e170bb9c",
+        "version": 0,
+        "state": "payload",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 810,
+        "y": 280,
+        "wires": [
+            [
+                "892147e8de744d36"
+            ]
+        ]
+    },
+    {
+        "id": "75b1615939552c0f",
+        "type": "rbe",
+        "z": "29c14dcdb14a6011",
+        "name": "Filter Value Changes",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 580,
+        "y": 280,
+        "wires": [
+            [
+                "e78a0ecfd9c77249"
+            ]
+        ]
+    },
+    {
+        "id": "96c3142df190b78e",
+        "type": "function",
+        "z": "29c14dcdb14a6011",
+        "name": "Set Decimal",
+        "func": "msg.payload = Math.round(msg.payload * 10) / 10;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 180,
+        "wires": [
+            [
+                "40a64d927a9f92cd"
+            ]
+        ]
+    },
+    {
+        "id": "ec3669961cc116f5",
+        "type": "debug",
+        "z": "29c14dcdb14a6011",
+        "d": true,
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "40a64d927a9f92cd",
+        "type": "switch",
+        "z": "29c14dcdb14a6011",
+        "name": "Switch Nodes",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "Temperature",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "Humidity",
+                "vt": "str"
+            },
+            {
+                "t": "cont",
+                "v": "AvailableRAM",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 360,
+        "y": 240,
+        "wires": [
+            [
+                "f35864083229958f"
+            ],
+            [
+                "75b1615939552c0f"
+            ],
+            [
+                "cdb6ae17c573a060"
+            ]
+        ]
+    },
+    {
+        "id": "f35864083229958f",
+        "type": "rbe",
+        "z": "29c14dcdb14a6011",
+        "name": "Filter Value Changes",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 580,
+        "y": 220,
+        "wires": [
+            [
+                "8f85af48b396a98e"
+            ]
+        ]
+    },
+    {
+        "id": "8f85af48b396a98e",
+        "type": "ha-sensor",
+        "z": "29c14dcdb14a6011",
+        "name": "OPC UA Temperature",
+        "entityConfig": "32cfb4f112f0e9c6",
+        "version": 0,
+        "state": "payload",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 820,
+        "y": 220,
+        "wires": [
+            [
+                "892147e8de744d36"
+            ]
+        ]
+    },
+    {
+        "id": "e67c70943de428b6",
+        "type": "inject",
+        "z": "29c14dcdb14a6011",
+        "name": "Temperature",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "ns=1;s=Sensor.Temperature",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 100,
+        "wires": [
+            [
+                "251574711ea540bb"
+            ]
+        ]
+    },
+    {
+        "id": "9d48de62bfa7177c",
+        "type": "inject",
+        "z": "29c14dcdb14a6011",
+        "name": "AvailableRAM",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "ns=1;s=System.AvailableRAM",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 220,
+        "wires": [
+            [
+                "251574711ea540bb"
+            ]
+        ]
+    },
+    {
+        "id": "cdb6ae17c573a060",
+        "type": "rbe",
+        "z": "29c14dcdb14a6011",
+        "name": "Filter Value Changes",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 580,
+        "y": 340,
+        "wires": [
+            [
+                "3d1c0aab8c978656"
+            ]
+        ]
+    },
+    {
+        "id": "3d1c0aab8c978656",
+        "type": "ha-sensor",
+        "z": "29c14dcdb14a6011",
+        "name": "OPC UA AvailableRAM",
+        "entityConfig": "b4214a47240a7a9b",
+        "version": 0,
+        "state": "payload",
+        "stateType": "msg",
+        "attributes": [],
+        "inputOverride": "allow",
+        "outputProperties": [],
+        "x": 830,
+        "y": 340,
+        "wires": [
+            [
+                "892147e8de744d36"
+            ]
+        ]
+    },
+    {
+        "id": "cc8fa9a6aeb62ef8",
+        "type": "OpcUa-Endpoint",
+        "name": "ESP32S3",
+        "endpoint": "opc.tcp://192.168.1.175:4840",
+        "secpol": "None",
+        "secmode": "None",
+        "none": true,
+        "login": false,
+        "usercert": false,
+        "usercertificate": "",
+        "userprivatekey": ""
+    },
+    {
+        "id": "48d4b659e170bb9c",
+        "type": "ha-entity-config",
+        "server": "homeassistant",
+        "deviceConfig": "",
+        "name": "dht22.opcua_availableram",
+        "version": 6,
+        "entityType": "number",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "OPCUA Humidity"
+            },
+            {
+                "property": "icon",
+                "value": ""
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "data_size"
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": "B"
+            },
+            {
+                "property": "min_value",
+                "value": ""
+            },
+            {
+                "property": "max_value",
+                "value": ""
+            },
+            {
+                "property": "step_value",
+                "value": ""
+            },
+            {
+                "property": "mode",
+                "value": "auto"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "32cfb4f112f0e9c6",
+        "type": "ha-entity-config",
+        "server": "homeassistant",
+        "deviceConfig": "",
+        "name": "opcua.availableram",
+        "version": 6,
+        "entityType": "number",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "OPCUA Temperature"
+            },
+            {
+                "property": "icon",
+                "value": ""
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "data_size"
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": "B"
+            },
+            {
+                "property": "min_value",
+                "value": 0
+            },
+            {
+                "property": "max_value",
+                "value": 100000
+            },
+            {
+                "property": "step_value",
+                "value": ""
+            },
+            {
+                "property": "mode",
+                "value": "auto"
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "b4214a47240a7a9b",
+        "type": "ha-entity-config",
+        "server": "homeassistant",
+        "deviceConfig": "",
+        "name": "number.opcua_availableram",
+        "version": 6,
+        "entityType": "sensor",
+        "haConfig": [
+            {
+                "property": "name",
+                "value": "OPC UA AvailableRAM"
+            },
+            {
+                "property": "icon",
+                "value": ""
+            },
+            {
+                "property": "entity_picture",
+                "value": ""
+            },
+            {
+                "property": "entity_category",
+                "value": ""
+            },
+            {
+                "property": "device_class",
+                "value": "data_size"
+            },
+            {
+                "property": "unit_of_measurement",
+                "value": "B"
+            },
+            {
+                "property": "state_class",
+                "value": ""
+            }
+        ],
+        "resend": false,
+        "debugEnabled": false
+    },
+    {
+        "id": "homeassistant",
+        "type": "server",
+        "name": "Home Assistant",
+        "addon": true,
+        "rejectUnauthorizedCerts": true,
+        "ha_boolean": "",
+        "connectionDelay": false,
+        "cacheJson": false,
+        "heartbeat": false,
+        "heartbeatInterval": "",
+        "statusSeparator": "",
+        "enableGlobalContextStore": false
+    },
+    {
+        "id": "0b87dda41750c8bf",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-opcua": "0.2.355",
+            "node-red-contrib-home-assistant-websocket": "0.80.3"
+        }
+    }
+]

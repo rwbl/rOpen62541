@@ -7,15 +7,16 @@ Version=9.85
 #Region Class Info
 ' Project:		rOpen62541 (OPC UA Server)
 ' Brief:		OPC UA client for the DHT22 example.
-' Date:			2026-10-05
+' Date:			2026-10-07
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	Subscribe to the OPC UA server nodes Temperature and Humidity.
 '				Display the data tiles from the library HMITilesIO.
 ' OPC UA Nodes:	4 children under ns=1;s=Factory_Floor
-'				value=ns=1;s=Temperature|Temperature|Variable
-'				value=ns=1;s=Humidity|Humdity|Variable
-'				value=ns=1;s=Trigger|Remote Action Trigger|Variable
-'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Object
+'				value=ns=1;s=Sensor.Temperature|Temperature|Variable|Float|
+'				value=ns=1;s=Sensor.Humidity|Humdity|Variable|Float|
+'				value=ns=1;s=System.AvailableRAM|AvailableRAM|Variable|Float|
+'				value=ns=1;s=Trigger|Remote Action Trigger|Variable|String|
+'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Object|String|
 ' DependsOn:	PyBridge (http://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/)
 '				Python package asyncua (https://pypi.org) v2.0.1
 '				HMITilesIO 0.70 (https://www.b4x.com/android/forum/threads/HMITilesIO.171863/)
@@ -27,7 +28,7 @@ Version=9.85
 #Macro: Title, Export B4XPages, ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 
 Sub Class_Globals
-	Private VERSION As String = "rOpen62541 DHT22 v20261005"
+	Private VERSION As String = "rOpen62541 DHT22 v20261007"
 	' UI
 	Private xui As XUI
 	Private Root As B4XView
@@ -41,6 +42,7 @@ Sub Class_Globals
 	Private TileIOHumidity As HMITilesIO
 	Private TileIOTemperatureDigital As HMITilesIO
 	Private TileIOHumidityDigital As HMITilesIO
+	Private TileIOAvailableRAM As HMITilesIO
 
 	' PyBridge Instance
 	Public Py 						As PyBridge
@@ -53,8 +55,9 @@ Sub Class_Globals
 	' NodeIDs
 	Private NODE_TRIGGER			As String = "ns=1;s=Trigger"
 	Private NODE_FACTORY_FLOOR		As String = "ns=1;s=Factory_Floor"
-	Private NODE_TEMPERATURE		As String = "ns=1;s=Temperature"	' Subscribe to changes (see OpcClient_ConnectionChanged)
-	Private NODE_HUMIDITY			As String = "ns=1;s=Humidity"		' Subscribe to changes (see OpcClient_ConnectionChanged)
+	Private NODE_TEMPERATURE		As String = "ns=1;s=Sensor.Temperature"		' Subscribe to changes (see OpcClient_ConnectionChanged)
+	Private NODE_HUMIDITY			As String = "ns=1;s=Sensor.Humidity"		' Subscribe to changes (see OpcClient_ConnectionChanged)
+	Private NODE_AVAILABLERAM		As String = "ns=1;s=System.AvailableRAM"	' Subscribe to changes (see OpcClient_ConnectionChanged)
 
 	' Trigger Commands
 	Private TRIGGER_REQUEST_DATA 	As String = "requestdata"			' Trigger command to request latest DHT22 data
@@ -80,10 +83,9 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 	TileIOConnectSwitch.State = False
 	TileIOConnected.Value = "Disconnected"
 	TileIOConnected.ValueFontSize = 12
-	'TileIOLedSwitch.State = False
-	'TileIOLedState.State = False
-	'TileIOTemperatureDigital.ValueFontColor = xui.Color_Yellow
-	
+	TileIOAvailableRAM.InstanceTrendChart.MinValue = 40
+	TileIOAvailableRAM.InstanceTrendChart.MaxValue = 60
+
 	' PyBridge initialize core layer framework (event Py)
 	Py.Initialize(Me, "Py")
 	Dim opt As PyOptions = Py.CreateOptions("Python/python/python.exe")
@@ -211,6 +213,7 @@ Private Sub OpcClient_ConnectionChanged (Connected As Boolean)
 		Log("[OpcClient_ConnectionChanged] Subscribing ...")
 		Opc.Subscribe(NODE_TEMPERATURE)
 		Opc.Subscribe(NODE_HUMIDITY)
+		Opc.Subscribe(NODE_AVAILABLERAM)
 		Opc.Subscribe(NODE_TRIGGER)
 		
 		' Give the ESP32 network stack a tiny 100ms break to register the table writes
@@ -246,6 +249,14 @@ Private Sub OpcClient_DataChanged (NodeId As String, Value As String)
 			TileIOHumidity.Value = newvalue
 			TileIOHumidity.Footer = $"${newvalue}%RH - ${GetTime}"$
 			TileIOHumidityDigital.Value = newvalue
+		Case NODE_AVAILABLERAM
+			Log($"[OpcClient_DataChanged] availableram=${newvalue}"$)
+			Dim v As Long = newvalue.Replace(",","")
+			If v <> TileIOAvailableRAM.InstanceTrendChart.LastValue Then
+				TileIOAvailableRAM.Value = v
+				TileIOAvailableRAM.Footer = $"${v}B"$
+			End If
+
 		Case NODE_TRIGGER
 			Log($"[OpcClient_DataChanged] Trigger Action text=${Value}"$)
 	End Select

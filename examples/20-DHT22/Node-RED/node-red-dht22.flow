@@ -1,170 +1,87 @@
 [
     {
-        "id": "29c14dcdb14a6011",
-        "type": "tab",
-        "label": "OPC UA Test",
-        "disabled": false,
-        "info": "",
-        "env": []
+        "id": "n1",
+        "type": "inject",
+        "z": "f1",
+        "name": "10s Tick",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "10",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 100,
+        "wires": [
+            [
+                "n2",
+                "5cc1b697ef8995fb",
+                "a7f6cb22330b89cc"
+            ]
+        ]
     },
     {
-        "id": "6104392eae7aec40",
-        "type": "comment",
-        "z": "29c14dcdb14a6011",
-        "name": "",
-        "info": "import asyncio\nfrom bleak import BleakClient, BleakScanner\n\nCONTROL_UUID_1 = \"000092d1-0000-1000-8000-00805f9b34fb\"\nCONTROL_UUID_2 = \"00060001-f8ce-11e4-abf4-0002a5d5c51b\"\n\n\nasync def main():\n    # Scan up to 3 times\n    buwizz = None\n    for attempt in range(3):\n        print(f\"🔎 Scan attempt {attempt+1} (10s)…\")\n        devices = await BleakScanner.discover(timeout=10)\n        print(devices)\n        for d in devices:\n            print(f\"  Found device: {d.name} [{d.address}]\")\n        buwizz = next((d for d in devices if d.name and \"BuWizz\" in d.name), None)\n        if buwizz:\n            print(f\"\\n✅ BuWizz found: {buwizz.name} [{buwizz.address}]\\n\")\n            break\n        else:\n            print(\"⚠️  BuWizz not found, retrying…\\n\")\n            await asyncio.sleep(2)\n    else:\n        print(\"❌ Failed to find BuWizz after 3 attempts.\")\n        return\n\n    print(\"🔗 Connecting…\")\n    async with BleakClient(buwizz.address) as client:\n        print(\"✅ Connected to BuWizz.\\n\")\n\n        # List all services & characteristics\n        print(\"📋 Services & Characteristics:\")\n        for service in client.services:\n            print(f\"Service: {service.uuid}\")\n            for char in service.characteristics:\n                props = ','.join(char.properties)\n                print(f\"  └─ Characteristic: {char.uuid} | props: [{props}]\")\n\n        # Test both writable characteristics\n        print(\"\\n⚙️  Attempting to control motor…\")\n\n        for i, char_uuid in enumerate([CONTROL_UUID_1, CONTROL_UUID_2], start=1):\n            print(f\"➡️  Trying characteristic {i}: {char_uuid}\")\n            try:\n                print(\"   🔄 Sending motor ON (speed 50)…\")\n                await client.write_gatt_char(char_uuid, bytearray([0x01, 50]))\n                await asyncio.sleep(2)\n\n                print(\"   🔄 Sending motor OFF (speed 0)…\")\n                await client.write_gatt_char(char_uuid, bytearray([0x01, 0]))\n                print(f\"✅ Wrote to characteristic {i} successfully.\\n\")\n\n            except Exception as e:\n                print(f\"❌ Failed writing to characteristic {i}: {e}\\n\")\n\n        print(\"🏁 Done. Disconnecting…\")\n\n    print(\"🚪 Disconnected. Bye 👋\")\n\n\nif __name__ == \"__main__\":\n    asyncio.run(main())\n\n",
-        "x": 120,
-        "y": 40,
-        "wires": []
+        "id": "n2",
+        "type": "OpcUa-Item",
+        "z": "f1",
+        "item": "ns=1;s=Sensor.Temperature",
+        "datatype": "Float",
+        "value": "",
+        "name": "Temp Node",
+        "x": 310,
+        "y": 100,
+        "wires": [
+            [
+                "n3"
+            ]
+        ]
     },
     {
-        "id": "251574711ea540bb",
+        "id": "n3",
         "type": "OpcUa-Client",
-        "z": "29c14dcdb14a6011",
-        "endpoint": "cc8fa9a6aeb62ef8",
-        "action": "read",
+        "z": "f1",
+        "endpoint": "fcc17be495ef051a",
+        "action": "subscribe",
         "deadbandtype": "a",
-        "deadbandvalue": 1,
-        "time": 10,
+        "deadbandvalue": 0,
+        "time": "5",
         "timeUnit": "s",
         "certificate": "n",
         "localfile": "",
         "localkeyfile": "",
-        "securitymode": "None",
-        "securitypolicy": "None",
         "useTransport": false,
-        "maxChunkCount": 1,
-        "maxMessageSize": 8192,
-        "receiveBufferSize": 8192,
-        "sendBufferSize": 8192,
+        "maxChunkCount": "",
+        "maxMessageSize": "",
+        "receiveBufferSize": "",
+        "sendBufferSize": "",
         "setstatusandtime": false,
         "keepsessionalive": false,
-        "name": "",
+        "name": "ESP32 Server",
         "applicationName": "",
         "applicationUri": "",
-        "x": 360,
+        "x": 580,
         "y": 100,
         "wires": [
             [
-                "ec3669961cc116f5",
-                "96c3142df190b78e"
+                "8007621323712863",
+                "n4"
             ],
             [],
             []
         ]
     },
     {
-        "id": "bac7c68327f9fc57",
-        "type": "inject",
-        "z": "29c14dcdb14a6011",
-        "name": "Humidity",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "5",
-        "crontab": "",
-        "once": true,
-        "onceDelay": 0.1,
-        "topic": "ns=1;s=Humidity",
-        "payload": "",
-        "payloadType": "date",
-        "x": 120,
-        "y": 160,
-        "wires": [
-            [
-                "251574711ea540bb"
-            ]
-        ]
-    },
-    {
-        "id": "892147e8de744d36",
+        "id": "n4",
         "type": "debug",
-        "z": "29c14dcdb14a6011",
-        "name": "DEBUG OPCUA",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1040,
-        "y": 220,
-        "wires": []
-    },
-    {
-        "id": "e78a0ecfd9c77249",
-        "type": "ha-sensor",
-        "z": "29c14dcdb14a6011",
-        "name": "OPCUA Humidity",
-        "entityConfig": "48d4b659e170bb9c",
-        "version": 0,
-        "state": "payload",
-        "stateType": "msg",
-        "attributes": [],
-        "inputOverride": "allow",
-        "outputProperties": [],
-        "x": 810,
-        "y": 280,
-        "wires": [
-            [
-                "892147e8de744d36"
-            ]
-        ]
-    },
-    {
-        "id": "75b1615939552c0f",
-        "type": "rbe",
-        "z": "29c14dcdb14a6011",
-        "name": "Filter Value Changes",
-        "func": "rbe",
-        "gap": "",
-        "start": "",
-        "inout": "out",
-        "septopics": true,
-        "property": "payload",
-        "topi": "topic",
-        "x": 580,
-        "y": 260,
-        "wires": [
-            [
-                "e78a0ecfd9c77249"
-            ]
-        ]
-    },
-    {
-        "id": "96c3142df190b78e",
-        "type": "function",
-        "z": "29c14dcdb14a6011",
-        "name": "Set Decimal",
-        "func": "msg.payload = Math.round(msg.payload * 10) / 10;\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 350,
-        "y": 180,
-        "wires": [
-            [
-                "40a64d927a9f92cd"
-            ]
-        ]
-    },
-    {
-        "id": "ec3669961cc116f5",
-        "type": "debug",
-        "z": "29c14dcdb14a6011",
+        "z": "f1",
         "d": true,
-        "name": "debug 1",
+        "name": "DEBUG DHT22",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -173,117 +90,377 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 560,
-        "y": 80,
+        "x": 600,
+        "y": 180,
         "wires": []
     },
     {
-        "id": "40a64d927a9f92cd",
+        "id": "5cc1b697ef8995fb",
+        "type": "OpcUa-Item",
+        "z": "f1",
+        "item": "ns=1;s=Sensor.Humidity",
+        "datatype": "Float",
+        "value": "",
+        "name": "Hum Node",
+        "x": 310,
+        "y": 140,
+        "wires": [
+            [
+                "n3"
+            ]
+        ]
+    },
+    {
+        "id": "8007621323712863",
         "type": "switch",
-        "z": "29c14dcdb14a6011",
-        "name": "Switch Nodes",
+        "z": "f1",
+        "name": "Select Node",
         "property": "topic",
         "propertyType": "msg",
         "rules": [
             {
-                "t": "cont",
-                "v": "Temperature",
+                "t": "eq",
+                "v": "ns=1;s=Sensor.Temperature",
                 "vt": "str"
             },
             {
-                "t": "cont",
-                "v": "Humidity",
+                "t": "eq",
+                "v": "ns=1;s=Sensor.Humidity",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "ns=1;s=System.AvailableRAM",
                 "vt": "str"
             }
         ],
         "checkall": "true",
         "repair": false,
-        "outputs": 2,
-        "x": 360,
-        "y": 240,
-        "wires": [
-            [
-                "f35864083229958f"
-            ],
-            [
-                "75b1615939552c0f"
-            ]
-        ]
-    },
-    {
-        "id": "f35864083229958f",
-        "type": "rbe",
-        "z": "29c14dcdb14a6011",
-        "name": "Filter Value Changes",
-        "func": "rbe",
-        "gap": "",
-        "start": "",
-        "inout": "out",
-        "septopics": true,
-        "property": "payload",
-        "topi": "topic",
-        "x": 580,
-        "y": 220,
-        "wires": [
-            [
-                "8f85af48b396a98e"
-            ]
-        ]
-    },
-    {
-        "id": "8f85af48b396a98e",
-        "type": "ha-sensor",
-        "z": "29c14dcdb14a6011",
-        "name": "OPCUA Temperature",
-        "entityConfig": "32cfb4f112f0e9c6",
-        "version": 0,
-        "state": "payload",
-        "stateType": "msg",
-        "attributes": [],
-        "inputOverride": "allow",
-        "outputProperties": [],
-        "x": 820,
-        "y": 220,
-        "wires": [
-            [
-                "892147e8de744d36"
-            ]
-        ]
-    },
-    {
-        "id": "e67c70943de428b6",
-        "type": "inject",
-        "z": "29c14dcdb14a6011",
-        "name": "Temperature",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "5",
-        "crontab": "",
-        "once": true,
-        "onceDelay": 0.1,
-        "topic": "ns=1;s=Temperature",
-        "payload": "",
-        "payloadType": "date",
-        "x": 140,
+        "outputs": 3,
+        "x": 790,
         "y": 100,
         "wires": [
             [
-                "251574711ea540bb"
+                "b0d11a16968e16f0",
+                "17750d1efd0cdade"
+            ],
+            [
+                "5d60252a93b711c7",
+                "3b6a5dd9bbaddfcc"
+            ],
+            [
+                "7c3327bbe12e2ffb",
+                "0022fb192f70e7be",
+                "1a5a7ca42037064e"
             ]
         ]
     },
     {
-        "id": "cc8fa9a6aeb62ef8",
+        "id": "b0d11a16968e16f0",
+        "type": "debug",
+        "z": "f1",
+        "name": "TEMP NODE",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 990,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "5d60252a93b711c7",
+        "type": "debug",
+        "z": "f1",
+        "name": "HUM NODE",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 990,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "17750d1efd0cdade",
+        "type": "ui-gauge",
+        "z": "f1",
+        "name": "TEMP GAUGE",
+        "group": "5c8bc8d9fc7b82b4",
+        "order": 0,
+        "value": "$round(payload,1)",
+        "valueType": "jsonata",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Temperature",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "°C",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "24",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "30",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": "40",
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 1000,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3b6a5dd9bbaddfcc",
+        "type": "ui-gauge",
+        "z": "f1",
+        "name": "HUM GAUGE",
+        "group": "5c8bc8d9fc7b82b4",
+        "order": 0,
+        "value": "$round(payload,1)",
+        "valueType": "jsonata",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Humidity",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "%RH",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "70",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "90",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": "100",
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 1000,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a7f6cb22330b89cc",
+        "type": "OpcUa-Item",
+        "z": "f1",
+        "item": "ns=1;s=System.AvailableRAM",
+        "datatype": "Float",
+        "value": "",
+        "name": "AvailableRAM Node",
+        "x": 340,
+        "y": 180,
+        "wires": [
+            [
+                "n3"
+            ]
+        ]
+    },
+    {
+        "id": "7c3327bbe12e2ffb",
+        "type": "debug",
+        "z": "f1",
+        "name": "AvailableRAM NODE",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "0022fb192f70e7be",
+        "type": "ui-gauge",
+        "z": "f1",
+        "name": "Available RAM GAUGE",
+        "group": "5c8bc8d9fc7b82b4",
+        "order": 0,
+        "value": "$round(payload,1)",
+        "valueType": "jsonata",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Available RAM",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "b",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "70",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "90",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": "100000",
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 1030,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a123c05033c4cdcb",
+        "type": "comment",
+        "z": "f1",
+        "name": "DHT22 Nodes",
+        "info": "",
+        "x": 110,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "1a5a7ca42037064e",
+        "type": "ui-chart",
+        "z": "f1",
+        "group": "eb5eb2b718eb591d",
+        "name": "Available RAM",
+        "label": "Available RAM",
+        "order": 9007199254740991,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "40000",
+        "ymax": "60000",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 4,
+        "showLegend": false,
+        "removeOlder": 1,
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "5",
+        "height": "3",
+        "className": "",
+        "interpolation": "linear",
+        "x": 1000,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fcc17be495ef051a",
         "type": "OpcUa-Endpoint",
         "name": "ESP32S3",
-        "endpoint": "opc.tcp://192.168.1.175:4840",
+        "endpoint": "opc.tcp://192.168.1.175:4840/",
         "secpol": "None",
         "secmode": "None",
         "none": true,
@@ -293,108 +470,115 @@
         "userprivatekey": ""
     },
     {
-        "id": "48d4b659e170bb9c",
-        "type": "ha-entity-config",
-        "server": "homeassistant",
-        "deviceConfig": "",
-        "name": "sensor.opcua_humidity",
-        "version": 6,
-        "entityType": "sensor",
-        "haConfig": [
+        "id": "5c8bc8d9fc7b82b4",
+        "type": "ui-group",
+        "name": "DHT22",
+        "page": "ba68064c5fcf5fec",
+        "width": 6,
+        "height": 1,
+        "order": -1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "eb5eb2b718eb591d",
+        "type": "ui-group",
+        "name": "DHT22 Trend",
+        "page": "ba68064c5fcf5fec",
+        "width": 6,
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "ba68064c5fcf5fec",
+        "type": "ui-page",
+        "name": "DHT22",
+        "ui": "8442601f430c57a8",
+        "path": "/dht22",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "c20354fcfd71cf28",
+        "breakpoints": [
             {
-                "property": "name",
-                "value": "OPCUA Humidity"
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
             },
             {
-                "property": "icon",
-                "value": ""
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
             },
             {
-                "property": "entity_picture",
-                "value": ""
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
             },
             {
-                "property": "entity_category",
-                "value": ""
-            },
-            {
-                "property": "device_class",
-                "value": "humidity"
-            },
-            {
-                "property": "unit_of_measurement",
-                "value": "%"
-            },
-            {
-                "property": "state_class",
-                "value": ""
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
             }
         ],
-        "resend": false,
-        "debugEnabled": false
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
     },
     {
-        "id": "32cfb4f112f0e9c6",
-        "type": "ha-entity-config",
-        "server": "homeassistant",
-        "deviceConfig": "",
-        "name": "opcua.temperature",
-        "version": 6,
-        "entityType": "sensor",
-        "haConfig": [
-            {
-                "property": "name",
-                "value": "OPCUA Temperature"
-            },
-            {
-                "property": "icon",
-                "value": ""
-            },
-            {
-                "property": "entity_picture",
-                "value": ""
-            },
-            {
-                "property": "entity_category",
-                "value": ""
-            },
-            {
-                "property": "device_class",
-                "value": "temperature"
-            },
-            {
-                "property": "unit_of_measurement",
-                "value": "°C"
-            },
-            {
-                "property": "state_class",
-                "value": ""
-            }
+        "id": "8442601f430c57a8",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
         ],
-        "resend": false,
-        "debugEnabled": false
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
     },
     {
-        "id": "homeassistant",
-        "type": "server",
-        "name": "Home Assistant",
-        "addon": true,
-        "rejectUnauthorizedCerts": true,
-        "ha_boolean": "",
-        "connectionDelay": false,
-        "cacheJson": false,
-        "heartbeat": false,
-        "heartbeatInterval": "",
-        "statusSeparator": "",
-        "enableGlobalContextStore": false
+        "id": "c20354fcfd71cf28",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
     },
     {
-        "id": "c32ae07ff96e4080",
+        "id": "03edadc48c47df72",
         "type": "global-config",
         "env": [],
         "modules": {
             "node-red-contrib-opcua": "0.2.355",
-            "node-red-contrib-home-assistant-websocket": "0.80.3"
+            "@flowfuse/node-red-dashboard": "1.32.0"
         }
     }
 ]

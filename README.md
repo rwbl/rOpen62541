@@ -38,48 +38,43 @@ Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unifi
 
 ---
 
+Here is an updated version of your README.md section.
+It refines the explanation of prefix naming, explicitly addresses system metrics (like AvailableRAM), clarifies the NodeID string format for B4R, and keeps the text professional, clean, and developer-friendly.
+------------------------------
 ## Node Hierarchy
 
-`rOpen62541` uses a simple, flat node hierarchy.
-
-All application nodes are added directly below the root object:
-
-```text
+**rOpen62541** uses a simple, **flat node hierarchy**.
+All application nodes reside inside a single namespace (**Namespace 1**) and are attached directly below the root folder object:
+```
 Objects (ns=0;i=85)
 └── Factory_Floor (ns=1;s=Factory_Floor)
     ├── Temperature
     ├── Humidity
     ├── Pump1_Status
-    ├── Pump1_Speed
-    ├── Valve1_Status
     ├── Production_Count
-    └── Trigger
-````
-
-Folders and additional hierarchical levels are not supported by the current B4R wrapper. This is an intentional design choice to keep the B4R API simple and to minimize RAM usage and processing overhead on ESP32-class microcontrollers.
-
-For applications requiring a logical structure, **prefix naming** can be used to organize nodes while retaining the flat hierarchy. This is similar to the tag-naming approach commonly used in industrial automation systems:
-
-```text
-Factory_Floor
-├── Tank1_Temperature
-├── Tank1_Level
-├── Tank1_Pressure
-├── Pump1_Status
-├── Pump1_Speed
-├── Pump2_Status
-└── Pump2_Speed
+    ├── Trigger
+    └── System_AvailableRAM
 ```
 
-For example:
+**Folders and additional dynamic hierarchical object levels are not supported by the current B4R wrapper.**  
+This is an intentional design choice to keep the B4R API simple, eliminate multi-namespace memory overhead, and minimize RAM usage on ESP32-class microcontrollers.
 
-```basic
-OPCUAServer.AddFloatNode("Tank1_Temperature", "Tank 1 Temperature", 22.5)
-OPCUAServer.AddFloatNode("Tank1_Level", "Tank 1 Level", 75.0)
-OPCUAServer.AddBooleanNode("Pump1_Status", "Pump 1 Status", False)
+## Organizing Nodes with Dot/Prefix Naming
+For applications requiring logical groupings or separating field data from diagnostic metrics, prefix naming should be used.  
+This mirrors the flat tag-naming approaches universally adopted in industrial PLCs, SCADA databases, and automation historians:
+
+* Field Assets: Group components by physical location or machine ID (e.g., Tank1_Temperature, Pump2_Speed).
+* System Metrics: Group microcontroller health stats together (e.g., System_AvailableRAM, System_Uptime).
+
+Example B4R implementation:
 ```
-
-This approach provides a simple and predictable OPC UA address space while keeping the wrapper lightweight and well suited for embedded ESP32 applications.
+' Industrial Field Assets
+OPCUAServer.AddFloatNode("Tank1.Temperature", "Tank 1 Temperature", 22.5)
+OPCUAServer.AddFloatNode("Tank1.Level", "Tank 1 Level", 75.0)
+OPCUAServer.AddBooleanNode("Pump1.Status", "Pump 1 Status", False)
+' Embedded System Metrics (Kept cleanly in Namespace 1)
+OPCUAServer.AddIntNode("System.AvailableRAM", "Available RAM", 184320)
+```
 
 ---
 
@@ -108,9 +103,16 @@ Download the repository from [GitHub](https://github.com/rwbl/rOpen62541).
 ---
 
 ## Project Code Examples
-The repository includes complete, ready-to-run environment folders tracking specific implementation patterns:
 
-* [**Go to the Project Examples Index**](examples/) — Explore runnable source code frameworks for Environment Simulation, Method Callbacks, Peripheral I/O Mapping, System Node ID lookups and more.
+The repository includes complete, ready-to-run environment folders demonstrating and testing specific implementation patterns:
+
+* [**Go to the Project Examples Index**](examples/) — Explore runnable source code examples for Environment Simulation, Method Callbacks, Peripheral I/O Mapping, System Node ID lookups, and more.
+
+The examples are designed to test the fundamental communication directions between the physical device, the OPC UA server, and external clients:
+
+* **LED** → OPC UA client → server → physical output
+* **Push-button** → physical input → server → OPC UA client
+* **DHT22** → real sensor data → server → OPC UA client → Home Assistant
 
 ---
 

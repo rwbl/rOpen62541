@@ -21,6 +21,15 @@
               red: 24
             min: 15
             max: 25
+          - type: gauge
+            entity: sensor.opc_ua_availableram
+            min: 0
+            max: 100000
+            needle: true
+            severity:
+              green: 30000
+              yellow: 20000
+              red: 0
       - type: grid
         cards:
           - type: heading
