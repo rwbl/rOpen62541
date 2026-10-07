@@ -104,7 +104,7 @@
         "type": "ha-sensor",
         "z": "29c14dcdb14a6011",
         "name": "OPC UA Humidity",
-        "entityConfig": "48d4b659e170bb9c",
+        "entityConfig": "d53cca752b406323",
         "version": 0,
         "state": "payload",
         "stateType": "msg",
@@ -243,7 +243,7 @@
         "type": "ha-sensor",
         "z": "29c14dcdb14a6011",
         "name": "OPC UA Temperature",
-        "entityConfig": "32cfb4f112f0e9c6",
+        "entityConfig": "9e9fbd5ae9551239",
         "version": 0,
         "state": "payload",
         "stateType": "msg",
@@ -370,17 +370,17 @@
         "userprivatekey": ""
     },
     {
-        "id": "48d4b659e170bb9c",
+        "id": "d53cca752b406323",
         "type": "ha-entity-config",
         "server": "homeassistant",
         "deviceConfig": "",
-        "name": "dht22.opcua_availableram",
+        "name": "opcua.humidity",
         "version": 6,
-        "entityType": "number",
+        "entityType": "sensor",
         "haConfig": [
             {
                 "property": "name",
-                "value": "OPCUA Humidity"
+                "value": "OPC UA Humidity"
             },
             {
                 "property": "icon",
@@ -396,44 +396,32 @@
             },
             {
                 "property": "device_class",
-                "value": "data_size"
+                "value": "humidity"
             },
             {
                 "property": "unit_of_measurement",
-                "value": "B"
+                "value": "%"
             },
             {
-                "property": "min_value",
+                "property": "state_class",
                 "value": ""
-            },
-            {
-                "property": "max_value",
-                "value": ""
-            },
-            {
-                "property": "step_value",
-                "value": ""
-            },
-            {
-                "property": "mode",
-                "value": "auto"
             }
         ],
         "resend": false,
         "debugEnabled": false
     },
     {
-        "id": "32cfb4f112f0e9c6",
+        "id": "9e9fbd5ae9551239",
         "type": "ha-entity-config",
         "server": "homeassistant",
         "deviceConfig": "",
-        "name": "opcua.availableram",
+        "name": "opcua.temperature",
         "version": 6,
-        "entityType": "number",
+        "entityType": "sensor",
         "haConfig": [
             {
                 "property": "name",
-                "value": "OPCUA Temperature"
+                "value": "OPC UA Temperature"
             },
             {
                 "property": "icon",
@@ -449,27 +437,15 @@
             },
             {
                 "property": "device_class",
-                "value": "data_size"
+                "value": "temperature"
             },
             {
                 "property": "unit_of_measurement",
-                "value": "B"
+                "value": "°C"
             },
             {
-                "property": "min_value",
-                "value": 0
-            },
-            {
-                "property": "max_value",
-                "value": 100000
-            },
-            {
-                "property": "step_value",
+                "property": "state_class",
                 "value": ""
-            },
-            {
-                "property": "mode",
-                "value": "auto"
             }
         ],
         "resend": false,
@@ -531,7 +507,7 @@
         "enableGlobalContextStore": false
     },
     {
-        "id": "0b87dda41750c8bf",
+        "id": "665c0f1f8c4ed398",
         "type": "global-config",
         "env": [],
         "modules": {

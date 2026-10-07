@@ -6,14 +6,14 @@
       - type: grid
         cards:
           - type: gauge
-            entity: sensor.opcua_humidity
+            entity: sensor.opc_ua_temperature
             needle: true
             severity:
               green: 0
               yellow: 70
               red: 90
           - type: gauge
-            entity: sensor.opcua_temperature
+            entity: sensor.opc_ua_humidity
             needle: true
             severity:
               green: 0
@@ -38,10 +38,13 @@
             entities:
               - entity: sensor.opcua_temperature
                 secondary_info: last_changed
+                icon: mdi:thermometer-low
               - entity: sensor.opcua_humidity
                 secondary_info: last_changed
-            title: null
-            show_header_toggle: false
+                icon: mdi:water-percent
+              - entity: sensor.opc_ua_availableram
+                secondary_info: last_changed
+                icon: mdi:memory
           - type: markdown
             content: >
               ### rOpen62541
