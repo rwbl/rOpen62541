@@ -13,7 +13,7 @@ Version=4
 '==============================================
 ' Project:		rOpen62541
 ' Brief:		Example callmethod function.
-' Date:			2026-10-05
+' Date:			2026-10-07
 ' Author: 		Robert W.B. Linn (c) 2026 - MIT — see LICENSE file.
 ' Description:	Listen to commands received from the connected OPC UA client.
 '				The call method is used with nodeid ExecuteJob and value START_BATCH.
@@ -39,7 +39,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 MethodCallback v20261005"
+	Private VERSION 			As String = "rOpen62541 MethodCallback v20261007"
 
 	' Communication
 	Public Serial1 				As Serial

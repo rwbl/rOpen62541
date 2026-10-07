@@ -13,7 +13,7 @@ Version=4
 '==============================================
 ' Project:		rOpen62541
 ' Brief:		Example simulating sensor data and listening to client callback.
-' Date:			2026-10-05
+' Date:			2026-10-07
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	Simulating temperature and humidity sensor data.
@@ -36,7 +36,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 EnvSim v20261005"
+	Private VERSION 			As String = "rOpen62541 EnvSim v20261007"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -47,7 +47,6 @@ Sub Process_Globals
 	' Open62541
 	Private OPCUAServer			As Open62541						' Lib rOpen62541
 	Private PORT 				As Int = 4840
-	Private NAMESPACE_INDEX 	As Int = 1
 	' Nodes
 	Private NODEID_TEMPERATURE	As String = "ns=1;s=Temperature"
 	Private NODEID_HUMIDITY		As String = "ns=1;s=Humidity"
@@ -160,10 +159,10 @@ Sub AppTimer_Tick
 		' ns=1;s=Temperature (Namespace 1, String identifier).
 
 		' The client simply asks the server for that exact identifier.
-		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, "Temperature", CurrentTemp)
+		OPCUAServer.WriteNumeric(NODEID_TEMPERATURE, CurrentTemp)
 
 		' Humidity following same as Temperature
-		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, "Humidity", CurrentHum)
+		OPCUAServer.WriteNumeric(NODEID_HUMIDITY, CurrentHum)
 		
         ' Log update
 		' Log("[AppTimer] Sensor read complete. Updated Node memory with: t=", CurrentTemp, " h=", CurrentHum)

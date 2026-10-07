@@ -13,8 +13,8 @@ Version=4
 #Region Project Header
 '==============================================
 ' Project:		rOpen6241
-' Brief:		Example to control servo position open or close.
-' Date:			2026-10-02
+' Brief:		Example to control servo motor position open or close.
+' Date:			2026-10-07
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	This example has an servo motor connected to the ESP32S3.
@@ -28,7 +28,7 @@ Version=4
 '				- Unleash the 8MB Octal PSRAM footprint
 '				- Partitionscheme: Huge App
 '				- PSRAM: OPI PSRAM
-' Software:		B4R 4.00 (64 bit), IDE ESP32S3 Dev Module
+' Software:		B4R 4.00 (64 bit), B4R IDE Board ESP32S3 Dev Module COM15
 '				Arduino Board Manager ESP32 3.3.12.
 ' Libraries:	rESP32Servo 1.10, rESP8266WiFi 1.6, rOpen62541 0.70, rRandomAccessFile1.91
 ' Wiring:		Output
@@ -51,7 +51,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 ServoControl v20261002"
+	Private VERSION 			As String = "rOpen62541 ServoControl v20261007"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -65,9 +65,6 @@ Sub Process_Globals
 	' Nodes (lowercase) using for tests different name spaces
 	Private NODEID_TRIGGER		As String = "ns=1;s=trigger"		'
 	Private NODEID_STATE 		As String = "ns=1;s=gatestate"		'
-
-	Private NAMESPACEINDEX		As Byte = 1
-	Private NODEID_STATE_STRING	As String = "gatestate"		'
 
 	' Commands
 	Private CMD_GATE_OPEN 		As String = "gateopen"
@@ -212,8 +209,8 @@ Private Sub SetServoOpen
 	LedRedPin.DigitalWrite(LedRedState)
 	LedGreenState = True
 	LedGreenPin.DigitalWrite(LedGreenState)
-	OPCUAServer.WriteNumeric(NAMESPACEINDEX, NODEID_STATE_STRING, STATE_GATE_OPEN)
-	' OPCUAServer.WriteByteString(NAMESPACEINDEX, NODEID_STATE_STRING, Array As Byte(0x19, 0x01, 0x58))
+	OPCUAServer.WriteNumeric(NODEID_STATE, STATE_GATE_OPEN)
+	' OPCUAServer.WriteByteString(NODEID_STATE, Array As Byte(0x19, 0x01, 0x58))
 	'
 	SetServo(Servo, SERVO_PIN_NR, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_ANGLE)
 End Sub
@@ -223,8 +220,8 @@ Private Sub SetServoClosed
 	LedRedPin.DigitalWrite(LedRedState)
 	LedGreenState = False
 	LedGreenPin.DigitalWrite(LedGreenState)
-	OPCUAServer.WriteNumeric(NAMESPACEINDEX, NODEID_STATE_STRING, STATE_GATE_CLOSED)
-	' OPCUAServer.WriteByteString(NAMESPACEINDEX, NODEID_STATE_STRING, Array As Byte(0x19, 0x00, 0x58))
+	OPCUAServer.WriteNumeric(NODEID_STATE, STATE_GATE_CLOSED)
+	' OPCUAServer.WriteByteString(NODEID_STATE, Array As Byte(0x19, 0x00, 0x58))
 	'
 	SetServo(Servo, SERVO_PIN_NR, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MAX_ANGLE)
 End Sub

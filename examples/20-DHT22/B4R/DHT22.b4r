@@ -69,15 +69,10 @@ Sub Process_Globals
 	Private PORT 				As Int = 4840
 
 	' Nodes
-	Private NAMESPACE_INDEX		As Int = 1									' Mandatory; must be 1.
-	Private NODE_TRIGGER		As String = "ns=1;s=Trigger"				' Triggers event OnDataWrite
-
-	Private NODE_TEMPERATURE	As String = "ns=1;s=Sensor.Temperature"		' Register node
-	Private NODEID_TEMPERATURE 	As String = "Sensor.Temperature"			' Write node value
-	Private NODE_HUMIDITY		As String = "ns=1;s=Sensor.Humidity"		' Register node
-	Private NODEID_HUMIDITY 	As String = "Sensor.Humidity"				' Write node value
-	Private NODE_AVAILABLERAM	As String = "ns=1;s=System.AvailableRAM"	' Register node
-	Private NODEID_AVAILABLERAM	As String = "System.AvailableRAM"			' Write node value
+	Private NODEID_TRIGGER		As String = "ns=1;s=Trigger"				' Triggers event OnDataWrite
+	Private NODEID_TEMPERATURE	As String = "ns=1;s=Sensor.Temperature"		' Register node
+	Private NODEID_HUMIDITY		As String = "ns=1;s=Sensor.Humidity"		' Register node
+	Private NODEID_AVAILABLERAM	As String = "ns=1;s=System.AvailableRAM"	' Register node
 	
 	'Helper
 	Private ByteConv As ByteConverter	'ignore
@@ -150,14 +145,14 @@ Private Sub InitOPCUAServer As Boolean
 		Log("[InitOPCUAServer] OPC UA Server initialized > Register nodes...")
 		
 		' Register state sensor data temperature & humidty
-		OPCUAServer.AddFloatNode(NODE_TEMPERATURE, "Temperature", 0)
-		OPCUAServer.AddFloatNode(NODE_HUMIDITY, "Humdity", 0)
+		OPCUAServer.AddFloatNode(NODEID_TEMPERATURE, "Temperature", 0)
+		OPCUAServer.AddFloatNode(NODEID_HUMIDITY, "Humdity", 0)
 
 		' Register AvailableRAM
-		OPCUAServer.AddFloatNode(NODE_AVAILABLERAM,"AvailableRAM", AvailableRAM)
+		OPCUAServer.AddFloatNode(NODEID_AVAILABLERAM,"AvailableRAM", AvailableRAM)
 		
 		' Register trigger method received from the client and call event OnDataWrite
-		OPCUAServer.AddStringNode(NODE_TRIGGER, "Remote Action Trigger", "0")
+		OPCUAServer.AddStringNode(NODEID_TRIGGER, "Remote Action Trigger", "0")
 		
 		' Register native executable method node and call event OnMethodCall
 		OPCUAServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OnMethodCall")
@@ -175,7 +170,7 @@ Private Sub OnDHTStateChanged(t As Float, h As Float)
 	Log("[OnDHTStateChanged] t=",t, ", h=",h, ", r=", AvailableRAM)
 	If IsNumber(t) Then
 		Temperature = t
-		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_TEMPERATURE, Temperature)
+		OPCUAServer.WriteNumeric(NODEID_TEMPERATURE, Temperature)
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
 	Else
 		Log("[OnDHTStateChanged][E] t=nan")
@@ -183,14 +178,14 @@ Private Sub OnDHTStateChanged(t As Float, h As Float)
 	End If
 	If IsNumber(h) Then
 		Humidity = h
-		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_HUMIDITY, Humidity)
+		OPCUAServer.WriteNumeric(NODEID_HUMIDITY, Humidity)
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
 	Else
 		Log("[OnDHTStateChanged][E] h=nan")
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_BAD)
 	End If
 	' Allways update available ram
-	OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_AVAILABLERAM, AvailableRAM)
+	OPCUAServer.WriteNumeric(NODEID_AVAILABLERAM, AvailableRAM)
 End Sub
 
 ' OnDataWrite
@@ -198,8 +193,8 @@ End Sub
 ' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
 Private Sub OnDataWrite(buffer() As Byte)
 	Log("[OnDataWrite] Client trigger method ", ByteConv.StringFromBytes(buffer))
-	OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_TEMPERATURE, Dht.Temperature)
-	OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_HUMIDITY, Dht.Humidity)
+	OPCUAServer.WriteNumeric(NODEID_TEMPERATURE, Dht.Temperature)
+	OPCUAServer.WriteNumeric(NODEID_HUMIDITY, Dht.Humidity)
 End Sub
 
 ' OnMethodCall
@@ -213,8 +208,8 @@ Private Sub OnMethodCall(InputParams() As Byte)
 	' Evaluate your local logic parameters safely
 	If ParamText = "REQUEST_DATA" Then
 		Log("[OnMethodCall] Command accepted.")
-		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_TEMPERATURE, Dht.Temperature)
-		OPCUAServer.WriteNumeric(NAMESPACE_INDEX, NODEID_HUMIDITY, Dht.Humidity)
+		OPCUAServer.WriteNumeric(NODEID_TEMPERATURE, Dht.Temperature)
+		OPCUAServer.WriteNumeric(NODEID_HUMIDITY, Dht.Humidity)
 		' Invoke via your active OPCUAServer instance prefix!
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
 	Else

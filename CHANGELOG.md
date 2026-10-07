@@ -1,9 +1,11 @@
 # CHANGELOG
 
-## v0.91 (Build 20261006)
-**Focus: Testing & Examples**
-- NEW: Added example DHT22 to demonstrate usage of real sensor data Temperature & Humidity with Home Assistant client (using Node-RED).
-- UPD: All examples.
+## v0.91 (Build 20261007)
+**Focus: API Aligned Simplification & Full Multi-Format Node Support**
+- NEW: Rewrote `Read` and `Write` methods to accept a unified `NodeIdentifier` string (e.g., `"ns=1;s=Temperature"` or `"ns=0;i=2258"`). This eliminates the clunky separation of `NamespaceIndex` and `NodeString` parameters, perfectly aligning them with the `Add` node methods.
+- NEW: Added native parser support for numeric Node IDs (`i=`), allowing direct interaction with core system metrics and native server nodes (such as reading server status or diagnostic variables like `ns=0;i=2258`).
+- NEW: Added a complete `DHT22` sensor telemetry example demonstrating how to publish real-world ambient Temperature & Humidity metrics to modern SCADA/IoT infrastructure like **Home Assistant** (via Node-RED).
+- UPD: Refactored all packaged library examples to adopt the new streamlined single-string `Read` and `Write` API.
 
 ### Development Status
 B4R-facing OPC UA server API implements:

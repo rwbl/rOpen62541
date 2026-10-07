@@ -224,7 +224,7 @@ Sub Button_StateChanged (State As Boolean)
 		LedRedPin.DigitalWrite(LedRedState)
 		
 		' Update the opc ua node
-		OPCUAServer.WriteNumeric(1, "LedState", IIf(LedRedState, 1, 0))
+		OPCUAServer.WriteNumeric(NODEID_LED_STATE, IIf(LedRedState, 1, 0))
 	End If
 End Sub
 #End Region

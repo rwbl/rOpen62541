@@ -13,7 +13,7 @@ Version=4
 '==============================================
 ' Project:		rOpen6241
 ' Brief:		Low-level standard namespace lookup implementations. 
-' Date:			2026-10-02
+' Date:			2026-10-07
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	Demonstrates querying standard Namespace 0 (`ns=0`) system variables And parsing complex structure payloads.
@@ -24,7 +24,7 @@ Version=4
 '				Partitionscheme: Huge App
 '				PSRAM: OPI PSRAM
 ' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
-'				Arduino Board Manager ESP32 3.3.11.
+'				Arduino Board Manager ESP32 3.3.12.
 ' Wiring:		N/A
 ' B4R Log:
 '				[AppStart] rOpen62541 NodeIDs v20260918
@@ -40,7 +40,7 @@ Version=4
 '				[opcuaServerTask] OPC UA Server successfully running on Core 0!
 '				[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...
 '				[AppStart] Opc server started
-'				[GetSystemNode] 2258=2026-09-18 17:59:16
+'				[GetSystemNode] ns=0;i=2258=2026-10-07 16:05:47Z
 '==============================================
 #End Region
 
@@ -52,7 +52,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 NodeIDs v20261002"
+	Private VERSION 			As String = "rOpen62541 NodeIDs v20261007"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -86,7 +86,7 @@ Sub AppStart
 		Log("[AppStart] Init opc server")
 		If InitOPCUAServer Then
 			Log("[AppStart] OPC UA server started")
-			CallSubPlus("GetSystemNode", 5000, 58)
+			CallSubPlus("GetServerTime", 5000, 0)
 		End If
 	Else
 		Log("[AppStart][E] WiFi Connection Failed")
@@ -136,9 +136,9 @@ Private Sub InitOPCUAServer As Boolean
 	Return Not(ServerBootFailed)
 End Sub
 
-Private Sub GetSystemNode(nodeid As Byte)
-	Dim n As UInt = 2200 + nodeid
-	Log("[GetSystemNode] ", n, "=", OPCUAServer.ReadNumeric(0, n))
+Private Sub GetServerTime(tag As Byte)
+	Dim nodeid As String = "ns=0;i=2258"
+	Log("[GetSystemNode] ", nodeid, "=", OPCUAServer.ReadNumeric(nodeid))
 	' [GetSystemNode] 2258:2026-09-18 17:13:20
 End Sub
 
