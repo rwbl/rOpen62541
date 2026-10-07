@@ -4,10 +4,10 @@
 > **Final Testing & Documentation In Progress**  
 > The core server functionality is implemented and the API is approaching stability. Final testing, documentation, and project examples are still in progress, and minor API changes may occur before the v1.0.0 release.
 
-**rOpen62541** is an open-source [B4R](https://www.b4x.com/b4r.html) library wrapper for the industrial open62541 OPC UA protocol stack, specifically optimized for the ESP32-S3 Dual-Core architecture. 
+**rOpen62541** is an open-source [B4R](https://www.b4x.com/b4r.html) library wrapper for the industrial open62541 OPC UA protocol stack, specifically optimized for the ESP32-S3 Dual-Core architecture.  
 It provides thread-safe cross-core communication, dynamic string-node creation with a flat hierarchy, and type-agnostic runtime write diagnostics.
 
----
+**rOpen62541** intentionally supports a single application root object, `Factory_Floor`, with a flat collection of application nodes. Hierarchical folders are outside the scope of the current B4R wrapper.---
 
 ## Project Overview & Background
 
@@ -110,7 +110,7 @@ Download the repository from [GitHub](https://github.com/rwbl/rOpen62541).
 ## Project Code Examples
 The repository includes complete, ready-to-run environment folders tracking specific implementation patterns:
 
-* [**Go to the Project Examples Index**](examples/) — Explore runnable source code frameworks for Environment Simulation, Method Callbacks, Peripheral I/O Mapping, and System Node ID lookups.
+* [**Go to the Project Examples Index**](examples/) — Explore runnable source code frameworks for Environment Simulation, Method Callbacks, Peripheral I/O Mapping, System Node ID lookups and more.
 
 ---
 
@@ -130,7 +130,7 @@ For detailed tutorials, API blueprints, and environment configurations, please v
 ## License
 
 - **rOpen62541** Library * MIT License as stated in the LICENSE file provided with rOpen62541.
-- **Open62541** Library * Mozilla Public License v2.0 as stated in the LICENSE file provided with open62541.
+- **open62541** Library * Mozilla Public License v2.0 as stated in the LICENSE file provided with open62541.
 
 ---
 
