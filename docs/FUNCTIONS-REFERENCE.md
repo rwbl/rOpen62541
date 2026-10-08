@@ -79,18 +79,27 @@ WriteNumeric(NodeIdentifier As String, NewValue As Double)
 - Writes a numeric payload into an active OPC UA node.
 - Supports cross-core type verification for floating-point, integer, and boolean structures inside Namespace 1.
 - Parameter:
-	- NodeIdentifier The targeting string Node ID (e.g., "Temperature").
+	- NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 	- NewValue The numerical double representation payload to convert and assign.
 
 ### WriteString
 ```b4x
-WriteByteString(NamespaceIndex As Int, NodeIdentifier As String, Data As Byte())
+WriteString(NodeIdentifier As String, NewValue As String)
+```
+- Writes a String payload into an active OPC UA node.
+- Automatically handles string memory copying and verifies target node type data inside Namespace 1.
+- Parameter:
+	- NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
+	- Data The B4R ArrayByte payload to write into the node address space.
+
+### WriteByteString
+```b4x
+WriteByteString(NodeIdentifier As String, Data As Byte())
 ```
 - Writes a binary ByteString payload into an active OPC UA node.
 - Automatically handles string memory copying and verifies target node type data inside Namespace 1.
 - Parameter:
-	- NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-	- NodeIdentifier The targeting string Node ID (e.g., "DeviceData").
+	- NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 	- Data The B4R ArrayByte payload to write into the node address space.
 
 ---
@@ -98,31 +107,71 @@ WriteByteString(NamespaceIndex As Int, NodeIdentifier As String, Data As Byte())
 ## Read Nodes
 
 ```b4x
-ReadNumeric(NamespaceIndex As Int, NumericIdentifier As Int)
+ReadNumeric(NodeIdentifier As String)
 ```
 - Reads a node value using a numeric identifier.
 - Dynamically converts scalars (Integers, Booleans, Floats, Doubles, Strings, and Datetimes) into a generic string representation.
 - Standard OPC UA DateTime structures are automatically converted and formatted into a universal UTC Zulu timestamp string.
 - Parameter:
-	- NamespaceIndex The targeting name space index (e.g., 0, 1).
-	- NumericIdentifier The targeting numeric identifier (e.g., 2258).
-
+	- NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=0;i=2258" for the server time).
+- Return: 
+	- The scalar node value formatted as a B4R String.
+	
 ```b4x
-ReadString(NamespaceIndex As Int, NodeIdentifier A String)
+ReadString(NodeIdentifier A String)
 ```
 - Reads a node value using a string identifier.
 - Dynamically converts scalars (Integers, Booleans, Floats, Doubles, Strings, and Datetimes) into a generic string representation.
 - Standard OPC UA DateTime structures are automatically converted and formatted into a universal UTC Zulu timestamp string.
 - Parameter:
-	- NamespaceIndex The targeting name space index (e.g., 0, 1).
-	- NumericIdentifier The targeting string identifier (e.g., "Temperature").
+	- NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
+- Return: 
+	- A B4RString pointer containing the text-formatted value payload.
 
 ```b4x
-ReadByteString(NamespaceIndex As Int, NodeIdentifier A String) As Byte()
+ReadByteString(NodeIdentifier A String) As Byte()
 ```
 - Reads a binary ByteString value using a string identifier.
 - Parameter:
-	- NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-	- NodeIdentifier The targeting string Node ID (e.g., "DeviceData").
-- Return 
+	- NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=DeviceData").
+- Return: 
 	- Array As Byte containing the binary ByteString payload.
+
+---
+
+## Getter/Setter
+```b4x
+IsReady As Boolean
+```
+- Set or get whether the server is running.
+- Return:
+	- Boolean True = Server is ready, False = Server not ready.
+
+---
+
+## Constants
+Indicates that the operation was successful and results may be used.
+```
+ULong STATUS_GOOD = 0x00000000
+```
+Indicates partial success; results might not fit all purposes.
+```
+ULong STATUS_UNCERTAIN = 0x40000000
+```
+Indicates the operation failed completely; results cannot be used.
+```
+ULong STATUS_BAD = 0x80000000
+```
+Indicates that the operation was successful and results may be used.
+```
+ULong STATUS_SUCCESS = 0x00000000
+```
+Indicates partial success; results might not fit all purposes.
+```
+ULong STATUS_WARNING = 0x40000000
+```
+Indicates the operation failed completely; results cannot be used.
+```
+ULong STATUS_FAILURE = 0x80000000
+```
+			

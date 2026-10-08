@@ -179,7 +179,6 @@ namespace B4R {
 			void WriteString(B4RString* NodeIdentifier, B4RString* NewValue);
 
 			/**
-			 * OPC UA Standard Write Service.
 			 * Thread-safely writes a binary ByteString payload into an active OPC UA node.
 			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 			 * @param Data The B4R ArrayByte payload to write into the node address space.
@@ -210,7 +209,7 @@ namespace B4R {
 			 * OPC UA Standard Read Service.
 			 * Thread-safely reads a binary ByteString value using a string identifier.
 			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=DeviceData").
-			 * @return An ArrayByte pointer containing the binary ByteString payload.
+			 * @return An ArrayByte containing the binary ByteString payload.
 			 */
 			ArrayByte* ReadByteString(B4RString* NodeIdentifier);
 
