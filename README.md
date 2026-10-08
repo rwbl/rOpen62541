@@ -103,9 +103,9 @@ Download the repository from [GitHub](https://github.com/rwbl/rOpen62541).
 
 The repository includes complete, ready-to-run environment folders demonstrating and testing specific implementation patterns:
 
-* [**Go to the Project Examples Index**](examples/) — Explore runnable source code examples for Environment Simulation, Method Callbacks, Peripheral I/O Mapping, System Node ID lookups, and more.
+* [**Go to the Project Examples Index**](examples/) - Explore runnable source code examples for Environment Simulation, Method Callbacks, Peripheral I/O Mapping, System Node ID lookups, and more.
 
-The examples are designed to test the fundamental communication directions between the physical device, the OPC UA server, and external clients:
+The examples are designed to test the fundamental communication directions between the physical device, the OPC UA server, and external clients, like
 
 * **LED** → OPC UA client → server → physical output
 * **Push-button** → physical input → server → OPC UA client
