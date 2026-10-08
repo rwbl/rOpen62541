@@ -2,16 +2,16 @@
 
 ## Final Testing
 The API is freezed and complete final testing before releasing as v1.0.0. 
-**Testscenarios***
+**Testscenarios**
 | Priority | Test Goal                      | Test                                                       | Example       | Result        |
 |----------|--------------------------------|------------------------------------------------------------|---------------|---------------|
 | H        | ByteString round-trip          |                                                            |               | ToDo          |
 | H        | Method callback + return code  | B4J client.                                                | 12-MethodCall | OK            |
 | H        | Disconnect/reconnect           | NR client: 1. NR stopped/started; 2. ESP32 restarted.      | 20-DHT22      | OK            |
+| H        | Larger realistic flat node set | Two Tank simulator with 21 nodes (including soak test).    | 24-TankSim    | In progress   |
 | H        | 12–24 h soak test              | HA client. Added node `ns=1;s=System.AvailableRAM`.        | 20-DHT22      | OK            |
 | M        | Namespace 1 / Namespace 2      | Namespace 2 deliberately not used in current API examples. |               | Not required  |
 | M        | Multiple simultaneous clients  | HA, NR and opcua-commander connected simultaneously.       | 20-DHT22      | OK            |
-| L        | Larger realistic flat node set | Two Tank simulator with 21 nodes (including soak test).    | 24-TankSim    | In progress   |
 
 *Legend:* H = High, M = Medium, L = Low; HA = Home Assistant; NR = Node-RED.
 
