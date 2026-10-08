@@ -38,9 +38,6 @@ Unlike standard message-based IoT protocols (like MQTT), OPC UA provides a unifi
 
 ---
 
-Here is an updated version of your README.md section.
-It refines the explanation of prefix naming, explicitly addresses system metrics (like AvailableRAM), clarifies the NodeID string format for B4R, and keeps the text professional, clean, and developer-friendly.
-------------------------------
 ## Node Hierarchy
 
 **rOpen62541** uses a simple, **flat node hierarchy**.
