@@ -189,14 +189,9 @@ Perfect for switching hardware relays or reading digital state inputs.
             <name DesignerName="WriteNumeric">WriteNumeric</name>
             <comment>Thread-safely updates an active OPC UA node by automatically resolving its compiled data layout type.
 Supports cross-core type verification for floating-point (Float), integer (Int32), and Boolean structures inside Namespace 1.
-@param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-@param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
+@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 @param NewValue The numerical double representation payload to convert and assign.</comment>
             <returntype>B4R::void</returntype>
-            <parameter>
-                <name>NamespaceIndex</name>
-                <type>int</type>
-            </parameter>
             <parameter>
                 <name>NodeIdentifier</name>
                 <type>B4R::B4RString*</type>
@@ -210,14 +205,9 @@ Supports cross-core type verification for floating-point (Float), integer (Int32
             <name DesignerName="WriteString">WriteString</name>
             <comment>Thread-safely writes a string text payload into an active OPC UA node.
 Automatically handles string memory copying and verifies the target node data type.
-@param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-@param NodeIdentifier The targeting string Node ID (e.g., "DeviceStatus").
+@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 @param NewValue The B4RString payload to write into the node address space.</comment>
             <returntype>B4R::void</returntype>
-            <parameter>
-                <name>NamespaceIndex</name>
-                <type>int</type>
-            </parameter>
             <parameter>
                 <name>NodeIdentifier</name>
                 <type>B4R::B4RString*</type>
@@ -231,14 +221,9 @@ Automatically handles string memory copying and verifies the target node data ty
             <name DesignerName="WriteByteString">WriteByteString</name>
             <comment>OPC UA Standard Write Service.
 Thread-safely writes a binary ByteString payload into an active OPC UA node.
-@param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-@param NodeIdentifier The targeting string Node ID (e.g., "DeviceData").
+@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 @param Data The B4R ArrayByte payload to write into the node address space.</comment>
             <returntype>B4R::void</returntype>
-            <parameter>
-                <name>NamespaceIndex</name>
-                <type>int</type>
-            </parameter>
             <parameter>
                 <name>NodeIdentifier</name>
                 <type>B4R::B4RString*</type>
@@ -252,31 +237,21 @@ Thread-safely writes a binary ByteString payload into an active OPC UA node.
             <name DesignerName="ReadNumeric">ReadNumeric</name>
             <comment>OPC UA Standard Read Service.
 Thread-safely reads a node value using a numeric identifier.
-@param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-@param NumericIdentifier The unique numerical identifier key (e.g., 2258).
+@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=2258").
 @return Returns the scalar node value formatted as a B4R String.</comment>
             <returntype>B4R::B4RString*</returntype>
             <parameter>
-                <name>NamespaceIndex</name>
-                <type>int</type>
-            </parameter>
-            <parameter>
                 <name>NumericIdentifier</name>
-                <type>int</type>
+                <type>B4R::B4RString*</type>
             </parameter>
         </method>
         <method>
             <name DesignerName="ReadString">ReadString</name>
             <comment>OPC UA Standard Read Service.
 Thread-safely reads a node value using a string identifier.
-@param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-@param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
+@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 @return A B4RString pointer containing the text-formatted value payload.</comment>
             <returntype>B4R::B4RString*</returntype>
-            <parameter>
-                <name>NamespaceIndex</name>
-                <type>int</type>
-            </parameter>
             <parameter>
                 <name>NodeIdentifier</name>
                 <type>B4R::B4RString*</type>
@@ -286,14 +261,9 @@ Thread-safely reads a node value using a string identifier.
             <name DesignerName="ReadByteString">ReadByteString</name>
             <comment>OPC UA Standard Read Service.
 Thread-safely reads a binary ByteString value using a string identifier.
-@param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-@param NodeIdentifier The targeting string Node ID (e.g., "DeviceData").
+@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=DeviceData").
 @return An ArrayByte pointer containing the binary ByteString payload.</comment>
             <returntype>Byte[]</returntype>
-            <parameter>
-                <name>NamespaceIndex</name>
-                <type>int</type>
-            </parameter>
             <parameter>
                 <name>NodeIdentifier</name>
                 <type>B4R::B4RString*</type>
@@ -330,5 +300,5 @@ Thread-safely reads a binary ByteString value using a string identifier.
             <returntype>ULong</returntype>
         </field>
     </class>
-    <version>0.9</version>
+    <version>0.91</version>
 </root>

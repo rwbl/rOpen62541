@@ -6,8 +6,12 @@
  *       Visit http://open62541.org/ for information about this software. 
  *       Mozilla Public License v2.0 as stated in the LICENSE file provided with open62541.
  * @note The custom structural object folder is named "Factory_Floor" (see build buildOpcUaTree) with target "ns=1;s=Factory_Floor" as objectId.
+ *       Everything in Namespace 1, but Path-like Identifiers can be used to group variables or separate from the physical factory floor sensors. 
+ *       In OPC UA, a string NodeId can contain delimiters like dots or slashes > keep everything under your single Factory_Floor (ns=1) folder, but structure the NodeIds like this:
+ *       ns=1;s=Factory_Floor.Sensors.Temperature
+ *       ns=1;s=Factory_Floor.System.AvailableRAM
  * @version See below version
- * @date 2026-10-02
+ * @date 2026-10-07
  * @author Robert W. B. Linn (c) 2026 — MIT License provided with rOpen62541.
  */
 
@@ -17,7 +21,7 @@
 // Open 62541 library stored locally
 #include "open62541.h"
 
-//~version: 0.90
+//~version: 0.91
 namespace B4R {
 	//~shortname: Open62541
 	//~Event: MethodTriggered ()
@@ -161,29 +165,26 @@ namespace B4R {
 			/**
 			 * Thread-safely updates an active OPC UA node by automatically resolving its compiled data layout type.
 			 * Supports cross-core type verification for floating-point (Float), integer (Int32), and Boolean structures inside Namespace 1.
-			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-			 * @param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
+			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 			 * @param NewValue The numerical double representation payload to convert and assign.
 			 */
-			void WriteNumeric(int NamespaceIndex, B4RString* NodeIdentifier, double NewValue);
+			void WriteNumeric(B4RString* NodeIdentifier, double NewValue);
 
 			/**
 			 * Thread-safely writes a string text payload into an active OPC UA node.
 			 * Automatically handles string memory copying and verifies the target node data type.
-			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-			 * @param NodeIdentifier The targeting string Node ID (e.g., "DeviceStatus").
+			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 			 * @param NewValue The B4RString payload to write into the node address space.
 			 */
-			void WriteString(int NamespaceIndex, B4RString* NodeIdentifier, B4RString* NewValue);
+			void WriteString(B4RString* NodeIdentifier, B4RString* NewValue);
 
 			/**
 			 * OPC UA Standard Write Service.
 			 * Thread-safely writes a binary ByteString payload into an active OPC UA node.
-			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-			 * @param NodeIdentifier The targeting string Node ID (e.g., "DeviceData").
+			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 			 * @param Data The B4R ArrayByte payload to write into the node address space.
 			 */
-			void WriteByteString(int NamespaceIndex, B4RString* NodeIdentifier, ArrayByte* Data);
+			void WriteByteString(B4RString* NodeIdentifier, ArrayByte* Data);
 
 			/**
 			 * READ
@@ -192,29 +193,26 @@ namespace B4R {
 			/**
 			 * OPC UA Standard Read Service.
 			 * Thread-safely reads a node value using a numeric identifier.
-			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-			 * @param NumericIdentifier The unique numerical identifier key (e.g., 2258).
+			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=0;i=2258" for the server time).
 			 * @return Returns the scalar node value formatted as a B4R String.
 			 */
-			B4RString* ReadNumeric(int NamespaceIndex, int NumericIdentifier);
+			B4RString* ReadNumeric(B4RString* NumericIdentifier);
 
 			/**
 			 * OPC UA Standard Read Service.
 			 * Thread-safely reads a node value using a string identifier.
-			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-			 * @param NodeIdentifier The targeting string Node ID (e.g., "Temperature").
+			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
 			 * @return A B4RString pointer containing the text-formatted value payload.
 			 */
-			B4RString* ReadString(int NamespaceIndex, B4RString* NodeIdentifier);
+			B4RString* ReadString(B4RString* NodeIdentifier);
 
 			/**
 			 * OPC UA Standard Read Service.
 			 * Thread-safely reads a binary ByteString value using a string identifier.
-			 * @param NamespaceIndex The numerical namespace target index. NamespaceIndex is normally 1 for application-defined nodes.
-			 * @param NodeIdentifier The targeting string Node ID (e.g., "DeviceData").
+			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=DeviceData").
 			 * @return An ArrayByte pointer containing the binary ByteString payload.
 			 */
-			ArrayByte* ReadByteString(int NamespaceIndex, B4RString* NodeIdentifier);
+			ArrayByte* ReadByteString(B4RString* NodeIdentifier);
 
 			/**
 			 * SETTER/GETTER

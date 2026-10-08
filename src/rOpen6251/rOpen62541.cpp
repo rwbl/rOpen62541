@@ -573,14 +573,67 @@ namespace B4R {
     }
 
     // ============================================================================
+    // READ/WRITE HELPER
+    // ============================================================================
+
+	void ParseNodeId(
+		B4RString* NodeId,
+		int& NamespaceIndex,
+		const char*& NodeIdentifier)
+	{
+		NamespaceIndex = 1;
+		NodeIdentifier = (char*)NodeId->data;
+
+		char* text = (char*)NodeId->data;
+
+		if (strncmp(text, "ns=", 3) == 0) {
+
+			NamespaceIndex = atoi(text + 3);
+
+			char* separator = strstr(text, ";s=");
+
+			if (separator != NULL) {
+				NodeIdentifier = separator + 3;
+			}
+		}
+	}
+
+	void ParseNumericNodeId(
+		B4RString* NodeId,
+		int& NamespaceIndex,
+		int& NumericIdentifier)
+	{
+		// Default fallback if parsing fails (Namespace 0, ID 0)
+		NamespaceIndex = 0;
+		NumericIdentifier = 0;
+
+		char* text = (char*)NodeId->data;
+
+		if (strncmp(text, "ns=", 3) == 0) {
+			NamespaceIndex = atoi(text + 3);
+
+			// Find the numeric separator ";i="
+			char* separator = strstr(text, ";i=");
+			if (separator != NULL) {
+				NumericIdentifier = atoi(separator + 3);
+			}
+		}
+	}
+
+    // ============================================================================
     // WRITE
     // ============================================================================
 
-    void B4ROPEN62541::WriteNumeric(int NamespaceIndex, B4RString* NodeIdentifier, double NewValue) {
+    void B4ROPEN62541::WriteNumeric(B4RString* NodeIdentifier, double NewValue) {
         if (server == NULL || !globalIsReady) return;
 
         if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
-            UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)NodeIdentifier->data);
+			
+			int NamespaceIndex;
+			const char* Identifier;
+			ParseNodeId(NodeIdentifier, NamespaceIndex, Identifier);
+
+			UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)Identifier);
             UA_Variant currentValue;
             UA_Variant_init(&currentValue);
             
@@ -609,11 +662,15 @@ namespace B4R {
         }
     }
 
-    void B4ROPEN62541::WriteString(int NamespaceIndex, B4RString* NodeIdentifier, B4RString* NewValue) {
+    void B4ROPEN62541::WriteString(B4RString* NodeIdentifier, B4RString* NewValue) {
         if (server == NULL || !globalIsReady || NewValue == NULL) return;
 
         if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
-            UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)NodeIdentifier->data);
+			int NamespaceIndex;
+			const char* Identifier;
+			ParseNodeId(NodeIdentifier, NamespaceIndex, Identifier);
+
+			UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)Identifier);
             UA_Variant currentValue;
             UA_Variant_init(&currentValue);
             
@@ -635,11 +692,15 @@ namespace B4R {
         }
     }
 
-	void B4ROPEN62541::WriteByteString(int NamespaceIndex, B4RString* NodeIdentifier, ArrayByte* Data) {
+	void B4ROPEN62541::WriteByteString(B4RString* NodeIdentifier, ArrayByte* Data) {
 		if (server == NULL || !globalIsReady || Data == NULL) return;
 
 		if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
-			UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)NodeIdentifier->data);
+			int NamespaceIndex;
+			const char* Identifier;
+			ParseNodeId(NodeIdentifier, NamespaceIndex, Identifier);
+
+			UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)Identifier);
 
 			UA_ByteString byteString;
 			byteString.length = Data->length;
@@ -661,7 +722,7 @@ namespace B4R {
     // READ
     // ============================================================================
 
-	B4RString* B4ROPEN62541::ReadNumeric(int NamespaceIndex, int NumericIdentifier) {
+	B4RString* B4ROPEN62541::ReadNumeric(B4RString* NumericIdentifier) {
 		PrintToMemory pm;
 		B4RString* s = B4RString::PrintableToString(NULL);
 		bool dataCaptured = false;
@@ -669,7 +730,11 @@ namespace B4R {
 		memset(numericBuffer, 0, sizeof(numericBuffer));
 
 		if (server != NULL && xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
-			UA_NodeId targetNodeId = UA_NODEID_NUMERIC(NamespaceIndex, NumericIdentifier);
+			int NamespaceIndex;
+			int Identifier;
+			ParseNumericNodeId(NumericIdentifier, NamespaceIndex, Identifier);
+
+			UA_NodeId targetNodeId = UA_NODEID_NUMERIC(NamespaceIndex, Identifier);
 			UA_Variant outVariant;
 			UA_Variant_init(&outVariant);
 			
@@ -697,7 +762,7 @@ namespace B4R {
 		return s;
 	}
 
-	B4RString* B4ROPEN62541::ReadString(int NamespaceIndex, B4RString* NodeIdentifier) {
+	B4RString* B4ROPEN62541::ReadString(B4RString* NodeIdentifier) {
 		PrintToMemory pm;
 		B4RString* s = B4RString::PrintableToString(NULL);
 		bool dataCaptured = false;
@@ -705,7 +770,11 @@ namespace B4R {
 		memset(numericBuffer, 0, sizeof(numericBuffer));
 
 		if (server != NULL && xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
-			UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)NodeIdentifier->data);
+			int NamespaceIndex;
+			const char* Identifier;
+			ParseNodeId(NodeIdentifier, NamespaceIndex, Identifier);
+
+			UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)Identifier);
 			UA_Variant outVariant;
 			UA_Variant_init(&outVariant);
 			
@@ -733,14 +802,17 @@ namespace B4R {
 		return s;
 	}
 
-	ArrayByte* B4ROPEN62541::ReadByteString(int NamespaceIndex, B4RString* NodeIdentifier) {
+	ArrayByte* B4ROPEN62541::ReadByteString(B4RString* NodeIdentifier) {
 		if (server == NULL || !globalIsReady) return NULL;
 
 		ArrayByte* result = NULL;
 
 		if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
-			UA_NodeId targetNodeId =
-				UA_NODEID_STRING(NamespaceIndex, (char*)NodeIdentifier->data);
+			int NamespaceIndex;
+			const char* Identifier;
+			ParseNodeId(NodeIdentifier, NamespaceIndex, Identifier);
+
+			UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)Identifier);
 
 			UA_Variant value;
 			UA_Variant_init(&value);
