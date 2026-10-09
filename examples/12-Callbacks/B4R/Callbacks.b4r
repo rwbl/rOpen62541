@@ -12,14 +12,13 @@ Version=4
 #Region Project Header
 '==============================================
 ' Project:		rOpen62541
-' Brief:		Example callmethod function.
-' Date:			2026-10-07
+' Brief:		Example trigger and method callbacks.
+' Date:			2026-10-09
 ' Author: 		Robert W.B. Linn (c) 2026 - MIT — see LICENSE file.
 ' Description:	Listen to commands received from the connected OPC UA client.
-'				The call method is used with nodeid ExecuteJob and value START_BATCH.
-'				The B4R logs shows:
-'				[OnMethodCall] Client invoked the method node with argument: string=START_BATCH
-'				[OnMethodCall] Command accepted. Running production batch code...
+'				There are two events:
+'				OnTriggerCall = received if the client writes to node ns=1;s=Trigger
+'				OnMethodCall = received when the client invoked the method call.
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
 '				Unleash the 8MB Octal PSRAM footprint
@@ -39,19 +38,20 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 MethodCallback v20261007"
+	Private VERSION 				As String = "rOpen62541 Trigger&Method Callback v20261009"
 
 	' Communication
-	Public Serial1 				As Serial
-	Private WiFi 				As ESP8266WiFi						' Lib rESP8266WiFi
-	Private SSID				As String = "***"
-	Private PW 					As String = "***"
+	Public Serial1 					As Serial
+	Private WiFi 					As ESP8266WiFi						' Lib rESP8266WiFi
+	Private SSID					As String = "***"
+	Private PW 						As String = "***"
 	
 	' Open62541
-	Private OPCUAServer			As Open62541						' Lib rOpen62541
-	Private PORT 				As Int = 4840
-	Private NODEID_TRIGGER		As String = "ns=1;s=Trigger"		'
-	Private NODEID_CALLMETHOD	As String = "ns=1;s=ExecuteJob"
+	Private OPCUAServer				As Open62541						' Lib rOpen62541
+	Private PORT 					As Int = 4840
+	Private NODEID_TRIGGER			As String = "ns=1;s=Trigger"		' Client sends string Trigger
+	Private NODEID_TRIGGER_RESULT	As String = "ns=1;s=TriggerResult"	' Store the trigger result which the client can subscribe to
+	Private NODEID_METHODCALL		As String = "ns=1;s=ExecuteJob"		' Client sends callmethod
 	
 	'Helper
 	Private bc As ByteConverter	'ignore
@@ -72,7 +72,7 @@ Sub AppStart
 		RunNative("DisableWiFiSleep", Null)
 			       
 		Log("[AppStart] Init OPCUAServer server")
-		If InitOPCUAServerServer Then
+		If InitOPCUAServer Then
 			Log("[AppStart] OPCUAServer server started")
 		End If
 	Else
@@ -80,19 +80,19 @@ Sub AppStart
 	End If
 End Sub
 
-' InitOPCUAServerServer
+' InitOPCUAServer
 ' Steps:
 ' Init the server with ip, port and client callback
 ' Wait till the opc server has been started successfully
 ' Add various nodes
-Private Sub InitOPCUAServerServer As Boolean
+Private Sub InitOPCUAServer As Boolean
 	Dim TimeoutCounter As Int = 0
 	Dim ServerBootFailed As Boolean = False
 
 	Log("[InitOPCUAServerServer] Initializing...")
 
 	' Spin up the Core 0 open62541 network engine with callback
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnTriggerCall")
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOpcServer] Awaiting background core network initialization...")
@@ -115,12 +115,18 @@ Private Sub InitOPCUAServerServer As Boolean
 	Else
 		Log("[InitOPCUAServer] Core 0 online! Spawning dynamic address space nodes...")
 
-		' Add trigger received from the client and call event OnDataWrite
+		' Add trigger received from the client and call event OnMethodCall
 		' The clients sends the commands to set the state of the gate to open or closed.
-		OPCUAServer.AddStringNode(NODEID_TRIGGER, "Remote Trigger OnDataWrite", "0")
+		OPCUAServer.AddTriggerNode(NODEID_TRIGGER, "Remote Trigger", "0")	
+		' > Event OnTriggerCall
+		' Node-RED example:
+		' Send string START or buffer [1,2,3]
+
+		OPCUAServer.AddIntNode(NODEID_TRIGGER_RESULT, "Remote Trigger Result", 0)
 
 		' Register the native executable method node!
-		OPCUAServer.AddMethodNode(NODEID_CALLMETHOD, "Remote Call Method", "OnMethodCall")
+		OPCUAServer.AddMethodNode(NODEID_METHODCALL, "Remote Method Call", "OnMethodCall")	
+		' > Event OnMethodCall
 		' Node-RED Example:
 		' objectId = "ns=1;s=Factory_Floor"; methodId = "ns=1;s=ExecuteJob"; msg.inputArguments = [{dataType: "ByteString",value: "START_BATCH"}];
 
@@ -132,28 +138,29 @@ End Sub
 ' EVENTS
 '==============================================
 
-' OnDataWrite
+' OnTriggerCall
 ' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
 ' In OPC UA, when a client changes a variable node, it is executing a Write service. This callback intercepts that write event.
-' Example B4J where the client sends value 68: 
-' OPCUAClient.Write("ns=1;s=Trigger", 68)
-Private Sub OnDataWrite(buffer() As Byte)
-	Log("[OnDataWrite] OPC UA Client clicked the trigger method. command=", bc.StringFromBytes(buffer))
-	'[OnDataWrite] OPC UA Client clicked the trigger method. command=START_BATCH
+Private Sub OnTriggerCall(buffer() As Byte)
+	Log("[OnTriggerCall] OPC UA Client invoked trigger with argument=", bc.StringFromBytes(buffer), ", hex=", bc.HexFromBytes(buffer))
+	' Received string:
+	' [OnDataWrite] OPC UA Client invoked trigger with argument=START, hex=5354415254
+	' Received byte array 0x01,0x02,0x03:
+	' [OnDataWrite] OPC UA Client invoked trigger with argument=, hex=010203
+	OPCUAServer.WriteNumeric(NODEID_TRIGGER_RESULT, Rnd(0, 11))
+	'OPCUAServer.WriteNumeric(NODEID_TRIGGER_RESULT, OPCUAServer.STATUS_GOOD)
 End Sub
 
 ' OnMethodCall
 ' Fired automatically when a client invokes OpcServer.CallMethod()
 ' In OPC UA, executing a method node uses the standard Call service. This callback handles that explicit method call request.
 ' Bound directly to MethodCallSub execution loop.
-' [OnMethodCall] Client invoked the method node with argument: string=START_BATCH
-' [OnMethodCall] Command accepted. Running production batch code...
 Private Sub OnMethodCall(InputParams() As Byte)
 	Dim ParamText As String = bc.StringFromBytes(InputParams)
-	Log("[OnMethodCall] Client invoked the method node with argument:", _
-		" string=", bc.StringFromBytes(InputParams))
-    
-	' Evaluate your local logic parameters safely
+	Log("[OnMethodCall] OPC UA Client invoked method with argument=", bc.StringFromBytes(InputParams), ", hex=", bc.HexFromBytes(InputParams))
+	' [OnMethodCall] OPC UA Client invoked method with argument=START_BATCH
+	
+	' Example evaluate action
 	If ParamText = "START_BATCH" Then
 		Log("[OnMethodCall] Command accepted. Running production batch code...")
         

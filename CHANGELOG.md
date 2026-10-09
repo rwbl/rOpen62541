@@ -1,11 +1,9 @@
 # CHANGELOG
 
-## v0.91 (Build 20261007)
-**Focus: API Aligned Simplification & Full Multi-Format Node Support**
-- NEW: Rewrote `Read` and `Write` methods to accept a unified `NodeIdentifier` string (e.g., `"ns=1;s=Temperature"` or `"ns=0;i=2258"`). This eliminates the clunky separation of `NamespaceIndex` and `NodeString` parameters, perfectly aligning them with the `Add` node methods.
-- NEW: Added native parser support for numeric Node IDs (`i=`), allowing direct interaction with core system metrics and native server nodes (such as reading server status or diagnostic variables like `ns=0;i=2258`).
-- NEW: Added a complete `DHT22` sensor telemetry example demonstrating how to publish real-world ambient Temperature & Humidity metrics to modern SCADA/IoT infrastructure like **Home Assistant** (via Node-RED).
-- UPD: Refactored all packaged library examples to adopt the new streamlined single-string `Read` and `Write` API.
+## v0.95 BETA (Build 20261009)
+**Focus: API Final Testing**
+- NEW: Added `AddTriggerNode` to create a polymorphic node initialized with `UA_VALUERANK_ANY`. This allows a single Node ID to dynamically accept, process, and parse multi-format incoming data payloads (Strings, ByteStrings, Byte Arrays, and Scalar Numbers) seamlessly without runtime configuration failures or casting issues.
+- FIX: Resolved a binary array serialization bug where raw bytes (`Array As Byte`) passed from high-level client wrappers (such as B4J `SS_OPCUAClient`) were failing parsing conditions and turning into empty buffers. Implementations can now pass data securely via an `ISO-8859-1` encoded wrapper or explicit `ByteString` writers.
 
 ### Development Status
 B4R-facing OPC UA server API implements:
@@ -21,6 +19,13 @@ B4R-facing OPC UA server API implements:
 - Shared root folder handling
 - IsReady status
 - Thread protection around open62541 access
+
+## v0.91 (Build 20261007)
+**Focus: API Aligned Simplification & Full Multi-Format Node Support**
+- NEW: Rewrote `Read` and `Write` methods to accept a unified `NodeIdentifier` string (e.g., `"ns=1;s=Temperature"` or `"ns=0;i=2258"`). This eliminates the clunky separation of `NamespaceIndex` and `NodeString` parameters, perfectly aligning them with the `Add` node methods.
+- NEW: Added native parser support for numeric Node IDs (`i=`), allowing direct interaction with core system metrics and native server nodes (such as reading server status or diagnostic variables like `ns=0;i=2258`).
+- NEW: Added a complete `DHT22` sensor telemetry example demonstrating how to publish real-world ambient Temperature & Humidity metrics to modern SCADA/IoT infrastructure like **Home Assistant** (via Node-RED).
+- UPD: Refactored all packaged library examples to adopt the new streamlined single-string `Read` and `Write` API.
 
 ## v0.90 (Build 20261002)
 **Focus: Major development improvements**

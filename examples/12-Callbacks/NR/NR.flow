@@ -1,5 +1,46 @@
 [
     {
+        "id": "n5",
+        "type": "inject",
+        "z": "f1",
+        "name": "Click Trigger STRING",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "START",
+        "payloadType": "str",
+        "x": 160,
+        "y": 420,
+        "wires": [
+            [
+                "n6"
+            ]
+        ]
+    },
+    {
+        "id": "n6",
+        "type": "OpcUa-Item",
+        "z": "f1",
+        "item": "ns=1;s=Trigger",
+        "datatype": "String",
+        "value": "",
+        "name": "Trigger Node",
+        "x": 390,
+        "y": 420,
+        "wires": [
+            [
+                "fc794852940169e9"
+            ]
+        ]
+    },
+    {
         "id": "c70d4fefcc1f2a06",
         "type": "OpcUa-Method",
         "z": "f1",
@@ -25,8 +66,8 @@
         "out0type": "",
         "out0typeid": "",
         "out0value": "",
-        "x": 190,
-        "y": 540,
+        "x": 370,
+        "y": 660,
         "wires": [
             [
                 "18809ef90b232878",
@@ -56,7 +97,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 110,
-        "y": 420,
+        "y": 600,
         "wires": [
             [
                 "45082dbfc48ca611"
@@ -76,8 +117,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 430,
-        "y": 600,
+        "x": 630,
+        "y": 700,
         "wires": []
     },
     {
@@ -92,8 +133,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 190,
-        "y": 480,
+        "x": 350,
+        "y": 600,
         "wires": [
             [
                 "c70d4fefcc1f2a06"
@@ -122,8 +163,8 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 630,
-        "y": 540,
+        "x": 850,
+        "y": 660,
         "wires": [
             [
                 "b67742fe8d02295d"
@@ -140,7 +181,7 @@
         "name": "Method Call Example",
         "info": "",
         "x": 140,
-        "y": 380,
+        "y": 560,
         "wires": []
     },
     {
@@ -156,8 +197,8 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 910,
-        "y": 520,
+        "x": 1130,
+        "y": 640,
         "wires": []
     },
     {
@@ -173,8 +214,8 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 920,
-        "y": 580,
+        "x": 1140,
+        "y": 680,
         "wires": []
     },
     {
@@ -189,11 +230,96 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 400,
-        "y": 540,
+        "x": 600,
+        "y": 660,
         "wires": [
             [
                 "7a9371fe34a4af8c"
+            ]
+        ]
+    },
+    {
+        "id": "fc794852940169e9",
+        "type": "OpcUa-Client",
+        "z": "f1",
+        "endpoint": "fcc17be495ef051a",
+        "action": "write",
+        "deadbandtype": "a",
+        "deadbandvalue": 0,
+        "time": "5",
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "useTransport": false,
+        "maxChunkCount": "",
+        "maxMessageSize": "",
+        "receiveBufferSize": "",
+        "sendBufferSize": "",
+        "setstatusandtime": false,
+        "keepsessionalive": false,
+        "name": "ESP32 Server",
+        "applicationName": "",
+        "applicationUri": "",
+        "x": 600,
+        "y": 420,
+        "wires": [
+            [
+                "bf7b46a02eaf8206"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "bf7b46a02eaf8206",
+        "type": "debug",
+        "z": "f1",
+        "name": "DEBUG TRIGGER",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 850,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "7f1d851acbc3f9a2",
+        "type": "comment",
+        "z": "f1",
+        "name": "Trigger Example",
+        "info": "",
+        "x": 120,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "9495db5446353d8d",
+        "type": "inject",
+        "z": "f1",
+        "name": "Click Trigger BUFFER",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[1,2,3]",
+        "payloadType": "bin",
+        "x": 160,
+        "y": 460,
+        "wires": [
+            [
+                "n6"
             ]
         ]
     },
@@ -211,7 +337,7 @@
         "userprivatekey": ""
     },
     {
-        "id": "9c84179b138bd73e",
+        "id": "c076bf60fa829a4d",
         "type": "global-config",
         "env": [],
         "modules": {

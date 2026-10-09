@@ -52,6 +52,23 @@ AddBooleanNode (NodeIdentifier As String, DisplayName As String, InitialValue As
 ```
 - Dynamically instantiates a unique string-identified OPC UA variable node in the main `"Factory_Floor"` parent directory. Configured using the native `UA_TYPES_BOOLEAN` primitive format, this node is ideal for publishing raw system states or driving hardware switching configurations like output relays.
 
+### AddTriggerNode(B4RString* NodeIdentifier, B4RString* DisplayName, B4RString* InitialValue);
+```b4x
+AddTriggerNode(NodeIdentifier As String, DisplayName As String, InitialValue As String)
+```
+Dynamically allocates a new Polymorphic Trigger node variable inside the Factory Floor folder.
+Configured with UA_VALUERANK_ANY to act as a universal receptor for various data payloads.
+It processes incoming data types dynamically, automatically extracting raw memory contents 
+into the global trigger buffer. Supported types include:
+- Strings (Text payloads like "STOP", "START")
+- ByteStrings / Wrapped Data (Binary arrays from B4J/B4R clients like hex sequences)
+- Explicit multi-element Arrays (Byte[])
+- Scalar Numbers (Int32, Float, Double, Int16)
+Parameter:
+- NodeIdentifier The targeting unique string Node ID (mandatory to use "ns=1;s=Trigger").
+- DisplayName The human-readable string representation exposed to SCADA clients.
+- InitialValue The starting string value assigned to the node space on boot.
+
 ---
 
 ## Remote Procedure Call (RPC) Methods

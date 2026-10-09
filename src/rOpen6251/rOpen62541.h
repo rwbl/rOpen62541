@@ -11,7 +11,7 @@
  *       ns=1;s=Factory_Floor.Sensors.Temperature
  *       ns=1;s=Factory_Floor.System.AvailableRAM
  * @version See below version
- * @date 2026-10-07
+ * @date 2026-10-09
  * @author Robert W. B. Linn (c) 2026 — MIT License provided with rOpen62541.
  */
 
@@ -21,7 +21,7 @@
 // Open 62541 library stored locally
 #include "open62541.h"
 
-//~version: 0.91
+//~version: 0.95
 namespace B4R {
 	//~shortname: Open62541
 	//~Event: MethodTriggered ()
@@ -99,6 +99,11 @@ namespace B4R {
 
 			/**
 			 * Dynamically allocates a new executable RPC Method node inside the Factory Floor folder.
+			 */
+			void AddTriggerNode(void);
+
+			/**
+			 * Dynamically allocates a new executable RPC Method node inside the Factory Floor folder.
 			 * This allows clients to execute true industrial method commands natively,
 			 * passing an input data string and awaiting a direct response token back.
 			 * Maximum method input payload: 63 bytes.
@@ -165,7 +170,7 @@ namespace B4R {
 			/**
 			 * Thread-safely updates an active OPC UA node by automatically resolving its compiled data layout type.
 			 * Supports cross-core type verification for floating-point (Float), integer (Int32), and Boolean structures inside Namespace 1.
-			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
+			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 			 * @param NewValue The numerical double representation payload to convert and assign.
 			 */
 			void WriteNumeric(B4RString* NodeIdentifier, double NewValue);
@@ -173,14 +178,14 @@ namespace B4R {
 			/**
 			 * Thread-safely writes a string text payload into an active OPC UA node.
 			 * Automatically handles string memory copying and verifies the target node data type.
-			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
+			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 			 * @param NewValue The B4RString payload to write into the node address space.
 			 */
 			void WriteString(B4RString* NodeIdentifier, B4RString* NewValue);
 
 			/**
 			 * Thread-safely writes a binary ByteString payload into an active OPC UA node.
-			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
+			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 			 * @param Data The B4R ArrayByte payload to write into the node address space.
 			 */
 			void WriteByteString(B4RString* NodeIdentifier, ArrayByte* Data);
@@ -192,15 +197,15 @@ namespace B4R {
 			/**
 			 * OPC UA Standard Read Service.
 			 * Thread-safely reads a node value using a numeric identifier.
-			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=0;i=2258" for the server time).
+			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=0) and the string identifier (i=2258) (e.g., "ns=0;i=2258" for the server time).
 			 * @return Returns the scalar node value formatted as a B4R String.
 			 */
-			B4RString* ReadNumeric(B4RString* NumericIdentifier);
+			B4RString* ReadNumeric(B4RString* NodeIdentifier);
 
 			/**
 			 * OPC UA Standard Read Service.
 			 * Thread-safely reads a node value using a string identifier.
-			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
+			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 			 * @return A B4RString pointer containing the text-formatted value payload.
 			 */
 			B4RString* ReadString(B4RString* NodeIdentifier);
@@ -208,7 +213,7 @@ namespace B4R {
 			/**
 			 * OPC UA Standard Read Service.
 			 * Thread-safely reads a binary ByteString value using a string identifier.
-			 * @param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=DeviceData").
+			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=ServerData) (e.g., "ns=1;s=ServerData").
 			 * @return An ArrayByte containing the binary ByteString payload.
 			 */
 			ArrayByte* ReadByteString(B4RString* NodeIdentifier);

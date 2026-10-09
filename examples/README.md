@@ -6,10 +6,11 @@ The following examples are structured into dedicated sub-folders:
 	- Demonstrates type-agnostic node interceptors.
 	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
 	- Example 2 B4J with the `PyBridge` framework and Python package `asyncua`, `HMITilesIO` (Dashboard).
-- [**12-MethodCall**](12-MethodCall/) — Remote Procedure Call (RPC) execution routing. 
+- [**12-Callbacks**](12-Callbacks/) — Trigger & Remote Procedure Call (RPC) execution routing. 
 	- Demonstrates server-side functions triggered remotely by automation nodes like Node-RED.
 	- Example 1 `Node-RED` with `node-red-contrib-opcua` nodes.
-	- Example 1 `Python` with `asyncua` package.
+	- Example 2 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
+	- Example 3 `Python` with `asyncua` package and additional library `HMITilesIO` (Dashboard).
 - [**14-InOutput**](14-InOutput/) — Industrial peripheral I/O mapping configurations. 
 	- Shows how to dynamically read physical hardware states (Pushbuttons) and drive physical outputs (LEDs).
 	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).

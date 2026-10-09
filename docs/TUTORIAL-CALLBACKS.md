@@ -116,6 +116,7 @@ Private Sub OnDataWrite(buffer() As Byte)
 End Sub
 ```
 
+*Hint:* Instead event name `OnDataWrite` could also use like `OnTriggerCall` to align with next `OnMethodCall`.
 ---
 
 ## Native Executable Method Call Event Handler (CallMethod)
