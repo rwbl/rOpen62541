@@ -4,6 +4,7 @@
 **Focus: API Final Testing**
 - NEW: Added `AddTriggerNode` to create a polymorphic node initialized with `UA_VALUERANK_ANY`. This allows a single Node ID to dynamically accept, process, and parse multi-format incoming data payloads (Strings, ByteStrings, Byte Arrays, and Scalar Numbers) seamlessly without runtime configuration failures or casting issues.
 - FIX: Resolved a binary array serialization bug where raw bytes (`Array As Byte`) passed from high-level client wrappers (such as B4J `SS_OPCUAClient`) were failing parsing conditions and turning into empty buffers. Implementations can now pass data securely via an `ISO-8859-1` encoded wrapper or explicit `ByteString` writers.
+- FIX: Callback example with trigger and method nodes & callback.
 
 ### Development Status
 B4R-facing OPC UA server API implements:
