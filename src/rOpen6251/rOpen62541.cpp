@@ -1,5 +1,6 @@
 /*
  * rOpen62541.cpp
+ * Source of the rOpen62541 B4R wrapper.
  */
 
 #include "B4RDefines.h"
@@ -445,71 +446,6 @@ namespace B4R {
 									  UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), 
 									  vAttr, NULL, NULL);
 
-            // Attach string interceptor
-			if (strcmp(stringIdentifier, "Trigger") == 0 ||
-				strcmp(stringIdentifier, "trigger") == 0) {		
-				UA_ValueCallback callback;
-                callback.onRead = NULL;
-                callback.onWrite = [](UA_Server *server, const UA_NodeId *sessionId, 
-                                     void *sessionContext, const UA_NodeId *nodeId, 
-                                     void *nodeContext, const UA_NumericRange *range, 
-                                     const UA_DataValue *data) {
-                    
-                    if (data && data->hasValue) {
-                        memset(globalTriggerBuffer, 0, sizeof(globalTriggerBuffer));
-                        globalTriggerLength = 0;
-
-                        // Case A: The client sent an actual String payload (e.g., "STOP")
-                        if (data->value.type == &UA_TYPES[UA_TYPES_STRING]) {
-                            UA_String *uaStr = (UA_String*)data->value.data;
-                            size_t maxAllowed = sizeof(globalTriggerBuffer) - 1;
-                            globalTriggerLength = (uaStr->length < maxAllowed) ? uaStr->length : maxAllowed;
-                            
-                            if (globalTriggerLength > 0 && uaStr->data != NULL) {
-                                memcpy(globalTriggerBuffer, uaStr->data, globalTriggerLength);
-                            }
-                        }
-                        // Case B: The client sent a numeric Integer (e.g., B4J passing raw 68)
-                        else if (data->value.type == &UA_TYPES[UA_TYPES_INT32]) {
-                            int32_t incomingInt = *(int32_t*)data->value.data;
-                            globalTriggerLength = snprintf((char*)globalTriggerBuffer, sizeof(globalTriggerBuffer) - 1, "%d", incomingInt);
-                        }
-                        // Case C: The client sent a floating-point Float (32-bit float)
-                        else if (data->value.type == &UA_TYPES[UA_TYPES_FLOAT]) {
-                            float incomingFloat = *(float*)data->value.data;
-                            globalTriggerLength = snprintf((char*)globalTriggerBuffer, sizeof(globalTriggerBuffer) - 1, "%.2f", incomingFloat);
-                        }
-                        // Case D: The client sent a double-precision Float (64-bit double)
-                        else if (data->value.type == &UA_TYPES[UA_TYPES_DOUBLE]) {
-                            double incomingDouble = *(double*)data->value.data;
-                            globalTriggerLength = snprintf((char*)globalTriggerBuffer, sizeof(globalTriggerBuffer) - 1, "%.2f", incomingDouble);
-                        }
-                        // Case E: Alternative standard Integer sizes
-                        else if (data->value.type == &UA_TYPES[UA_TYPES_INT16]) {
-                            int16_t incomingInt = *(int16_t*)data->value.data;
-                            globalTriggerLength = snprintf((char*)globalTriggerBuffer, sizeof(globalTriggerBuffer) - 1, "%d", incomingInt);
-                        }
-
-                        // Case F: The client sent an official OPC UA ByteString / Binary payload package
-                        else if (data->value.type == &UA_TYPES[UA_TYPES_BYTESTRING]) {
-                            UA_ByteString *uaBytes = (UA_ByteString*)data->value.data;
-                            size_t maxAllowed = sizeof(globalTriggerBuffer) - 1;
-                            globalTriggerLength = (uaBytes->length < maxAllowed) ? uaBytes->length : maxAllowed;
-                            
-                            if (globalTriggerLength > 0 && uaBytes->data != NULL) {
-                                // Direct binary block memory transfer copy
-                                memcpy(globalTriggerBuffer, uaBytes->data, globalTriggerLength);
-                            }
-                        }
-
-                        // Explicitly cast to char* or cast indices to apply string seal
-                        ((char*)globalTriggerBuffer)[globalTriggerLength] = '\0';
-                        scadaTriggerCalled = true; 
-                    }
-                };
-                UA_Server_setVariableNode_valueCallback(server, targetNodeId, callback);
-            }
-
 			xSemaphoreGive(open62541Mutex);
 		}
 	}
@@ -571,6 +507,104 @@ namespace B4R {
             xSemaphoreGive(open62541Mutex);
         }
     }
+
+	void B4ROPEN62541::AddTriggerNode(B4RString* NodeIdentifier, B4RString* DisplayName, B4RString* InitialValue) {
+		if (server == NULL) return;
+		if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
+			
+			UA_VariableAttributes vAttr = UA_VariableAttributes_default;
+			UA_String val = UA_STRING((char*)InitialValue->data);
+			UA_Variant_setScalar(&vAttr.value, &val, &UA_TYPES[UA_TYPES_STRING]);
+			vAttr.displayName = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
+			vAttr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
+			
+			// Use a persistent NodeId instance copy for tracking
+			UA_NodeId targetNodeId = CreateNodeId(NodeIdentifier);
+			const char* stringIdentifier = GetStringIdentifier(NodeIdentifier);
+			
+			// Add the variable node to the address space first!
+			UA_Server_addVariableNode(server, 
+									  targetNodeId, 
+									  folderNodeId,                               
+									  UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT), 
+									  UA_QUALIFIEDNAME(1, (char*)stringIdentifier), 
+									  UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), 
+									  vAttr, NULL, NULL);
+
+            // Attach string interceptor
+			UA_ValueCallback callback;
+
+			callback.onRead = NULL;
+			callback.onWrite = [](UA_Server *server, const UA_NodeId *sessionId, 
+								 void *sessionContext, const UA_NodeId *nodeId, 
+								 void *nodeContext, const UA_NumericRange *range, 
+								 const UA_DataValue *data) {
+				
+				if (data && data->hasValue) {
+					memset(globalTriggerBuffer, 0, sizeof(globalTriggerBuffer));
+					globalTriggerLength = 0;
+
+					// Case A: The client sent an actual String payload (e.g., "STOP")
+					if (data->value.type == &UA_TYPES[UA_TYPES_STRING]) {
+						UA_String *uaStr = (UA_String*)data->value.data;
+						size_t maxAllowed = sizeof(globalTriggerBuffer) - 1;
+						globalTriggerLength = (uaStr->length < maxAllowed) ? uaStr->length : maxAllowed;
+						
+						if (globalTriggerLength > 0 && uaStr->data != NULL) {
+							memcpy(globalTriggerBuffer, uaStr->data, globalTriggerLength);
+						}
+					}
+					// Case B: The client sent a numeric Integer (e.g., B4J passing raw 68)
+					else if (data->value.type == &UA_TYPES[UA_TYPES_INT32]) {
+						int32_t incomingInt = *(int32_t*)data->value.data;
+						globalTriggerLength = snprintf((char*)globalTriggerBuffer, sizeof(globalTriggerBuffer) - 1, "%d", incomingInt);
+					}
+					// Case C: The client sent a floating-point Float (32-bit float)
+					else if (data->value.type == &UA_TYPES[UA_TYPES_FLOAT]) {
+						float incomingFloat = *(float*)data->value.data;
+						globalTriggerLength = snprintf((char*)globalTriggerBuffer, sizeof(globalTriggerBuffer) - 1, "%.2f", incomingFloat);
+					}
+					// Case D: The client sent a double-precision Float (64-bit double)
+					else if (data->value.type == &UA_TYPES[UA_TYPES_DOUBLE]) {
+						double incomingDouble = *(double*)data->value.data;
+						globalTriggerLength = snprintf((char*)globalTriggerBuffer, sizeof(globalTriggerBuffer) - 1, "%.2f", incomingDouble);
+					}
+					// Case E: Alternative standard Integer sizes
+					else if (data->value.type == &UA_TYPES[UA_TYPES_INT16]) {
+						int16_t incomingInt = *(int16_t*)data->value.data;
+						globalTriggerLength = snprintf((char*)globalTriggerBuffer, sizeof(globalTriggerBuffer) - 1, "%d", incomingInt);
+					}
+
+					// Case F: The client sent an official OPC UA ByteString / Binary payload package
+					else if (data->value.type == &UA_TYPES[UA_TYPES_BYTESTRING]) {
+						UA_ByteString *uaBytes = (UA_ByteString*)data->value.data;
+						size_t maxAllowed = sizeof(globalTriggerBuffer) - 1;
+						globalTriggerLength = (uaBytes->length < maxAllowed) ? uaBytes->length : maxAllowed;
+						
+						if (globalTriggerLength > 0 && uaBytes->data != NULL) {
+							memcpy(globalTriggerBuffer, uaBytes->data, globalTriggerLength);
+						}
+					}
+					// Case G: Explicit multi-element native Byte arrays (Byte[])
+					else if (!UA_Variant_isScalar(&data->value) && data->value.type == &UA_TYPES[UA_TYPES_BYTE]) {
+						size_t maxAllowed = sizeof(globalTriggerBuffer) - 1;
+						globalTriggerLength = (data->value.arrayLength < maxAllowed) ? data->value.arrayLength : maxAllowed;
+						
+						if (globalTriggerLength > 0 && data->value.data != NULL) {
+							memcpy(globalTriggerBuffer, data->value.data, globalTriggerLength);
+						}
+					}
+				
+					// Explicitly cast to char* or cast indices to apply string seal
+					((char*)globalTriggerBuffer)[globalTriggerLength] = '\0';
+					scadaTriggerCalled = true; 
+				}
+			};
+			UA_Server_setVariableNode_valueCallback(server, targetNodeId, callback);
+
+			xSemaphoreGive(open62541Mutex);
+		}
+	}
 
     // ============================================================================
     // READ/WRITE HELPER
@@ -722,7 +756,7 @@ namespace B4R {
     // READ
     // ============================================================================
 
-	B4RString* B4ROPEN62541::ReadNumeric(B4RString* NumericIdentifier) {
+	B4RString* B4ROPEN62541::ReadNumeric(B4RString* NodeIdentifier) {
 		PrintToMemory pm;
 		B4RString* s = B4RString::PrintableToString(NULL);
 		bool dataCaptured = false;
@@ -732,7 +766,7 @@ namespace B4R {
 		if (server != NULL && xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
 			int NamespaceIndex;
 			int Identifier;
-			ParseNumericNodeId(NumericIdentifier, NamespaceIndex, Identifier);
+			ParseNumericNodeId(NodeIdentifier, NamespaceIndex, Identifier);
 
 			UA_NodeId targetNodeId = UA_NODEID_NUMERIC(NamespaceIndex, Identifier);
 			UA_Variant outVariant;

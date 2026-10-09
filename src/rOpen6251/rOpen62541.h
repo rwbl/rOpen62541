@@ -99,11 +99,6 @@ namespace B4R {
 
 			/**
 			 * Dynamically allocates a new executable RPC Method node inside the Factory Floor folder.
-			 */
-			void AddTriggerNode(void);
-
-			/**
-			 * Dynamically allocates a new executable RPC Method node inside the Factory Floor folder.
 			 * This allows clients to execute true industrial method commands natively,
 			 * passing an input data string and awaiting a direct response token back.
 			 * Maximum method input payload: 63 bytes.
@@ -164,6 +159,21 @@ namespace B4R {
 			void AddBooleanNode(B4RString* NodeIdentifier, B4RString* DisplayName, bool InitialValue);
 
 			/**
+			 * Dynamically allocates a new Polymorphic Trigger node variable inside the Factory Floor folder.
+			 * Configured with UA_VALUERANK_ANY to act as a universal receptor for various data payloads.
+			 * It processes incoming data types dynamically, automatically extracting raw memory contents 
+			 * into the global trigger buffer. Supported types include:
+			 *  - Strings (Text payloads like "STOP", "START")
+			 *  - ByteStrings / Wrapped Data (Binary arrays from B4J/B4R clients like hex sequences)
+			 *  - Explicit multi-element Arrays (Byte[])
+			 *  - Scalar Numbers (Int32, Float, Double, Int16)
+			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "ns=1;s=Trigger").
+			 * @param DisplayName The human-readable string representation exposed to SCADA clients.
+			 * @param InitialValue The starting string value assigned to the node space on boot.
+			 */
+			void AddTriggerNode(B4RString* NodeIdentifier, B4RString* DisplayName, B4RString* InitialValue);
+
+			/**
 			 * WRITE NODES
 			 */
 
@@ -218,9 +228,9 @@ namespace B4R {
 			 */
 			ArrayByte* ReadByteString(B4RString* NodeIdentifier);
 
-			/**
-			 * SETTER/GETTER
-			 */
+			// ============================================================================
+			// SETTER/GETTER
+			// ============================================================================
 
 			/**
 			 * Sets whether the server is running.
@@ -233,6 +243,11 @@ namespace B4R {
 			 * Returns True if online and active.
 			 */
 			bool getIsReady();
+
+			// ============================================================================
+			// CONSTANTS
+			// ============================================================================
+
 
 			/**
 			 * OFFICIAL OPC UA SEVERITY STATUS CODES (OPC 10000-4 Clause 7.38)

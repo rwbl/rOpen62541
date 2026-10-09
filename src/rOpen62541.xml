@@ -186,10 +186,37 @@ Perfect for switching hardware relays or reading digital state inputs.
             </parameter>
         </method>
         <method>
+            <name DesignerName="AddTriggerNode">AddTriggerNode</name>
+            <comment>Dynamically allocates a new Polymorphic Trigger node variable inside the Factory Floor folder.
+Configured with UA_VALUERANK_ANY to act as a universal receptor for various data payloads.
+It processes incoming data types dynamically, automatically extracting raw memory contents
+into the global trigger buffer. Supported types include:
+ - Strings (Text payloads like "STOP", "START")
+ - ByteStrings / Wrapped Data (Binary arrays from B4J/B4R clients like hex sequences)
+ - Explicit multi-element Arrays (Byte[])
+ - Scalar Numbers (Int32, Float, Double, Int16)
+@param NodeIdentifier The targeting unique string Node ID (e.g., "ns=1;s=Trigger").
+@param DisplayName The human-readable string representation exposed to SCADA clients.
+@param InitialValue The starting string value assigned to the node space on boot.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>DisplayName</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>InitialValue</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+        </method>
+        <method>
             <name DesignerName="WriteNumeric">WriteNumeric</name>
             <comment>Thread-safely updates an active OPC UA node by automatically resolving its compiled data layout type.
 Supports cross-core type verification for floating-point (Float), integer (Int32), and Boolean structures inside Namespace 1.
-@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
+@param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 @param NewValue The numerical double representation payload to convert and assign.</comment>
             <returntype>B4R::void</returntype>
             <parameter>
@@ -205,7 +232,7 @@ Supports cross-core type verification for floating-point (Float), integer (Int32
             <name DesignerName="WriteString">WriteString</name>
             <comment>Thread-safely writes a string text payload into an active OPC UA node.
 Automatically handles string memory copying and verifies the target node data type.
-@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
+@param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 @param NewValue The B4RString payload to write into the node address space.</comment>
             <returntype>B4R::void</returntype>
             <parameter>
@@ -219,9 +246,8 @@ Automatically handles string memory copying and verifies the target node data ty
         </method>
         <method>
             <name DesignerName="WriteByteString">WriteByteString</name>
-            <comment>OPC UA Standard Write Service.
-Thread-safely writes a binary ByteString payload into an active OPC UA node.
-@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
+            <comment>Thread-safely writes a binary ByteString payload into an active OPC UA node.
+@param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 @param Data The B4R ArrayByte payload to write into the node address space.</comment>
             <returntype>B4R::void</returntype>
             <parameter>
@@ -237,11 +263,11 @@ Thread-safely writes a binary ByteString payload into an active OPC UA node.
             <name DesignerName="ReadNumeric">ReadNumeric</name>
             <comment>OPC UA Standard Read Service.
 Thread-safely reads a node value using a numeric identifier.
-@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=2258").
+@param NodeIdentifier The complete NodeId string, containing the namespace index (ns=0) and the string identifier (i=2258) (e.g., "ns=0;i=2258" for the server time).
 @return Returns the scalar node value formatted as a B4R String.</comment>
             <returntype>B4R::B4RString*</returntype>
             <parameter>
-                <name>NumericIdentifier</name>
+                <name>NodeIdentifier</name>
                 <type>B4R::B4RString*</type>
             </parameter>
         </method>
@@ -249,7 +275,7 @@ Thread-safely reads a node value using a numeric identifier.
             <name DesignerName="ReadString">ReadString</name>
             <comment>OPC UA Standard Read Service.
 Thread-safely reads a node value using a string identifier.
-@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=Temperature").
+@param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 @return A B4RString pointer containing the text-formatted value payload.</comment>
             <returntype>B4R::B4RString*</returntype>
             <parameter>
@@ -261,8 +287,8 @@ Thread-safely reads a node value using a string identifier.
             <name DesignerName="ReadByteString">ReadByteString</name>
             <comment>OPC UA Standard Read Service.
 Thread-safely reads a binary ByteString value using a string identifier.
-@param NodeIdentifier The targeting string namespace (ns) and the nodestring (s) (e.g., "ns=1;s=DeviceData").
-@return An ArrayByte pointer containing the binary ByteString payload.</comment>
+@param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=ServerData) (e.g., "ns=1;s=ServerData").
+@return An ArrayByte containing the binary ByteString payload.</comment>
             <returntype>Byte[]</returntype>
             <parameter>
                 <name>NodeIdentifier</name>
@@ -300,5 +326,5 @@ Thread-safely reads a binary ByteString value using a string identifier.
             <returntype>ULong</returntype>
         </field>
     </class>
-    <version>0.91</version>
+    <version>0.95</version>
 </root>
