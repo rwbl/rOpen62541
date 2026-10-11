@@ -6,6 +6,7 @@
         <shortname>Open62541</shortname>
         <comment>Open 62541 library stored locally</comment>
         <event>MethodTriggered ()</event>
+        <event>OnDataWrite (NodeId As String, RawValue() As Byte)</event>
         <property>
             <name>IsReady</name>
             <comment>Sets whether the server is running.
@@ -25,7 +26,8 @@ If Username is empty "", it defaults to anonymous access.
 @param Port The target listening TCP network port (typically 4840).
 @param Username The security access username (use "" for no auth).
 @param Password The security access password (use "" for no auth).
-@param MethodTriggeredSub The B4R Sub to invoke when the remote trigger node is updated.</comment>
+@param TriggerSub The B4R Sub to invoke when the remote trigger node is updated.
+@param DataWriteSub The B4R Sub to invoke when a node is updated remotely.</comment>
             <returntype>B4R::void</returntype>
             <parameter>
                 <name>LocalIP</name>
@@ -44,19 +46,42 @@ If Username is empty "", it defaults to anonymous access.
                 <type>B4R::B4RString*</type>
             </parameter>
             <parameter>
-                <name>MethodTriggerSub</name>
+                <name>TriggerSub</name>
                 <type>SubVoidArray</type>
+            </parameter>
+            <parameter>
+                <name>DataWriteSub</name>
+                <type>SubDataWrite</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="AddObjectNode">AddObjectNode</name>
+            <comment>Registers a standardized OPC UA Object node container in the address space.
+Creates an instance of BaseObjectType inside the target parent folder.
+This allows logical structural grouping of process variables and method handlers
+into clear, self-documenting assets (e.g., grouping level tags and setpoint
+handlers together under a single "Tank1" parent object asset).
+@param ObjectName Unique string identifier utilized to generate the NodeId (String type).
+@param DisplayName Human-readable localized text displayed by SCADA clients during tree browsing.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>ObjectName</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>DisplayName</name>
+                <type>B4R::B4RString*</type>
             </parameter>
         </method>
         <method>
             <name DesignerName="AddMethodNode">AddMethodNode</name>
-            <comment>Dynamically allocates a new executable RPC Method node inside the Factory Floor folder.
-This allows clients to execute true industrial method commands natively,
-passing an input data string and awaiting a direct response token back.
-Maximum method input payload: 63 bytes.
-@param MethodName The targeting unique string Node ID for the method (e.g., "ExecuteJob").
-@param DisplayName The human-readable string representation exposed to SCADA clients.
-@param MethodCallSub The function pointer address targeting your B4R method handling subroutine callback.</comment>
+            <comment>Registers a remote executable Method node with isolated contextual callbacks.
+Allocates unique, permanent heap buffers for method signatures to prevent
+memory cross-talk. Binds the high-level B4R callback subroutine pointer straight
+to the unique node registration lifecycle via methodContext.
+@param MethodName Unique string identifier utilized to generate the NodeId.
+@param DisplayName Human-readable label displayed on interactive SCADA dashboard buttons.
+@param MethodCallSub Mapped B4R subroutine callback handler targeted during remote execution.</comment>
             <returntype>B4R::void</returntype>
             <parameter>
                 <name>MethodName</name>
@@ -213,11 +238,11 @@ into the global trigger buffer. Supported types include:
             </parameter>
         </method>
         <method>
-            <name DesignerName="WriteNumeric">WriteNumeric</name>
-            <comment>Thread-safely updates an active OPC UA node by automatically resolving its compiled data layout type.
-Supports cross-core type verification for floating-point (Float), integer (Int32), and Boolean structures inside Namespace 1.
-@param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
-@param NewValue The numerical double representation payload to convert and assign.</comment>
+            <name DesignerName="WriteFloat">WriteFloat</name>
+            <comment>Thread-safely updates an active OPC UA Float variable node.
+Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
+@param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=Tank1.Level").
+@param NewValue The floating-point value payload to assign.</comment>
             <returntype>B4R::void</returntype>
             <parameter>
                 <name>NodeIdentifier</name>
@@ -225,7 +250,88 @@ Supports cross-core type verification for floating-point (Float), integer (Int32
             </parameter>
             <parameter>
                 <name>NewValue</name>
-                <type>double</type>
+                <type>float</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="WriteInt">WriteInt</name>
+            <comment>Thread-safely updates an active OPC UA Int32 variable node.
+Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
+@param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=Counter").
+@param NewValue The signed 32-bit integer value payload to assign.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>NewValue</name>
+                <type>Int</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="WriteUInt">WriteUInt</name>
+            <comment>Thread-safely updates an active OPC UA UInt32 variable node.
+Perfect for transferring B4R ULong values or memory metrics cleanly without floating-point shifts.
+Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
+@param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=System.AvailableRAM").
+@param NewValue The unsigned 32-bit integer value payload to assign.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>NewValue</name>
+                <type>UInt</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="WriteBoolean">WriteBoolean</name>
+            <comment>Thread-safely updates an active OPC UA Boolean variable node.
+Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
+@param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=Relay1.State").
+@param NewValue The Boolean flag state status to assign.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>NewValue</name>
+                <type>bool</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="WriteLong">WriteLong</name>
+            <comment>Thread-safely updates an active OPC UA Int64 variable node.
+Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
+@param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=LargeCounter").
+@param NewValue The signed 64-bit integer value payload to assign.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>NewValue</name>
+                <type>Long</type>
+            </parameter>
+        </method>
+        <method>
+            <name DesignerName="WriteULong">WriteULong</name>
+            <comment>Thread-safely updates an active OPC UA UInt64 variable node.
+Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
+@param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=LargeUnsignedCounter").
+@param NewValue The unsigned 64-bit integer value payload to assign.</comment>
+            <returntype>B4R::void</returntype>
+            <parameter>
+                <name>NodeIdentifier</name>
+                <type>B4R::B4RString*</type>
+            </parameter>
+            <parameter>
+                <name>NewValue</name>
+                <type>ULong</type>
             </parameter>
         </method>
         <method>
