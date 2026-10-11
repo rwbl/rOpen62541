@@ -89,6 +89,7 @@ This server implementation complies strictly with core industrial data-modeling 
 * [**opcua-commander**](https://github.com/node-opcua/opcua-commander) - Validated using the interactive, keyboard-driven terminal curses explorer (TUI).
 * [**Node.js OPC UA Stack**](https://node-opcua.github.io) — Working via simple TypeScript client example.
 * [**Node-RED**](https://nodered.org) - Fully interoperable using the standard `node-red-contrib-opcua` flow palette node module.
+* [**Fuxa**](https://github.com/frangoteam/fuxa) - Working with a simple example and OPC UA connector.
 
 ---
 

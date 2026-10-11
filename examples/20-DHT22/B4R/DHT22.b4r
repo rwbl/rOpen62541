@@ -121,7 +121,7 @@ Private Sub InitOPCUAServer As Boolean
 
 	Log("[InitOPCUAServer] Initializing...")
 	' Spin up the Core 0 open62541 network engine with callback
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", Null, Null)
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOPCUAServer] Awaiting background core network initialization...")
@@ -170,7 +170,7 @@ Private Sub OnDHTStateChanged(t As Float, h As Float)
 	Log("[OnDHTStateChanged] t=",t, ", h=",h, ", r=", AvailableRAM)
 	If IsNumber(t) Then
 		Temperature = t
-		OPCUAServer.WriteNumeric(NODEID_TEMPERATURE, Temperature)
+		OPCUAServer.WriteFloat(NODEID_TEMPERATURE, Temperature)
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
 	Else
 		Log("[OnDHTStateChanged][E] t=nan")
@@ -178,23 +178,14 @@ Private Sub OnDHTStateChanged(t As Float, h As Float)
 	End If
 	If IsNumber(h) Then
 		Humidity = h
-		OPCUAServer.WriteNumeric(NODEID_HUMIDITY, Humidity)
+		OPCUAServer.WriteFloat(NODEID_HUMIDITY, Humidity)
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
 	Else
 		Log("[OnDHTStateChanged][E] h=nan")
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_BAD)
 	End If
 	' Allways update available ram
-	OPCUAServer.WriteNumeric(NODEID_AVAILABLERAM, AvailableRAM)
-End Sub
-
-' OnDataWrite
-' This event is fired when client triggers the method over the network using namespace 1 and string identifier Trigger
-' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
-Private Sub OnDataWrite(buffer() As Byte)
-	Log("[OnDataWrite] Client trigger method ", ByteConv.StringFromBytes(buffer))
-	OPCUAServer.WriteNumeric(NODEID_TEMPERATURE, Dht.Temperature)
-	OPCUAServer.WriteNumeric(NODEID_HUMIDITY, Dht.Humidity)
+	OPCUAServer.WriteFloat(NODEID_AVAILABLERAM, AvailableRAM)
 End Sub
 
 ' OnMethodCall
@@ -208,8 +199,8 @@ Private Sub OnMethodCall(InputParams() As Byte)
 	' Evaluate your local logic parameters safely
 	If ParamText = "REQUEST_DATA" Then
 		Log("[OnMethodCall] Command accepted.")
-		OPCUAServer.WriteNumeric(NODEID_TEMPERATURE, Dht.Temperature)
-		OPCUAServer.WriteNumeric(NODEID_HUMIDITY, Dht.Humidity)
+		OPCUAServer.WriteFloat(NODEID_TEMPERATURE, Dht.Temperature)
+		OPCUAServer.WriteFloat(NODEID_HUMIDITY, Dht.Humidity)
 		' Invoke via your active OPCUAServer instance prefix!
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
 	Else

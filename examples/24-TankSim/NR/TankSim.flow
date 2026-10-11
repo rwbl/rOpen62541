@@ -1,0 +1,1258 @@
+[
+    {
+        "id": "35fcce6ae05860ab",
+        "type": "tab",
+        "label": "TankSim",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "1af7bee697812a5d",
+        "type": "debug",
+        "z": "35fcce6ae05860ab",
+        "d": true,
+        "name": "DEBUG READ",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "5ff5297c32c1241c",
+        "type": "switch",
+        "z": "35fcce6ae05860ab",
+        "name": "Response Handler",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "0x80000000",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 970,
+        "y": 620,
+        "wires": [
+            [
+                "7bc8e55417438e13"
+            ],
+            [
+                "47d70693caf53b72"
+            ]
+        ]
+    },
+    {
+        "id": "e88d601ed07b3f6b",
+        "type": "comment",
+        "z": "35fcce6ae05860ab",
+        "name": "WRITE",
+        "info": "",
+        "x": 70,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "7bc8e55417438e13",
+        "type": "debug",
+        "z": "35fcce6ae05860ab",
+        "name": "DEBUG METHOD CALL GOOD",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "47d70693caf53b72",
+        "type": "debug",
+        "z": "35fcce6ae05860ab",
+        "name": "DEBUG METHOD CALL FAILURE",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1240,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "4cbacf57cde34e03",
+        "type": "function",
+        "z": "35fcce6ae05860ab",
+        "name": "Convert Result",
+        "func": "/*\nB4R sends like:\nOpcServer.SetMethodReturnCode(OpcServer.STATUS_GOOD) [0x00000000]\nOpcServer.SetMethodReturnCode(OpcServer.STATUS_FAILURE) [0x80000000]\n\nwhich values are then converted from usigned to signed using bit shiftig >>>.\n*/\n\n// Converts -2147483648 into 2147483648 (0x80000000) instantly\nmsg.payload = msg.payload >>> 0;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 620,
+        "wires": [
+            [
+                "5ff5297c32c1241c"
+            ]
+        ]
+    },
+    {
+        "id": "3c3ebd6b02b7e589",
+        "type": "OpcUa-Client",
+        "z": "35fcce6ae05860ab",
+        "endpoint": "fcc17be495ef051a",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "setstatusandtime": false,
+        "keepsessionalive": false,
+        "name": "",
+        "applicationName": "",
+        "applicationUri": "",
+        "x": 560,
+        "y": 140,
+        "wires": [
+            [
+                "edcca61df14e447c",
+                "1af7bee697812a5d"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "84c617dc02659396",
+        "type": "OpcUa-Item",
+        "z": "35fcce6ae05860ab",
+        "item": "ns=1;s=Tank1.Level",
+        "datatype": "Float",
+        "value": "",
+        "name": "Tank1.Level",
+        "x": 290,
+        "y": 140,
+        "wires": [
+            [
+                "3c3ebd6b02b7e589"
+            ]
+        ]
+    },
+    {
+        "id": "6d0971a5fe9a1d35",
+        "type": "OpcUa-Item",
+        "z": "35fcce6ae05860ab",
+        "item": "ns=1;s=Tank2.Level",
+        "datatype": "Float",
+        "value": "",
+        "name": "Tank2.Level",
+        "x": 290,
+        "y": 260,
+        "wires": [
+            [
+                "3c3ebd6b02b7e589"
+            ]
+        ]
+    },
+    {
+        "id": "0a91dd379ed322c2",
+        "type": "OpcUa-Item",
+        "z": "35fcce6ae05860ab",
+        "item": "ns=1;s=Tank1.InputFlow",
+        "datatype": "Float",
+        "value": "",
+        "name": "Tank1.InputFlow",
+        "x": 300,
+        "y": 180,
+        "wires": [
+            [
+                "3c3ebd6b02b7e589"
+            ]
+        ]
+    },
+    {
+        "id": "21dd07edff2d7c9c",
+        "type": "inject",
+        "z": "35fcce6ae05860ab",
+        "name": "Inject",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 90,
+        "y": 140,
+        "wires": [
+            [
+                "84c617dc02659396",
+                "0a91dd379ed322c2",
+                "6d0971a5fe9a1d35",
+                "a1fbe898c870ae9c",
+                "2edb43db48b34a66",
+                "fe85441bcf0a597a"
+            ]
+        ]
+    },
+    {
+        "id": "7437ddf65f0207a4",
+        "type": "ui-gauge",
+        "z": "35fcce6ae05860ab",
+        "name": "Tank1.Level",
+        "group": "324d760663c163d6",
+        "order": 1,
+        "value": "$round($number(payload), 0)",
+        "valueType": "jsonata",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Level",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "%",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "70",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "90",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": "100",
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 950,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ffbe76e2a87f5b09",
+        "type": "ui-gauge",
+        "z": "35fcce6ae05860ab",
+        "name": "Tank2 Level",
+        "group": "9f2c4ef232725dde",
+        "order": 1,
+        "value": "$round($number(payload), 0)",
+        "valueType": "jsonata",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Level",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "%",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "70",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "90",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": "100",
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 950,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f4bb09285f1db869",
+        "type": "comment",
+        "z": "35fcce6ae05860ab",
+        "name": "READ",
+        "info": "",
+        "x": 70,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "edcca61df14e447c",
+        "type": "switch",
+        "z": "35fcce6ae05860ab",
+        "name": "",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "ns=1;s=Tank1.Level",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "ns=1;s=Tank1.InputFlow",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "ns=1;s=Tank1.OutputFlow",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "ns=1;s=Tank2.Level",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "ns=1;s=Tank2.InputFlow",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "ns=1;s=Tank2.OutputFlow",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 6,
+        "x": 750,
+        "y": 160,
+        "wires": [
+            [
+                "7437ddf65f0207a4",
+                "a3df8d8e56f033aa"
+            ],
+            [
+                "1dda4b4fe0cb9d93"
+            ],
+            [
+                "a963b200ab60aae7"
+            ],
+            [
+                "ffbe76e2a87f5b09",
+                "81ba2d1b14e4734b"
+            ],
+            [
+                "52cfdb29f1dd871a"
+            ],
+            [
+                "1ab104a30509e323"
+            ]
+        ]
+    },
+    {
+        "id": "a3df8d8e56f033aa",
+        "type": "ui-chart",
+        "z": "35fcce6ae05860ab",
+        "group": "324d760663c163d6",
+        "name": "Tank1.Level",
+        "label": "",
+        "order": 3,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "%",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "100",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "line",
+        "pointRadius": "0",
+        "showLegend": false,
+        "removeOlder": 1,
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "3",
+        "height": "3",
+        "className": "",
+        "interpolation": "linear",
+        "x": 950,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "81ba2d1b14e4734b",
+        "type": "ui-chart",
+        "z": "35fcce6ae05860ab",
+        "group": "9f2c4ef232725dde",
+        "name": "Tank2 Level",
+        "label": "",
+        "order": 3,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "%",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "100",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "line",
+        "pointRadius": "0",
+        "showLegend": false,
+        "removeOlder": 1,
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "3",
+        "height": "3",
+        "className": "",
+        "interpolation": "linear",
+        "x": 950,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "302a4831058e1596",
+        "type": "ui-slider",
+        "z": "35fcce6ae05860ab",
+        "group": "324d760663c163d6",
+        "name": "Tank1Setpoint",
+        "label": "Setpoint",
+        "tooltip": "",
+        "order": 5,
+        "width": "3",
+        "height": "2",
+        "passthru": false,
+        "outs": "end",
+        "topic": "topic",
+        "topicType": "msg",
+        "thumbLabel": "true",
+        "showTicks": "false",
+        "min": 0,
+        "max": "100",
+        "step": "5",
+        "className": "",
+        "iconPrepend": "",
+        "iconAppend": "",
+        "color": "",
+        "colorTrack": "",
+        "colorThumb": "",
+        "showTextField": true,
+        "x": 960,
+        "y": 480,
+        "wires": [
+            [
+                "92180df80d14a10c"
+            ]
+        ]
+    },
+    {
+        "id": "55fc488ebb7783a8",
+        "type": "ui-slider",
+        "z": "35fcce6ae05860ab",
+        "group": "9f2c4ef232725dde",
+        "name": "Tank2Setpoint",
+        "label": "Setpoint",
+        "tooltip": "",
+        "order": 5,
+        "width": "3",
+        "height": "2",
+        "passthru": false,
+        "outs": "end",
+        "topic": "topic",
+        "topicType": "msg",
+        "thumbLabel": "true",
+        "showTicks": "false",
+        "min": 0,
+        "max": "100",
+        "step": "5",
+        "className": "",
+        "iconPrepend": "",
+        "iconAppend": "",
+        "color": "",
+        "colorTrack": "",
+        "colorThumb": "",
+        "showTextField": true,
+        "x": 960,
+        "y": 540,
+        "wires": [
+            [
+                "1f882de9cea1c1ba"
+            ]
+        ]
+    },
+    {
+        "id": "a1fbe898c870ae9c",
+        "type": "OpcUa-Item",
+        "z": "35fcce6ae05860ab",
+        "item": "ns=1;s=Tank1.OutputFlow",
+        "datatype": "Float",
+        "value": "",
+        "name": "Tank1.OutputFlow",
+        "x": 310,
+        "y": 220,
+        "wires": [
+            [
+                "3c3ebd6b02b7e589"
+            ]
+        ]
+    },
+    {
+        "id": "2edb43db48b34a66",
+        "type": "OpcUa-Item",
+        "z": "35fcce6ae05860ab",
+        "item": "ns=1;s=Tank2.InputFlow",
+        "datatype": "Float",
+        "value": "",
+        "name": "Tank2.InputFlow",
+        "x": 300,
+        "y": 300,
+        "wires": [
+            [
+                "3c3ebd6b02b7e589"
+            ]
+        ]
+    },
+    {
+        "id": "fe85441bcf0a597a",
+        "type": "OpcUa-Item",
+        "z": "35fcce6ae05860ab",
+        "item": "ns=1;s=Tank2.OutputFlow",
+        "datatype": "Float",
+        "value": "",
+        "name": "Tank2.OutputFlow",
+        "x": 310,
+        "y": 340,
+        "wires": [
+            [
+                "3c3ebd6b02b7e589"
+            ]
+        ]
+    },
+    {
+        "id": "1dda4b4fe0cb9d93",
+        "type": "ui-chart",
+        "z": "35fcce6ae05860ab",
+        "group": "324d760663c163d6",
+        "name": "Tank1.InputFlow",
+        "label": "InputFlow",
+        "order": 2,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "%",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "20",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "line",
+        "pointRadius": "0",
+        "showLegend": false,
+        "removeOlder": 1,
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "3",
+        "height": "3",
+        "className": "",
+        "interpolation": "linear",
+        "x": 960,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a963b200ab60aae7",
+        "type": "ui-chart",
+        "z": "35fcce6ae05860ab",
+        "group": "324d760663c163d6",
+        "name": "Tank1.OutputFlow",
+        "label": "OutputFlow",
+        "order": 4,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "%",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "20",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "line",
+        "pointRadius": "0",
+        "showLegend": false,
+        "removeOlder": 1,
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "3",
+        "height": "3",
+        "className": "",
+        "interpolation": "linear",
+        "x": 970,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "52cfdb29f1dd871a",
+        "type": "ui-chart",
+        "z": "35fcce6ae05860ab",
+        "group": "9f2c4ef232725dde",
+        "name": "Tank2.InputFlow",
+        "label": "InputFlow",
+        "order": 2,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "%",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "20",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "line",
+        "pointRadius": "0",
+        "showLegend": false,
+        "removeOlder": 1,
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "3",
+        "height": "3",
+        "className": "",
+        "interpolation": "linear",
+        "x": 960,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1ab104a30509e323",
+        "type": "ui-chart",
+        "z": "35fcce6ae05860ab",
+        "group": "9f2c4ef232725dde",
+        "name": "Tank2.OutputFlow",
+        "label": "OutputFlow",
+        "order": 4,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "%",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "20",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "line",
+        "pointRadius": "0",
+        "showLegend": false,
+        "removeOlder": 1,
+        "removeOlderUnit": "3600",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "3",
+        "height": "3",
+        "className": "",
+        "interpolation": "linear",
+        "x": 970,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e665cd3905292b31",
+        "type": "OpcUa-Client",
+        "z": "35fcce6ae05860ab",
+        "endpoint": "fcc17be495ef051a",
+        "action": "write",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "setstatusandtime": false,
+        "keepsessionalive": false,
+        "name": "",
+        "applicationName": "",
+        "applicationUri": "",
+        "x": 560,
+        "y": 640,
+        "wires": [
+            [
+                "4cbacf57cde34e03"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "92180df80d14a10c",
+        "type": "function",
+        "z": "35fcce6ae05860ab",
+        "name": "Set Tank1Setpoint",
+        "func": "// 1. Extract the number from your input (e.g., from a dashboard slider or input)\nlet sp = parseFloat(msg.payload); \n\n// 2. Set the target OPC UA Node ID string\nmsg.topic = \"ns=1;s=Tank1.Setpoint\";\n\n// 3. Assign the direct raw value to the payload\nmsg.payload = sp;\n\n// 4. CRITICAL: Force Node-RED to send it as a 32-bit Float, matching your B4R server\nmsg.datatype = \"Float\"; \n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1190,
+        "y": 480,
+        "wires": [
+            [
+                "e665cd3905292b31"
+            ]
+        ]
+    },
+    {
+        "id": "1f882de9cea1c1ba",
+        "type": "function",
+        "z": "35fcce6ae05860ab",
+        "name": "Set Tank2Setpoint",
+        "func": "// 1. Extract the number from your input (e.g., from a dashboard slider or input)\nlet sp = parseFloat(msg.payload); \n\n// 2. Set the target OPC UA Node ID string\nmsg.topic = \"ns=1;s=Tank2.Setpoint\";\n\n// 3. Assign the direct raw value to the payload\nmsg.payload = sp;\n\n// 4. CRITICAL: Force Node-RED to send it as a 32-bit Float, matching your B4R server\nmsg.datatype = \"Float\"; \n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1190,
+        "y": 520,
+        "wires": [
+            [
+                "e665cd3905292b31"
+            ]
+        ]
+    },
+    {
+        "id": "e0bcfbc6c614c762",
+        "type": "OpcUa-Client",
+        "z": "35fcce6ae05860ab",
+        "endpoint": "fcc17be495ef051a",
+        "action": "read",
+        "deadbandtype": "a",
+        "deadbandvalue": 1,
+        "time": 10,
+        "timeUnit": "s",
+        "certificate": "n",
+        "localfile": "",
+        "localkeyfile": "",
+        "securitymode": "None",
+        "securitypolicy": "None",
+        "useTransport": false,
+        "maxChunkCount": 1,
+        "maxMessageSize": 8192,
+        "receiveBufferSize": 8192,
+        "sendBufferSize": 8192,
+        "setstatusandtime": false,
+        "keepsessionalive": false,
+        "name": "",
+        "applicationName": "",
+        "applicationUri": "",
+        "x": 560,
+        "y": 500,
+        "wires": [
+            [
+                "a426177b63060842"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "b79f0f3f48935e4a",
+        "type": "OpcUa-Item",
+        "z": "35fcce6ae05860ab",
+        "item": "ns=1;s=Tank1.Setpoint",
+        "datatype": "Float",
+        "value": "",
+        "name": "Tank1.Setpoint",
+        "x": 300,
+        "y": 500,
+        "wires": [
+            [
+                "e0bcfbc6c614c762"
+            ]
+        ]
+    },
+    {
+        "id": "1a966e8d4977e01a",
+        "type": "inject",
+        "z": "35fcce6ae05860ab",
+        "name": "Inject",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 90,
+        "y": 500,
+        "wires": [
+            [
+                "b79f0f3f48935e4a",
+                "fa6cb9488006a070"
+            ]
+        ]
+    },
+    {
+        "id": "a426177b63060842",
+        "type": "switch",
+        "z": "35fcce6ae05860ab",
+        "name": "",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "ns=1;s=Tank1.Setpoint",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "ns=1;s=Tank2.Setpoint",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 750,
+        "y": 500,
+        "wires": [
+            [
+                "302a4831058e1596"
+            ],
+            [
+                "55fc488ebb7783a8"
+            ]
+        ]
+    },
+    {
+        "id": "fa6cb9488006a070",
+        "type": "OpcUa-Item",
+        "z": "35fcce6ae05860ab",
+        "item": "ns=1;s=Tank2.Setpoint",
+        "datatype": "Float",
+        "value": "",
+        "name": "Tank2.Setpoint",
+        "x": 300,
+        "y": 540,
+        "wires": [
+            [
+                "e0bcfbc6c614c762"
+            ]
+        ]
+    },
+    {
+        "id": "925cba3959a628df",
+        "type": "comment",
+        "z": "35fcce6ae05860ab",
+        "name": "rOpen62541 Example Tank Simulator",
+        "info": "",
+        "x": 170,
+        "y": 20,
+        "wires": []
+    },
+    {
+        "id": "fcc17be495ef051a",
+        "type": "OpcUa-Endpoint",
+        "name": "ESP32S3",
+        "endpoint": "opc.tcp://192.168.1.175:4840/",
+        "secpol": "None",
+        "secmode": "None",
+        "none": true,
+        "login": false,
+        "usercert": false,
+        "usercertificate": "",
+        "userprivatekey": ""
+    },
+    {
+        "id": "324d760663c163d6",
+        "type": "ui-group",
+        "name": "Tank1",
+        "page": "8453cf450e3708df",
+        "width": 6,
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "9f2c4ef232725dde",
+        "type": "ui-group",
+        "name": "Tank2",
+        "page": "8453cf450e3708df",
+        "width": 6,
+        "height": 1,
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "8453cf450e3708df",
+        "type": "ui-page",
+        "name": "TankSim",
+        "ui": "8442601f430c57a8",
+        "path": "/tanksim",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "c20354fcfd71cf28",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "8442601f430c57a8",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "c20354fcfd71cf28",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "aecd162b9ced8674",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-opcua": "0.2.355",
+            "@flowfuse/node-red-dashboard": "1.32.0"
+        }
+    }
+]

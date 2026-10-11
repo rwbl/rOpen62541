@@ -1,0 +1,544 @@
+﻿Build1=Default,B4RDev
+Group=Default Group
+Library1=rconvert
+Library2=rcore
+Library3=resp8266wifi
+Library4=ropen62541
+NumberOfFiles=0
+NumberOfLibraries=4
+NumberOfModules=0
+Version=4
+@EndOfDesignText@
+#Region Project Header
+'==============================================
+' Project:		rOpen62541
+' Brief:		Example simulating two Tanks and listening to client callback.
+' Date:			2026-10-11
+' Author: 		Robert W.B. Linn
+' License:		MIT — see LICENSE file.
+' Description:	
+' Hardware:		ESP32-S3-N16R8
+'				Board settings:
+'				Unleash the 8MB Octal PSRAM footprint
+'				Partitionscheme: Huge App
+'				PSRAM: OPI PSRAM
+' Software:		B4R 4.00 (64 bit), B4R IDE Board selected: ESP32S3 Dev Module COM15
+'				Arduino Board Manager ESP32 3.3.12.
+'				Additional Libraries:
+'				rConvert 1.70, rESP8266WiFi 1.60, rOpen62541 0.95
+' Wiring:		N/A
+' Hints:		Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
+'==============================================
+#End Region
+
+#Region Project Attributes
+	#AutoFlushLogs: True
+	#CheckArrayBounds: True
+	#StackBufferSize: 3000
+#End Region
+
+Sub Process_Globals
+	Private VERSION 			As String = "rOpen62541 TankSim v20261011"
+
+	' Communication
+	Public Serial1 				As Serial
+	Private WiFi 				As ESP8266WiFi						' Lib rESP8266WiFi
+	Private SSID				As String = "***"
+	Private PW 					As String = "***"
+	
+	' Open62541
+	Private OPCUAServer			As Open62541						' Lib rOpen62541
+	Private PORT 				As Int = 4840
+
+	' Visual Indicator Setup
+	Private Pin_StatusLED As Pin
+	Private LED_PIN As Byte = 2
+
+	Private SetpointChanged_T1 As Boolean = False
+	Private SetpointChanged_T2 As Boolean = False
+	Private TuningChanged As Boolean = False
+    
+	' Disturbance Generator Variables 
+	Private DisturbanceCounter As Int = 0
+	' Introduces a process leak or spike every 180 seconds (3 minutes)
+	Private DISTURBANCE_INTERVAL_SECS As Int = 180
+	Private CurrentDisturbance As Float = 0.0
+
+	' Tank 1 State & Tuning Parameters 
+	Private Tank1_Level As Float = 40.0
+	Private Tank1_Setpoint As Float = 60.0
+	Private Tank1_InFlow As Float = 0.0
+	Private Tank1_BaseOutFlow As Float = 10.0 ' Nominal process drainage
+	Private Tank1_ActualOutFlow As Float = 10.0 ' Base + Disturbance
+	' PID Parameters
+	Private T1_Kp As Float = 1.8
+	Private T1_Ki As Float = 0.15
+	Private T1_Kd As Float = 0.05
+	Private T1_ErrorPrior As Float = 0.0
+	Private T1_Integral As Float = 0.0
+	Private Tank1_Temp As Float = 21.0
+	' Alarm States
+	Private T1_Alarm_HH As Boolean = False
+	Private T1_Alarm_LL As Boolean = False
+
+	' Tank 2 State & Tuning Parameters 
+	Private Tank2_Level As Float = 30.0
+	Private Tank2_Setpoint As Float = 50.0
+	Private Tank2_InFlow As Float = 0.0
+	Private Tank2_OutFlow As Float = 8.0
+	' PID Parameters
+	Private T2_Kp As Float = 2.2
+	Private T2_Ki As Float = 0.10
+	Private T2_Kd As Float = 0.08
+	Private T2_ErrorPrior As Float = 0.0
+	Private T2_Integral As Float = 0.0
+	Private Tank2_Temp As Float = 23.5
+	' Alarm States
+	Private T2_Alarm_HH As Boolean = False
+	Private T2_Alarm_LL As Boolean = False
+
+	' Flat Namespace 1 Node String Keys	
+	Private NODEID_TRIGGER			As String = "ns=1;s=Trigger"
+	Private NODEID_TRIGGER_RESULT	As String = "ns=1;s=TriggerResult"
+	Private NODEID_AVAILABLERAM		As String = "ns=1;s=System.AvailableRAM"
+
+	' Tank 1 Identifiers
+	Private NODEID_T1_LEVEL 	As String = "ns=1;s=Tank1.Level"
+	Private NODEID_T1_SETPOINT 	As String = "ns=1;s=Tank1.Setpoint"
+	Private NODEID_T1_INFLOW 	As String = "ns=1;s=Tank1.InputFlow"
+	Private NODEID_T1_OUTFLOW 	As String = "ns=1;s=Tank1.OutputFlow"
+	Private NODEID_T1_TEMP 		As String = "ns=1;s=Tank1.Temperature"
+	Private NODEID_T1_KP 		As String = "ns=1;s=Tank1.Kp"
+	Private NODEID_T1_KI 		As String = "ns=1;s=Tank1.Ki"
+	Private NODEID_T1_KD 		As String = "ns=1;s=Tank1.Kd"
+	Private NODEID_T1_ALARM_HH	As String = "ns=1;s=Tank1.Alarm_HH"
+	Private NODEID_T1_ALARM_LL	As String = "ns=1;s=Tank1.Alarm_LL"
+    
+	' Tank 2 Identifiers
+	Private NODEID_T2_LEVEL 	As String = "ns=1;s=Tank2.Level"
+	Private NODEID_T2_SETPOINT 	As String = "ns=1;s=Tank2.Setpoint"
+	Private NODEID_T2_INFLOW 	As String = "ns=1;s=Tank2.InputFlow"
+	Private NODEID_T2_OUTFLOW 	As String = "ns=1;s=Tank2.OutputFlow"
+	Private NODEID_T2_TEMP 		As String = "ns=1;s=Tank2.Temperature"
+	Private NODEID_T2_KP	 	As String = "ns=1;s=Tank2.Kp"
+	Private NODEID_T2_KI 		As String = "ns=1;s=Tank2.Ki"
+	Private NODEID_T2_KD 		As String = "ns=1;s=Tank2.Kd"
+	Private NODEID_T2_ALARM_HH 	As String = "ns=1;s=Tank2.Alarm_HH"
+	Private NODEID_T2_ALARM_LL	As String = "ns=1;s=Tank2.Alarm_LL"
+
+	' Central Write Trigger Command Identifiers (Byte IDs) 
+	' These map to the first byte (Buffer(0)) of your written payload array
+	Private const CMD_T1_SETPOINT As Byte = 1
+	Private const CMD_T1_KP       As Byte = 2
+	Private const CMD_T1_KI       As Byte = 3
+	Private const CMD_T1_KD       As Byte = 4
+    
+	Private const CMD_T2_SETPOINT As Byte = 5
+	Private const CMD_T2_KP       As Byte = 6
+	Private const CMD_T2_KI       As Byte = 7
+	Private const CMD_T2_KD       As Byte = 8
+
+	' Timer simulating sensor data
+	Private SimTimer As Timer
+	Private SIMTIMER_INTERVAL As ULong = 5000
+End Sub
+
+Sub AppStart
+	Serial1.Initialize(115200)
+	Log(CRLF, "[AppStart] ", VERSION)
+
+	' Init app timer to generate env data
+	SimTimer.Initialize("SimTimer_Tick", SIMTIMER_INTERVAL)
+	SimTimer.Enabled = False
+	
+	' Connect to the network first
+	If WiFi.Connect2(SSID, PW) Then
+		Log("[AppStart] WiFi connected > local ip=", WiFi.LocalIP)
+
+		' Disable Wi-Fi sleep mode (First major current step-up)
+		RunNative("DisableWiFiSleep", Null)
+		RunNative("InitSystemClock", Null)
+		
+		' Let the power line settle after forcing the radio transmitter fully active.
+		Delay(2000)
+		
+		Log("[AppStart] Init OPC UA server")
+		
+		' A tiny extra breathing room before executing heavy CPU operations
+		Delay(100)
+		
+		If InitOPCUAServer Then
+			' All good > start the app timer to update nodes
+			SimTimer.Enabled = True
+			Log("[AppStart] OPC UA server started")
+		Else
+			Log("[AppStart][E] OPC UA server not started")
+		End If
+	Else
+		Log("[AppStart][E] WiFi connection failed")
+	End If
+End Sub
+
+' InitOPCUAServer
+' Steps:
+' Init the server with ip, port and client callback
+' Wait till the opc server has been started successfully
+' Add various nodes
+Private Sub InitOPCUAServer As Boolean
+	Dim TimeoutCounter As Int = 0
+	Dim ServerBootFailed As Boolean = False
+
+	Log("[InitOPCUAServer] Initializing...")
+	' Init OPCUA server with trigger callback
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnTriggerCall", "OnDataWrite")
+
+	' Sets the maximum timeout ceiling to 120 seconds (120000ms)
+	' OPCUAServer.SetSessionTimeout(120000.0)
+	
+	' Wait for the background thread layout initialization to complete!
+	Log("[InitOPCUAServer] Awaiting background core network initialization...")
+	Do While OPCUAServer.IsReady = False
+		Delay(100) ' 100ms yield ticks for the cooperative scheduler
+        
+		TimeoutCounter = TimeoutCounter + 1
+		If TimeoutCounter >= 50 Then ' 50 ticks * 100ms = 5000ms (5 Seconds Timeout)
+			ServerBootFailed = True
+			Exit ' Break out of the endless loop safely!
+		End If
+	Loop
+    
+	If ServerBootFailed Then
+		Log("[InitOPCUAServer][E] Initialization failed > TIMEOUT")
+		' Optional: Run local emergency fallback routine or let local sensors run offline
+	Else
+		Log("[InitOPCUAServer] Initialization OK")
+		CreateNodes
+	End If
+	Return Not(ServerBootFailed)
+End Sub
+
+
+'Private Sub SetNode(id As String) As Byte()
+'	Return Convert.ByteConv.
+'End Sub
+
+Private Sub CreateNodes
+	' Add trigger received from the client and call OnTriggerCall
+	OPCUAServer.AddTriggerNode(NODEID_TRIGGER, "Remote Action Trigger", "0")
+	OPCUAServer.AddIntNode(NODEID_TRIGGER_RESULT, "Remote Trigger Result", 0)
+
+	OPCUAServer.AddFloatNode(NODEID_AVAILABLERAM, "Available RAM", AvailableRAM)
+
+	' =========================================================================
+	' TANK 1 NODE REGISTRATION
+	' =========================================================================
+	OPCUAServer.AddFloatNode(NODEID_T1_LEVEL, "Tank 1 Level", Tank1_Level)
+	OPCUAServer.AddFloatNode(NODEID_T1_INFLOW, "Tank 1 Input Flow", Tank1_InFlow)
+	OPCUAServer.AddFloatNode(NODEID_T1_OUTFLOW, "Tank 1 Output Flow", Tank1_ActualOutFlow)
+	OPCUAServer.AddFloatNode(NODEID_T1_TEMP, "Tank 1 Temp", Tank1_Temp)
+    
+	OPCUAServer.AddFloatNode(NODEID_T1_SETPOINT, "Tank 1 Setpoint", Tank1_Setpoint)
+
+   	OPCUAServer.AddFloatNode(NODEID_T1_KP, "Tank 1 Proportional Gain", T1_Kp)
+	OPCUAServer.AddFloatNode(NODEID_T1_KI, "Tank 1 Integral Gain", T1_Ki)
+	OPCUAServer.AddFloatNode(NODEID_T1_KD, "Tank 1 Derivative Gain", T1_Kd)
+    
+	OPCUAServer.AddFloatNode(NODEID_T1_ALARM_HH, "Tank 1 High-High Alarm", Convert.BoolToByte(T1_Alarm_HH))
+	OPCUAServer.AddFloatNode(NODEID_T1_ALARM_LL, "Tank 1 Low-Low Alarm", Convert.BoolToByte(T1_Alarm_LL))
+
+	' =========================================================================
+	' TANK 2 NODE REGISTRATION
+	' =========================================================================
+	OPCUAServer.AddFloatNode(NODEID_T2_LEVEL, "Tank 2 Level", Tank2_Level)
+	OPCUAServer.AddFloatNode(NODEID_T2_INFLOW, "Tank 2 Input Flow", Tank2_InFlow)
+	OPCUAServer.AddFloatNode(NODEID_T2_OUTFLOW, "Tank 2 Output Flow", Tank2_OutFlow)
+	OPCUAServer.AddFloatNode(NODEID_T2_TEMP, "Tank 2 Temp", Tank2_Temp)
+    
+	OPCUAServer.AddFloatNode(NODEID_T2_SETPOINT, "Tank 2 Setpoint", Tank2_Setpoint)
+    
+	OPCUAServer.AddFloatNode(NODEID_T2_KP, "Tank 2 Proportional Gain", T2_Kp)
+	OPCUAServer.AddFloatNode(NODEID_T2_KI, "Tank 2 Integral Gain", T2_Ki)
+	OPCUAServer.AddFloatNode(NODEID_T2_KD, "Tank 2 Derivative Gain", T2_Kd)
+    
+	OPCUAServer.AddFloatNode(NODEID_T2_ALARM_HH, "Tank 2 High-High Alarm", Convert.BoolToByte(T2_Alarm_HH))
+	OPCUAServer.AddFloatNode(NODEID_T2_ALARM_LL, "Tank 2 Low-Low Alarm", Convert.BoolToByte(T2_Alarm_LL))
+
+	Log("[CreateNodes] OK")
+End Sub
+
+' =========================================================================
+' LOOP PROCESSING, DISTURBANCE MATRIX & PID CORE ENGINE
+' =========================================================================
+Sub SimTimer_Tick
+	' Only write data if the background server task on Core 0 is fully ready
+    If Not(OPCUAServer.IsReady) Then Return 
+	
+    ' Handle Visual Signaling Events 
+    If SetpointChanged_T1 Or SetpointChanged_T2 Then
+        Pin_StatusLED.DigitalWrite(True)
+        SetpointChanged_T1 = False
+        SetpointChanged_T2 = False
+    Else If TuningChanged Then
+		Log("[SimTimer]PID Coefficients runtime modified via remote SCADA client.")
+        TuningChanged = False
+		Pin_StatusLED.DigitalWrite(True)
+    Else
+		Pin_StatusLED.DigitalWrite(False)
+    End If
+
+    ' Automated Load Disturbance Injector Step 
+    DisturbanceCounter = DisturbanceCounter + 1
+    If DisturbanceCounter >= DISTURBANCE_INTERVAL_SECS Then
+        DisturbanceCounter = 0
+        ' Randomly generate a spike or drop ranging from -6.0 to +6.0 units
+        ' CurrentDisturbance = (Rnd(-60, 61) / 10.0)
+		' Generates a random spike/drop between -12.0 and +12.0 units
+		CurrentDisturbance = (Rnd(-120, 121) / 10.0)
+		Log("[SimTimer]Disturbance Injector triggered. Magnitude change: ", CurrentDisturbance)
+    End If
+    
+    ' Slowly fade out the disturbance over time to simulate a passing process event
+    ' CurrentDisturbance = CurrentDisturbance * 0.98
+	' Fades out much slower, making the disturbance stick around longer
+	CurrentDisturbance = CurrentDisturbance * 0.995
+	' Tank1_ActualOutFlow = Tank1_BaseOutFlow + CurrentDisturbance
+	' Base outflow + passing major event disturbance + continuous mini-waves
+	Tank1_ActualOutFlow = Tank1_BaseOutFlow + CurrentDisturbance + (Rnd(-10, 11) / 20.0)
+	If Tank1_ActualOutFlow < 0.0 Then Tank1_ActualOutFlow = 0.0
+
+	' Tank 1 PID Core Calculations (Inflow Controlled) 
+	Dim error1 As Float = Tank1_Setpoint - Tank1_Level
+	If T1_Ki == 0.0 Then
+		T1_Integral = 0.0
+	Else
+		T1_Integral = T1_Integral + error1
+		If T1_Integral > 100.0 Then T1_Integral = 100.0
+		If T1_Integral < -100.0 Then T1_Integral = -100.0
+	End If
+	Dim derivative1 As Float = error1 - T1_ErrorPrior
+    
+	Tank1_InFlow = (T1_Kp * error1) + (T1_Ki * T1_Integral) + (T1_Kd * derivative1)
+	If Tank1_InFlow > 60.0 Then Tank1_InFlow = 60.0
+	If Tank1_InFlow < 0.0 Then Tank1_InFlow = 0.0
+    
+	' Increased step multiplier from 0.1 to 0.25 to eliminate steady-state lag
+	Tank1_Level = Tank1_Level + (Tank1_InFlow - Tank1_ActualOutFlow) * 0.25
+	If Tank1_Level > 100.0 Then Tank1_Level = 100.0
+	If Tank1_Level < 0.0 Then Tank1_Level = 0.0
+	T1_ErrorPrior = error1
+    
+	Tank1_Temp = Tank1_Temp + (0.05 * (Tank1_InFlow - Tank1_ActualOutFlow)) + (Rnd(-2, 3) * 0.01)
+
+	' Tank 2 PID Core Calculations (Outflow Controlled) 
+	Tank2_InFlow = Tank1_ActualOutFlow
+    
+	' INVERTED ERROR: If level > setpoint, error is positive -> Open drain valve more
+	Dim error2 As Float = Tank2_Level - Tank2_Setpoint
+    
+	If T2_Ki == 0.0 Then
+		T2_Integral = 0.0
+	Else
+		T2_Integral = T2_Integral + error2
+		If T2_Integral > 100.0 Then T2_Integral = 100.0
+		If T2_Integral < -100.0 Then T2_Integral = -100.0
+	End If
+	Dim derivative2 As Float = error2 - T2_ErrorPrior
+    
+	' We calculate an offset around the nominal base flow (~10.0 units)
+	Tank2_OutFlow = 10.0 + (T2_Kp * error2) + (T2_Ki * T2_Integral) + (T2_Kd * derivative2)
+	If Tank2_OutFlow > 50.0 Then Tank2_OutFlow = 50.0
+	If Tank2_OutFlow < 0.0 Then Tank2_OutFlow = 0.0
+    
+	' Apply updated mass balance
+	Tank2_Level = Tank2_Level + (Tank2_InFlow - Tank2_OutFlow) * 0.25
+	If Tank2_Level > 100.0 Then Tank2_Level = 100.0
+	If Tank2_Level < 0.0 Then Tank2_Level = 0.0
+	T2_ErrorPrior = error2
+    
+	Tank2_Temp = Tank2_Temp + (0.03 * (Tank2_InFlow - Tank2_OutFlow)) + (Rnd(-2, 3) * 0.01)
+
+	' Safety Alarm Boundary Diagnostics 
+	' Tank 1 Boundaries (High-High > 85%, Low-Low < 15%)
+	T1_Alarm_HH = (Tank1_Level > 85.0)
+	T1_Alarm_LL = (Tank1_Level < 15.0)
+	' Tank 2 Boundaries (High-High > 80%, Low-Low < 20%)
+	T2_Alarm_HH = (Tank2_Level > 80.0)
+	T2_Alarm_LL = (Tank2_Level < 20.0)
+	
+	WriteNodes
+End Sub
+
+' Synchronize Modified Structures with OPC UA Node registers 
+Private Sub WriteNodes
+	OPCUAServer.WriteULong(NODEID_AVAILABLERAM, AvailableRAM)
+
+	OPCUAServer.WriteFloat(NODEID_T1_LEVEL, Tank1_Level)
+	OPCUAServer.WriteFloat(NODEID_T1_INFLOW, Tank1_InFlow)
+	OPCUAServer.WriteFloat(NODEID_T1_OUTFLOW, Tank1_ActualOutFlow)
+	OPCUAServer.WriteFloat(NODEID_T1_TEMP, Tank1_Temp)
+	OPCUAServer.WriteFloat(NODEID_T1_ALARM_HH, Convert.BoolToByte(T1_Alarm_HH))
+	OPCUAServer.WriteFloat(NODEID_T1_ALARM_LL, Convert.BoolToByte(T1_Alarm_LL))
+	OPCUAServer.WriteFloat(NODEID_T2_LEVEL, Tank2_Level)
+	OPCUAServer.WriteFloat(NODEID_T2_INFLOW, Tank2_InFlow)
+	OPCUAServer.WriteFloat(NODEID_T2_OUTFLOW, Tank2_OutFlow)
+	OPCUAServer.WriteFloat(NODEID_T2_TEMP, Tank2_Temp)
+	OPCUAServer.WriteFloat(NODEID_T2_ALARM_HH, Convert.BoolToByte(T2_Alarm_HH))
+	OPCUAServer.WriteFloat(NODEID_T2_ALARM_LL, Convert.BoolToByte(T2_Alarm_LL))
+	
+	' Log("[WriteNodes] ram=", AvailableRAM)
+
+	Log("[SimTimer] Tank1 level=", Tank1_Level, ", input=", Tank1_InFlow, ", output=", Tank1_ActualOutFlow)
+	Log("[SimTimer] Tank2 level=", Tank2_Level, ", input=", Tank2_InFlow, ", output=", Tank2_OutFlow)
+	
+	' Example reading system time.
+	' Log(OPCUAServer.ReadNumeric("ns=0;i=2258"))
+End Sub
+
+'==============================================
+' TRIGGER
+'==============================================
+
+' OnTriggerCall
+' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
+Private Sub OnTriggerCall(buffer() As Byte)
+	Log("[OnTriggerCall] Client ", _
+		",hex=", Convert.ByteConv.HexFromBytes(buffer), _
+		",string=", Convert.ByteConv.StringFromBytes(buffer), _ 
+		",length=", buffer.length)
+
+	ParseByteCommand(buffer)			' B4J PyBridge Client
+	' ParseStringCommand(buffer)		' B4J OPC UA Client
+End Sub
+
+'==============================================
+' DATAWRITE
+'==============================================
+
+' This event automatically fires the exact millisecond your looper catches a write from client
+' [OnDataWrite] nodeid=Tank1.Setpoint, DataType=1, hex=00003442 string=
+Sub OnDataWrite(NodeId As String, RawValue() As Byte)	'ignore
+	Log("[OnDataWrite] nodeid=", NodeId, ", hex=", Convert.BytesToHex(RawValue))
+	Select NodeId
+		Case NODEID_T1_SETPOINT
+			Dim val As Float = Convert.BytesToFloat(RawValue)
+			SetCommand(CMD_T1_SETPOINT, val)
+		Case NODEID_T2_SETPOINT
+			Dim val As Float = Convert.BytesToFloat(RawValue)
+			SetCommand(CMD_T2_SETPOINT, val)
+	End Select
+End Sub
+
+
+'==============================================
+' COMMAND HANDLING
+'==============================================
+
+' ParseByteCommand
+' Parse a Byte Array with 5-Byte Frame: Byte 0=CommandID, Byte1-4=Value Float.
+' This option is prefrred because of byte handling.
+Private Sub ParseByteCommand(buffer() As Byte)	'ignore
+	' Structural Plausibility Check: Expecting exactly 5 bytes (1 Byte ID + 4 Bytes Float Data)
+	If buffer.Length < 5 Then
+		Log("[OnTriggerCall][E] Invalid central trigger packet size received!")
+		Return
+	End If
+    
+	' Extract the unique routing target index
+	Dim CommandID As Byte = buffer(0)
+    
+	' Isolate the value bytes into a dedicated array
+	Dim FloatBytes(4) As Byte
+	Convert.byteconv.ArrayCopy2(buffer, 1, FloatBytes, 0, 4)
+    
+	' Fast binary cast from 4 raw bytes to 1 float primitive (IEEE 754)
+	Dim TargetValue As Float = Convert.BytesToFloat(FloatBytes)
+
+	SetCommand(CommandID, TargetValue)
+End Sub
+
+' ParseStringCommand
+' Parse a string command which is a CSV string with ; delimiter.
+' Example 1;1958 to issue command with ID 1 and value 1958.
+' This option is not preferred because string conversion could lead to memory (stack) issues.
+Private Sub ParseStringCommand(buffer() As Byte)	'ignore
+	Log("[ParseStringCommand] buffer=", Convert.byteconv.StringFromBytes(buffer))
+	Log("[ParseStringCommand] ", Convert.CSVGetItem(buffer, ";", 1), "=", Convert.CSVGetItem(buffer, ";", 2))
+	If Convert.CSVCountItems(buffer, ";") = 2 Then
+		' Need to convert the CSV items to strings first and then use.
+		Dim id As String = Convert.ByteConv.StringFromBytes(Convert.CSVGetItem(buffer, ";", 1))
+		Dim val As String  = Convert.ByteConv.StringFromBytes(Convert.CSVGetItem(buffer, ";", 2))
+		Log("[ParseStringCommand] ", id, val)
+		SetCommand(id, val)
+	End If
+End Sub
+
+Private Sub SetCommand(commandid As Byte, targetvalue As Float)
+	Log("[SetCommand] commandid=", commandid, ", value=", targetvalue)
+	
+	' 4. Route payload parameters directly to internal simulation targets
+	Select commandid
+		Case CMD_T1_SETPOINT:
+			Tank1_Setpoint = targetvalue
+			SetpointChanged_T1 = True
+			' Send a random value back to test client read result		
+			'Dim r As Int = 	Rnd(0, 11)
+			'OPCUAServer.WriteFloat(NODEID_TRIGGER_RESULT, r)
+			' This would be used to flag write result ok
+			' OPCUAServer.WriteFloat(NODEID_TRIGGER_RESULT, OPCUAServer.STATUS_GOOD)
+			'Log("[SetCommand] Tank 1 Setpoint updated to -> ", targetvalue, ", result=", r)
+            
+		Case CMD_T1_KP:
+			T1_Kp = targetvalue
+			TuningChanged = True
+            
+		Case CMD_T1_KI:
+			T1_Ki = targetvalue
+			TuningChanged = True
+            
+		Case CMD_T1_KD:
+			T1_Kd = targetvalue
+			TuningChanged = True
+            
+		Case CMD_T2_SETPOINT:
+			Tank2_Setpoint = targetvalue
+			SetpointChanged_T2 = True
+			Log("[OnTriggerCall] Tank 2 Setpoint updated to -> ", targetvalue)
+            
+		Case CMD_T2_KP:
+			T2_Kp = targetvalue
+			TuningChanged = True
+            
+		Case CMD_T2_KI:
+			T2_Ki = targetvalue
+			TuningChanged = True
+            
+		Case CMD_T2_KD:
+			T2_Kd = targetvalue
+			TuningChanged = True
+            
+		Case Else
+			Log("[SetCommand][W] Unknown command identifier: ", commandid)
+			OPCUAServer.WriteFloat(NODEID_TRIGGER_RESULT, OPCUAServer.STATUS_FAILURE)
+	End Select
+End Sub
+
+#if C
+#include "esp_wifi.h"
+#include "time.h"
+#include "esp_task_wdt.h"
+
+// RunNative("DisableWiFiSleep", Null)
+void DisableWiFiSleep(B4R::Object* o) {
+    // Force Espressif lwIP stack to set Power Save to NONE
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
+}
+
+// RunNative("InitSystemClock", Null)
+void InitSystemClock(B4R::Object* o) {
+    // Configures the system to poll pool.ntp.org with a standard global UTC offset
+    // Adjust the 3600 (seconds) based on your target local timezone offset (e.g. 3600 = UTC+1)
+    configTime(3600, 0, "pool.ntp.org", "time.nist.gov");
+    ::Serial.println("[Hardware Engine] SNTP Client started. Synchronizing baseline...");
+}
+#End If

@@ -1,25 +1,29 @@
 # CHANGELOG
 
-## v0.95 BETA (Build 20261009)
-**Focus: API Final Testing**
+## v0.95 BETA (Build 20261011)
+**Focus: Bi-Directional SCADA Control, Type-Explicit Write API & Multi-Method Architecture Optimization**
+- NEW: [CRITICAL] Introduced a type-explicit internal Write API (`WriteFloat`, `WriteInt`, `WriteUInt`, `WriteBoolean`, `WriteLong`, `WriteULong`) that directly aligns with native B4R types (`Float`, `Int`, `UInt`, `Long`, `ULong`). This bypasses unstable 64-bit floating-point `double` casting, ensuring exact bit-level matching inside open62541 memory registers.
+- NEW: [CRITICAL] Implemented a thread-safe execution barrier flag (`isOnDataWrite`) inside the synchronized mutex scope of all internal write methods. This guarantees that internal server loops (such as sensor updates or tracking `AvailableRAM`) execute silently without triggering recursive user-facing callbacks or watchdog timeouts.
+- NEW: Added the universal `OnDataWrite` background routing callback engine. Real-time network modifications originating from external clients (FUXA, Node-RED, etc.) now instantly fire standard event handler subroutines (`Sub OnDataWrite`) natively in B4R, providing the qualified full network Node ID string prefix (`ns=X;s=...`) alongside a clean 4-byte raw value payload array.
 - NEW: Added `AddTriggerNode` to create a polymorphic node initialized with `UA_VALUERANK_ANY`. This allows a single Node ID to dynamically accept, process, and parse multi-format incoming data payloads (Strings, ByteStrings, Byte Arrays, and Scalar Numbers) seamlessly without runtime configuration failures or casting issues.
-- FIX: Resolved a binary array serialization bug where raw bytes (`Array As Byte`) passed from high-level client wrappers (such as B4J `SS_OPCUAClient`) were failing parsing conditions and turning into empty buffers. Implementations can now pass data securely via an `ISO-8859-1` encoded wrapper or explicit `ByteString` writers.
-- FIX: Callback example with trigger and method nodes & callback.
+- NEW: Refactored `AddMethodNode` to utilize native `methodContext` tracking. Multiple custom method nodes (e.g., separate Tank 1 and Tank 2 control lines) can now be initialized concurrently. Execution routing bypasses rigid global class member fields, firing assigned B4R subroutines instantly and synchronously inside the callback envelope.
+- NEW: Added `AddObjectNode` to allow standardized structural grouping of process variables and method handlers under a single parent object asset profile (BaseObjectType), maximizing compliance with the official OPC UA Information Modeling specification.
+- FIX: Patched an internal memory cross-talk bug inside `AddMethodNode` by transitioning argument parameters from temporary stack/shared configurations to unique, permanent heap allocations via `new UA_ValueCallback`. This guarantees distinct pointer isolation and stable memory persistence when initializing multiple nodes sequentially.
+- FIX: Resolved a binary array serialization bug where raw bytes (`Array As Byte`) passed from high-level client wrappers (such as B4J with PyBridge) were failing parsing conditions and turning into empty buffers. Implementations can now pass data securely via an `ISO-8859-1` encoded wrapper or explicit `ByteString` writers.
+- FIX: Standardized Core 0 background worker task configuration (`Priority 1`) to preserve an ultra-low-overhead networking profile, ensuring maximum processing headroom remains dedicated to real-time B4R control algorithms running on Core 1.
+- FIX: Main execution loop managing real-time tank simulation timers and handling synchronous event callbacks instantly (TankSim 25-Node example optimized with standard `justValue` compressed reading payload arrays).
 
 ### Development Status
 B4R-facing OPC UA server API implements:
-- OPC UA server initialization
-- Anonymous and username/password authentication
-- ESP32 FreeRTOS background server task
-- Dynamic node creation
-- Float, Int, Boolean, String and ByteString nodes
-- Read/write operations
-- Namespace-aware string NodeIds
-- Method nodes with input/output handling
-- B4R callbacks for triggers and methods
-- Shared root folder handling
-- IsReady status
-- Thread protection around open62541 access
+- OPC UA Server Core Configuration: Complete initialization handling with clean IsReady state reporting.
+- Robust Security Profiles: Supports both full Anonymous Access and strict Username/Password authentication.
+- Dual-Core Asymmetric Processing: High-performance ESP32 FreeRTOS background server task architecture (Core 0 networking / Core 1 B4R control logic).
+- Dynamic Node Profiling: On-the-fly allocation of Float, Int, Boolean, String, and Polymorphic Trigger/ByteString nodes under a shared structural root asset folder.
+- Thread-Safe Memory Management: Full Semaphore mutex protection wrapping all low-level open62541 memory map access routines.
+- Qualified Data Space Tracking: Full support for mandatory namespace-aware string NodeIds (ns=X;s=...) across both server mapping and client communication.
+- Bi-Directional SCADA Interception: High-speed generic data-write callbacks (OnDataWrite) that instantly execute B4R subroutines on remote client network updates.
+- Type-Explicit Application Writes: Dedicated hardware-aligned write API (WriteFloat, WriteInt, WriteUInt, etc.) utilizing thread-isolated flag suppression (isOnDataWrite) to allow silent internal sensor/RAM loops.
+- Remote Procedure Calls (RPC): Native Method node creation with multi-context data routing and synchronous input/output payload array response handling.
 
 ## v0.91 (Build 20261007)
 **Focus: API Aligned Simplification & Full Multi-Format Node Support**

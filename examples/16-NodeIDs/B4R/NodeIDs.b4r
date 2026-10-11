@@ -103,8 +103,7 @@ Private Sub InitOPCUAServer As Boolean
 	Dim ServerBootFailed As Boolean = False
 
 	Log("[InitOPCUAServer] Initializing...")
-	' Spin up the Core 0 open62541 network engine with callback
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", Null, Null)
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOpcServer] Awaiting background core network initialization...")
@@ -140,40 +139,6 @@ Private Sub GetServerTime(tag As Byte)
 	Dim nodeid As String = "ns=0;i=2258"
 	Log("[GetSystemNode] ", nodeid, "=", OPCUAServer.ReadNumeric(nodeid))
 	' [GetSystemNode] 2258:2026-09-18 17:13:20
-End Sub
-
-'==============================================
-' EVENT CALLBACKS
-'==============================================
-
-' OnDataWrite
-' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
-' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
-Private Sub OnDataWrite(buffer() As Byte)
-	Log("[OnDataWrite] OPC UA client clicked the trigger method. value=", bc.StringFromBytes(buffer))
-End Sub
-
-' Fired automatically when a client invokes OpcServer.CallMethod()
-' Bound directly to MethodCallSub execution loop
-Private Sub OnMethodCall(InputParams() As Byte)
-	Dim ParamText As String = bc.StringFromBytes(InputParams)
-	Log("[OnMethodCall] OPC UA client invoked the method node with argument:", _
-		" hex=", bc.StringFromBytes(InputParams), _
-		" string=", bc.HexFromBytes(InputParams))
-    
-	' Evaluate your local logic parameters safely
-	If ParamText = "START_BATCH" Then
-		Log("[OnMethodCall] Command ", ParamText, " accepted.")
-        
-		' Invoke via your active OpcServer instance prefix!
-		OPCUAServer.SetMethodReturnCode(100) ' Sends "Success" back to OPC UA client
-	Else
-		Log("[OnMethodCall] Command rejected. Invalid parameter format.")
-        
-		' Invoke via your active OpcServer instance prefix!
-		' Sends "Fault/Error" back to OPC UA client
-		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_FAILURE)
-	End If
 End Sub
 
 '==============================================

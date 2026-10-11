@@ -13,7 +13,7 @@ Version=4
 '==============================================
 ' Project:		rOpen62541
 ' Brief:		Example simulating sensor data and listening to client callback.
-' Date:			2026-10-07
+' Date:			2026-10-10
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	Simulating temperature and humidity sensor data.
@@ -36,7 +36,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 EnvSim v20261007"
+	Private VERSION 			As String = "rOpen62541 EnvSim v20261010"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -51,12 +51,10 @@ Sub Process_Globals
 	Private NODEID_TEMPERATURE	As String = "ns=1;s=Temperature"
 	Private NODEID_HUMIDITY		As String = "ns=1;s=Humidity"
 	Private NODEID_COUNTER		As String = "ns=1;s=Counter"
-	Private NODEID_TRIGGER		As String = "ns=1;s=Trigger"
-	Private NODEID_RAWTELEMETRY	As String = "ns=1;s=RawTelemetry"
 
 	' Timer simulating sensor data
 	Private AppTimer As Timer
-	Private APPTIMER_INTERVAL As ULong = 2000
+	Private APPTIMER_INTERVAL 	As ULong = 5000
 	
 	'Helper
 	Private bc As ByteConverter	'ignore
@@ -79,7 +77,7 @@ Sub AppStart
 		' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
 		' from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
 		RunNative("DisableWiFiSleep", Null)
-		RunNative("InitSystemClock", Null)
+		RunNative("SetSystemClock", Null)
 		
 		Log("[AppStart] Init OPC UA server")
 		If InitOPCUAServer Then
@@ -102,11 +100,8 @@ Private Sub InitOPCUAServer As Boolean
 	Dim ServerBootFailed As Boolean = False
 
 	Log("[InitOPCUAServer] Initializing...")
-	' Spin up the Core 0 open62541 network engine with callback
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
-
-	' Sets the maximum timeout ceiling to 120 seconds (120000ms)
-	' OPCUAServer.SetSessionTimeout(120000.0)
+	' Init the OPC UA server witj no callbacks (set to null)
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", Null, Null)
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOPCUAServer] Awaiting background core network initialization...")
@@ -121,23 +116,14 @@ Private Sub InitOPCUAServer As Boolean
 	Loop
     
 	If ServerBootFailed Then
-		Log("[InitOPCUAServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
+		Log("[InitOPCUAServer][E] Failed with TIMEOUT! Core 0 failed.")
 		' Optional: Run local emergency fallback routine or let local sensors run offline
 	Else
-		Log("[InitOPCUAServer] Core 0 online! Spawning dynamic address space nodes...")
+		Log("[InitOPCUAServer] OK. Adding nodes...")
 		' Add nodes holding data
 		OPCUAServer.AddFloatNode(NODEID_TEMPERATURE, "Room Temperature", 20.0)
 		OPCUAServer.AddFloatNode(NODEID_HUMIDITY, "Room Humidity", 68.0)
 		OPCUAServer.AddIntNode(NODEID_COUNTER, "Total Shift Cycle Count", 0)
-
-		' Allocate a local test array buffer: 0x19, 0x02, 0x03, 0x04, 0x58
-		Dim RawBuffer() As Byte = Array As Byte(0x19, 0x02, 0x03, 0x04, 0x58)
-    
-		' Create the standardized ByteString variable node
-		OPCUAServer.AddByteStringNode(NODEID_RAWTELEMETRY, "Atomic Hex Package", RawBuffer)
-    
-		' Add trigger received from the client and call OpcCallback
-		OPCUAServer.AddStringNode(NODEID_TRIGGER, "Remote Action Trigger", "0")
 	End If
 	Return Not(ServerBootFailed)
 End Sub
@@ -145,43 +131,21 @@ End Sub
 Sub AppTimer_Tick
     ' Only write data if the background server task on Core 0 is fully ready
     If OPCUAServer.IsReady Then
-        
-        ' Read real sensor here: 
-		' Dim CurrentTemp As Float = BMP.ReadTemperature
+		' Update sensor data        
 		Dim CurrentTemp As Float = 24.5 + Rnd(-2.0, 3.0)
 		Dim CurrentHum As Float = 68 + Rnd(-10.0, 11.0)
         
-        ' PUSH DATA INTO THE NODE CONTAINER
-        ' This updates the internal open62541 memory using the C++ Mutex protection
-		' How the client accesses this data inside C++ code, register the temperature variable using this specific string name: 
-		' "Temperature".
-		' Because of this, open62541 assigns it a standardized identifier (Node ID) inside Namespace 1: 
-		' ns=1;s=Temperature (Namespace 1, String identifier).
-
-		' The client simply asks the server for that exact identifier.
-		OPCUAServer.WriteNumeric(NODEID_TEMPERATURE, CurrentTemp)
-
-		' Humidity following same as Temperature
-		OPCUAServer.WriteNumeric(NODEID_HUMIDITY, CurrentHum)
+        ' Write new sensor data
+		OPCUAServer.WriteFloat(NODEID_TEMPERATURE, CurrentTemp)
+		OPCUAServer.WriteFloat(NODEID_HUMIDITY, CurrentHum)
 		
         ' Log update
-		' Log("[AppTimer] Sensor read complete. Updated Node memory with: t=", CurrentTemp, " h=", CurrentHum)
+		Log("[AppTimer] Sensor read complete > t=", CurrentTemp, " h=", CurrentHum)
 		
 		' IMPORTANT YIELD: Give the cooperative B4R scheduler and
 		' the background lwIP core sockets time to process network stacks!
-		Delay(50)
-    End If
-End Sub
-
-' OnDataWrite
-' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
-' OPC UA Client Examples:
-' B4J sends value 68 (Int): OpcClient.Write("ns=1;s=Trigger", 68)
-' Node-Red sends value START (String): {"payload":"START","topic":"ns=1;s=Trigger","datatype":"String","browseName":"Trigger Node"}
-Private Sub OnDataWrite(buffer() As Byte)
-	Log("[OnDataWrite] Client invoked the trigger method. value=", bc.StringFromBytes(buffer))
-	'[OnDataWrite] Client invoked the trigger method. value=68
-	'[OnDataWrite] Client invoked the trigger method. value=START
+		' Delay(50)
+	End If
 End Sub
 
 #if C
@@ -195,11 +159,11 @@ void DisableWiFiSleep(B4R::Object* o) {
     ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
 }
 
-// RunNative("InitSystemClock", Null)
-void InitSystemClock(B4R::Object* o) {
+// RunNative("SetSystemClock", Null)
+void SetSystemClock(B4R::Object* o) {
     // Configures the system to poll pool.ntp.org with a standard global UTC offset
     // Adjust the 3600 (seconds) based on your target local timezone offset (e.g. 3600 = UTC+1)
     configTime(3600, 0, "pool.ntp.org", "time.nist.gov");
-    ::Serial.println("[Hardware Engine] SNTP Client started. Synchronizing baseline...");
+    ::Serial.println("[SetSystemClock] SNTP Client started. Synchronizing baseline...");
 }
 #End If

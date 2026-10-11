@@ -46,9 +46,11 @@ Sub Class_Globals
 	' NodeIDs
 	Private NODEID_TRIGGER			As String = "ns=1;s=Trigger"
 	Private NODEID_TRIGGER_RESULT	As String = "ns=1;s=TriggerResult"
-
+	Private NODEID_TANK_SETPOINT	As String = "ns=1;s=Tank.Setpoint"	' Client writes to node direct
+	
 	' Trigger Commands
 	Private TRIGGER_COMMAND 		As String = "START"					' Trigger command which then handled by the OPC UA server
+	Private TileWrite As HMITilesIO
 End Sub
 
 Public Sub Initialize
@@ -244,10 +246,24 @@ Private Sub TileIOTrigger_Click(State As Boolean, Value As String)
 		Log("[TileIOTrigger_Click][E] Action Aborted: Connect to the OPC UA Server first!")
 		Return
 	End If
-	Log($"[TileIOTrigger_Click] sendinf command=${TRIGGER_COMMAND} "$)
+	Log($"[TileIOTrigger_Click] sendind command=${TRIGGER_COMMAND} "$)
 	Opc.SendOpcTrigger(NODEID_TRIGGER, TRIGGER_COMMAND)
-	TileIOTrigger.State = True
 End Sub
+
+' B4R Log:
+' [OnDataWrite] Opc UA Client write To nodeid=ns=1;s=Tank.Setpoint, Value=28000000
+' [OnDataWrite] New Tank Setpoint=40
+Private Sub TileWrite_Click(State As Boolean, Value As String)
+	If Not(Opc.Connected) Then
+		Log("[TileWrite_Click][E] Action Aborted: Connect to the OPC UA Server first!")
+		Return
+	End If
+	Dim v As Int = Rnd(0, 101)
+	Log($"[TileWrite_Click] value=${v} "$)
+	Opc.WriteInt(NODEID_TANK_SETPOINT, v)
+	TileWrite.Footer = v
+End Sub
+
 #End Region
 
 '==============================================================

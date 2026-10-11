@@ -112,19 +112,6 @@ namespace B4R {
                 B4R::StackMemory::cp = cp;
             }
         }
-
-        // CASE 2: Native Executable Method Call (scadaMethodCalled)
-        if (scadaMethodCalled) {
-            scadaMethodCalled = false;
-            if (me->MethodCallSub != NULL) {
-                const UInt cp = B4R::StackMemory::cp;
-                ArrayByte* arr = CreateStackMemoryObject(ArrayByte);
-                arr->data = (Byte*)globalMethodInputBuffer;
-                arr->length = globalMethodInputLength;
-                me->MethodCallSub(arr); 
-                B4R::StackMemory::cp = cp;
-            }
-        }
     }
 
     // ============================================================================
@@ -175,12 +162,28 @@ namespace B4R {
             globalIsReady = false;
         }
 
-        // Infinite background processing loop (100% Original stable baseline)
+        // Infinite background processing loop (Optimized for high network load)
         while(true) {
-            if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
+            // Change portMAX_DELAY to a short 5ms timeout.
+            // If the B4R thread is hogging the mutex, the server loop will skip 
+            // waiting, execute the vTaskDelay below, and prevent the Watchdog crash!
+            if (xSemaphoreTake(open62541Mutex, pdMS_TO_TICKS(5)) == pdTRUE) {
+                
+                // Run the network engine iteration tick
                 UA_Server_run_iterate(server, true);
+                
                 xSemaphoreGive(open62541Mutex); 
+                
+                // Give an explicit micro-yield right after releasing the lock.
+                // This guarantees the OS IDLE0 task gets a slice of execution time 
+                // even when open62541 network buffers are flooded with data requests.
+                vTaskDelay(pdMS_TO_TICKS(1)); 
+            } else {
+                // If we couldn't get the lock, relax the CPU briefly before trying again
+                vTaskDelay(pdMS_TO_TICKS(2));
             }
+            
+            // Keeps your stable baseline loop delay intact
             vTaskDelay(pdMS_TO_TICKS(10)); 
         }
     }
@@ -253,121 +256,104 @@ namespace B4R {
     // Flexible Dynamic Node Management (Public Methods API)
     // ============================================================================
 
-	void B4ROPEN62541::AddMethodNode(
-		B4RString* MethodName,
-		B4RString* DisplayName,
-		SubVoidArray MethodCallSub) {
+void B4ROPEN62541::AddMethodNode(B4RString* MethodName, B4RString* DisplayName, SubVoidArray MethodCallSub) {
+    if (server == NULL) return;
+    if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
 
-		if (server == NULL) return;
+        UA_Argument inputArgument;
+        UA_Argument_init(&inputArgument);
+        inputArgument.dataType = UA_TYPES[UA_TYPES_BYTESTRING].typeId;
+        inputArgument.valueRank = UA_VALUERANK_SCALAR;
 
-		this->MethodCallSub = MethodCallSub;
+        UA_Argument outputArgument;
+        UA_Argument_init(&outputArgument);
+        outputArgument.dataType = UA_TYPES[UA_TYPES_INT32].typeId;
+        outputArgument.valueRank = UA_VALUERANK_SCALAR;
 
-		if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
+        UA_MethodAttributes mAttr = UA_MethodAttributes_default;
+        mAttr.displayName = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
+        mAttr.executable = true;
+        mAttr.userExecutable = true;
 
-			UA_Argument inputArgument;
-			UA_Argument_init(&inputArgument);
-			inputArgument.description = UA_LOCALIZEDTEXT("en-US", "Command Payload Code");
-			inputArgument.name = UA_STRING("InputData");
-			inputArgument.dataType = UA_TYPES[UA_TYPES_BYTESTRING].typeId;
-			inputArgument.valueRank = UA_VALUERANK_SCALAR;
+        UA_Server_addMethodNode(
+            server,
+            CreateNodeId(MethodName),
+            folderNodeId,
+            UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+            UA_QUALIFIEDNAME(1, (char*)GetStringIdentifier(MethodName)),
+            mAttr,
+            &B4ROPEN62541::opcuaMethodBridge,
+            1, &inputArgument,
+            1, &outputArgument,
+            (void*)MethodCallSub, // <-- FIX: Assign the B4R callback pointer straight to the node's context
+            NULL);
 
-			UA_Argument outputArgument;
-			UA_Argument_init(&outputArgument);
-			outputArgument.description = UA_LOCALIZEDTEXT("en-US", "Execution Return Code");
-			outputArgument.name = UA_STRING("ReturnStatus");
-			outputArgument.dataType = UA_TYPES[UA_TYPES_INT32].typeId;
-			outputArgument.valueRank = UA_VALUERANK_SCALAR;
+        xSemaphoreGive(open62541Mutex);
+    }
+}
 
-			UA_MethodAttributes mAttr = UA_MethodAttributes_default;
-			mAttr.displayName = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
-			mAttr.executable = true;
-			mAttr.userExecutable = true;
+UA_StatusCode B4ROPEN62541::opcuaMethodBridge(UA_Server *server,
+    const UA_NodeId *sessionId, void *sessionContext,
+    const UA_NodeId *methodId, void *methodContext,
+    const UA_NodeId *objectId, void *objectContext,
+    size_t inputSize, const UA_Variant *input,
+    size_t outputSize, UA_Variant *output) {
+    
+    if (inputSize > 0 && input != NULL) {
+        const UA_Variant *firstArg = input; 
+        if (firstArg->type != NULL && firstArg->data != NULL) {
+            size_t rawLength = 0;
+            const uint8_t* rawData = NULL;
 
-			UA_NodeId methodNodeId = CreateNodeId(MethodName);
-			const char* methodIdentifier = GetStringIdentifier(MethodName);
+            if (firstArg->type == &UA_TYPES[UA_TYPES_STRING]) {
+                UA_String *uaStr = (UA_String*)firstArg->data;
+                rawLength = uaStr->length;
+                rawData = (const uint8_t*)uaStr->data;
+            }
+            else if (firstArg->type == &UA_TYPES[UA_TYPES_BYTESTRING]) {
+                UA_ByteString *uaBytes = (UA_ByteString*)firstArg->data;
+                rawLength = uaBytes->length;
+                rawData = (const uint8_t*)uaBytes->data;
+            }
 
-			UA_Server_addMethodNode(
-				server,
-				methodNodeId,
-				folderNodeId,
-				UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
-				UA_QUALIFIEDNAME(1, (char*)methodIdentifier),
-				mAttr,
-				&B4ROPEN62541::opcuaMethodBridge,
-				1, &inputArgument,
-				1, &outputArgument,
-				NULL, NULL);
-
-			xSemaphoreGive(open62541Mutex);
-		}
-	}
-
-    UA_StatusCode B4ROPEN62541::opcuaMethodBridge(UA_Server *server,
-        const UA_NodeId *sessionId, void *sessionContext,
-        const UA_NodeId *methodId, void *methodContext,
-        const UA_NodeId *objectId, void *objectContext,
-        size_t inputSize, const UA_Variant *input,
-        size_t outputSize, UA_Variant *output) {
-        
-        // Verify that the client passed the required argument
-        if (inputSize > 0 && input != NULL) {
-            
-            // Access the first element of the array directly.
-            const UA_Variant *firstArg = input; 
-            
-            // Validate the type and data pointers directly
-            if (firstArg->type != NULL && firstArg->data != NULL) {
-                size_t rawLength = 0;
-                const uint8_t* rawData = NULL;
-
-                // Case A: Parameter arrived formatted as a standard String
-                if (firstArg->type == &UA_TYPES[UA_TYPES_STRING]) {
-                    UA_String *uaStr = (UA_String*)firstArg->data;
-                    rawLength = uaStr->length;
-                    rawData = (const uint8_t*)uaStr->data;
+            if (rawData != NULL && rawLength > 0) {
+                memset(globalMethodInputBuffer, 0, sizeof(globalMethodInputBuffer));
+                size_t maxAllowed = sizeof(globalMethodInputBuffer) - 1;
+                globalMethodInputLength = (rawLength < maxAllowed) ? rawLength : maxAllowed;
+                
+                memcpy(globalMethodInputBuffer, rawData, globalMethodInputLength);
+                globalMethodInputBuffer[globalMethodInputLength] = '\0';
+                
+                globalMethodOutputResult = 0; 
+                
+                // --- FIX: Extract the specific Sub routine callback reference pointer bound to this node context ---
+                SubVoidArray targetB4RSub = (SubVoidArray)methodContext;
+                
+                if (targetB4RSub != NULL) {
+                    const UInt cp = B4R::StackMemory::cp;
+                    ArrayByte* arr = CreateStackMemoryObject(ArrayByte);
+                    arr->data = (Byte*)globalMethodInputBuffer;
+                    arr->length = globalMethodInputLength;
+                    
+                    // Fire the unique mapped B4R subroutine immediately inside the bridge thread context
+                    targetB4RSub(arr); 
+                    B4R::StackMemory::cp = cp;
                 }
-                // Case B: Parameter arrived formatted as a raw ByteString array
-                else if (firstArg->type == &UA_TYPES[UA_TYPES_BYTESTRING]) {
-                    UA_ByteString *uaBytes = (UA_ByteString*)firstArg->data;
-                    rawLength = uaBytes->length;
-                    rawData = (const uint8_t*)uaBytes->data;
-                }
-
-                // Copy extracted raw bytes into the global concrete array buffer (64 bytes)
-                if (rawData != NULL && rawLength > 0) {
-                    memset(globalMethodInputBuffer, 0, sizeof(globalMethodInputBuffer));
-                    
-                    size_t maxAllowed = sizeof(globalMethodInputBuffer) - 1;
-                    globalMethodInputLength = (rawLength < maxAllowed) ? rawLength : maxAllowed;
-                    
-                    memcpy(globalMethodInputBuffer, rawData, globalMethodInputLength);
-                    globalMethodInputBuffer[globalMethodInputLength] = '\0'; // Hard string seal
-                    
-                    // Reset return token buffer and alert Core 1 looper worker thread
-                    globalMethodOutputResult = 0; 
-                    scadaMethodCalled = true; 
-                    
-                    // Give Core 1 a clean 50ms processing slice to execute B4R code
-                    vTaskDelay(pdMS_TO_TICKS(50));
-                    
-                    // Package the final B4R SetMethodReturnCode token back into the output variant array
-                    if (outputSize > 0 && output != NULL) {
-                        UA_Int32 *returnValue = (UA_Int32*)UA_malloc(sizeof(UA_Int32));
-                        if (returnValue != NULL) {
-                            *returnValue = globalMethodOutputResult;
-                            // Pass the pointer directly without '&' to avoid nesting
-                            UA_Variant_setScalarCopy(output, returnValue, &UA_TYPES[UA_TYPES_INT32]);
-                            UA_free(returnValue);
-                        }
+                
+                if (outputSize > 0 && output != NULL) {
+                    UA_Int32 *returnValue = (UA_Int32*)UA_malloc(sizeof(UA_Int32));
+                    if (returnValue != NULL) {
+                        *returnValue = globalMethodOutputResult;
+                        UA_Variant_setScalarCopy(output, returnValue, &UA_TYPES[UA_TYPES_INT32]);
+                        UA_free(returnValue);
                     }
-                    
-                    return UA_STATUSCODE_GOOD; // Signal full success to open62541 engine
                 }
+                return UA_STATUSCODE_GOOD;
             }
         }
-        
-        return UA_STATUSCODE_BADINVALIDARGUMENT;
     }
+    return UA_STATUSCODE_BADINVALIDARGUMENT;
+}
 
 	void B4ROPEN62541::SetMethodReturnCode(ULong code) {
         globalMethodOutputResult = code;

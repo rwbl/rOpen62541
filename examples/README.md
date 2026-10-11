@@ -25,6 +25,9 @@ The following examples are structured into dedicated sub-folders:
 - [**20-DHT22**](20-DHT22/) — Read live telemetry sensor data from a DHT22 sensor. 
 	- Example 1 B4J with `PyBridge` framework and Python package `asyncua` and additional library `HMITilesIO` (Dashboard).
 	- Example 2 `Home Assistant`with `Node-RED` and `node-red-contrib-opcua` nodes.
+- [**24-TankSim**](24-TankSim/) — Simulate 2 tanks levels.
+	- Example 1 `Node-RED` and `node-red-contrib-opcua` nodes.
+	- Example 2 `Fuxa`
 
 ---
 
@@ -39,4 +42,4 @@ The following examples are structured into dedicated sub-folders:
 - [Node.js node-opcua stack](https://node-opcua.github.io) 2.174.0
 - [Arduino IDE](https://docs.arduino.cc/software/ide/) 2.3.10
 	- [Arduino core for the ESP32 family of SoCs](https://github.com/espressif/arduino-esp32) 3.3.12
-
+- [Fuxa](https://github.com/frangoteam/fuxa) 1.3.4

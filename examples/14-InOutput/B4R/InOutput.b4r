@@ -127,7 +127,7 @@ Private Sub InitOPCUAServer As Boolean
 
 	Log("[InitOPCUAServer] Initializing...")
 	' Spin up the Core 0 open62541 network engine with callback
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnTriggerCall", Null)
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOPCUAServer] Awaiting background core network initialization...")
@@ -168,12 +168,12 @@ End Sub
 ' EVENTS
 '==============================================
 
-' OnDataWrite
+' OnTriggerCall
 ' This event is fired when client triggers the method over the network using namespace 1 and string identifier Trigger
 ' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
-Private Sub OnDataWrite(buffer() As Byte)
+Private Sub OnTriggerCall(buffer() As Byte)
 	Dim cmd As String = ByteConv.StringFromBytes(buffer)
-	Log("[OnDataWrite] Client trigger method cmd=", cmd, " length=", buffer.length)
+	Log("[OnTriggerCall] Client trigger method cmd=", cmd, " length=", buffer.length)
 	Select cmd
 		Case "ledon"
 			LedRedPin.DigitalWrite(True)
@@ -224,7 +224,7 @@ Sub Button_StateChanged (State As Boolean)
 		LedRedPin.DigitalWrite(LedRedState)
 		
 		' Update the opc ua node
-		OPCUAServer.WriteNumeric(NODEID_LED_STATE, IIf(LedRedState, 1, 0))
+		OPCUAServer.WriteInt(NODEID_LED_STATE, IIf(LedRedState, 1, 0))
 	End If
 End Sub
 #End Region

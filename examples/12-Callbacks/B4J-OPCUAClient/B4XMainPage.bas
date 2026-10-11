@@ -45,6 +45,7 @@ Sub Class_Globals
 	Private TileConnect As HMITilesIO
 	Private TileConnected As HMITilesIO
 	Private TileTrigger As HMITilesIO
+	Private TileWrite As HMITilesIO
 	Private TileBrowse As HMITilesIO
 
 	' OPC UA Server
@@ -59,6 +60,7 @@ Sub Class_Globals
 	' All nodes are added to the default folder Factory_Floor (NodeId=ns=1;s=Factory_Floor)
 	Private NODEID_TRIGGER			As String = "ns=1;s=Trigger"
 	Private NODEID_TRIGGER_RESULT	As String = "ns=1;s=TriggerResult"
+	Private NODEID_TANK_SETPOINT	As String = "ns=1;s=Tank.Setpoint"	' Client writes to node direct
 	
 	' Helper
 	Private ByteConv As ByteConverter	'ignore
@@ -290,10 +292,20 @@ Private Sub TileTrigger_Click(State As Boolean, Value As String)
 '	ByteConv.ArrayCopy(floats, 0, buffer, 1, 4)
 End Sub
 
-' TileBrowse_Click
-Private Sub TileBrowse_Click(State As Boolean, Value As String)
-	OPCUAClient.BrowseFull("ns=1;s=Factory_Floor")
+' TileWrite_Click
+' Write a new value direct to a node.
+' Call in B4R event OnDataWrite.
+' B4R Log:
+' [OnDataWrite] OPC UA Client write to nodeid=ns=1;s=Tank.Setpoint, value=1A000000
+' [OnDataWrite] New Tank Setpoint=26
+Private Sub TileWrite_Click(State As Boolean, Value As String)
+	Dim v As Int = Rnd(0, 101)
+	OPCUAClient.Write(NODEID_TANK_SETPOINT, v)	
+	TileWrite.Footer = v
+End Sub
 
+ 'TileBrowse_Click
+Private Sub TileBrowse_Click(State As Boolean, Value As String)
 	BrowseNodes
 	Sleep(50)
 	ReadNodes
@@ -346,3 +358,4 @@ Public Sub ByteStringToBytes(value As Object) As Byte()
 		Return Null
 	End If
 End Sub
+

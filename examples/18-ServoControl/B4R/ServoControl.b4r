@@ -146,7 +146,7 @@ Private Sub InitOPCUAServer As Boolean
 
 	' Init OPC UA server with data write event (received from the connected client with nodeid ns=1;s=trigger)
 	' Ensure to set: OPCUAServer.AddStringNode("Trigger", "Remote Action Trigger", "0")
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnDataWrite")
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnTriggerCall", Null)
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOPCUAServer] Awaiting background core network initialization...")
@@ -185,13 +185,13 @@ Private Sub InitOPCUAServer As Boolean
 	Return Not(ServerBootFailed)
 End Sub
 
-' OnDataWrite
+' OnTriggerCall
 ' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger or trigger.
 ' Example B4J where the client sends value string gateopen: 
 ' OPCUAClient.Write("ns=1;s=trigger", "gateopen")
-Private Sub OnDataWrite(buffer() As Byte)
+Private Sub OnTriggerCall(buffer() As Byte)
 	Dim cmd As String = ByteConv.StringFromBytes(buffer)
-	Log("[OnDataWrite] Received from client method `trigger` with cmd=", cmd)
+	Log("[OnTriggerCall] Received from client method `trigger` with cmd=", cmd)
 
 	Select cmd
 		Case CMD_GATE_OPEN
@@ -209,7 +209,7 @@ Private Sub SetServoOpen
 	LedRedPin.DigitalWrite(LedRedState)
 	LedGreenState = True
 	LedGreenPin.DigitalWrite(LedGreenState)
-	OPCUAServer.WriteNumeric(NODEID_STATE, STATE_GATE_OPEN)
+	OPCUAServer.WriteInt(NODEID_STATE, STATE_GATE_OPEN)
 	' OPCUAServer.WriteByteString(NODEID_STATE, Array As Byte(0x19, 0x01, 0x58))
 	'
 	SetServo(Servo, SERVO_PIN_NR, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MIN_ANGLE)
@@ -220,7 +220,7 @@ Private Sub SetServoClosed
 	LedRedPin.DigitalWrite(LedRedState)
 	LedGreenState = False
 	LedGreenPin.DigitalWrite(LedGreenState)
-	OPCUAServer.WriteNumeric(NODEID_STATE, STATE_GATE_CLOSED)
+	OPCUAServer.WriteInt(NODEID_STATE, STATE_GATE_CLOSED)
 	' OPCUAServer.WriteByteString(NODEID_STATE, Array As Byte(0x19, 0x00, 0x58))
 	'
 	SetServo(Servo, SERVO_PIN_NR, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, SERVO_MAX_ANGLE)

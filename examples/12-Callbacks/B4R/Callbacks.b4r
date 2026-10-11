@@ -1,11 +1,12 @@
 ﻿Build1=Default,B4RDev
 Group=Default Group
 Library1=rcore
-Library2=ropen62541
-Library3=rrandomaccessfile
-Library4=resp8266wifi
+Library2=resp8266wifi
+Library3=ropen62541
+Library4=rrandomaccessfile
+Library5=rconvert
 NumberOfFiles=0
-NumberOfLibraries=4
+NumberOfLibraries=5
 NumberOfModules=0
 Version=4
 @EndOfDesignText@
@@ -13,7 +14,7 @@ Version=4
 '==============================================
 ' Project:		rOpen62541
 ' Brief:		Example trigger and method callbacks.
-' Date:			2026-10-09
+' Date:			2026-10-11
 ' Author: 		Robert W.B. Linn (c) 2026 - MIT — see LICENSE file.
 ' Description:	Listen to commands received from the connected OPC UA client.
 '				There are two events:
@@ -38,7 +39,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 				As String = "rOpen62541 Trigger&Method Callback v20261009"
+	Private VERSION 				As String = "rOpen62541 Callbacks v20261011"
 
 	' Communication
 	Public Serial1 					As Serial
@@ -51,7 +52,9 @@ Sub Process_Globals
 	Private PORT 					As Int = 4840
 	Private NODEID_TRIGGER			As String = "ns=1;s=Trigger"		' Client sends string Trigger
 	Private NODEID_TRIGGER_RESULT	As String = "ns=1;s=TriggerResult"	' Store the trigger result which the client can subscribe to
-	Private NODEID_METHODCALL		As String = "ns=1;s=ExecuteJob"		' Client sends callmethod
+	Private NODEID_METHODCALL_A		As String = "ns=1;s=ExecuteJobA"	' Client sends callmethod
+	Private NODEID_METHODCALL_B		As String = "ns=1;s=ExecuteJobB"	' Client sends callmethod
+	Private NODEID_TANK_SETPOINT	As String = "ns=1;s=Tank.Setpoint"	' Client writes to node direct
 	
 	'Helper
 	Private bc As ByteConverter	'ignore
@@ -70,6 +73,7 @@ Sub AppStart
 		' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
 		' from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
 		RunNative("DisableWiFiSleep", Null)
+		RunNative("SetSystemClock", Null)
 			       
 		Log("[AppStart] Init OPCUAServer server")
 		If InitOPCUAServer Then
@@ -92,7 +96,11 @@ Private Sub InitOPCUAServer As Boolean
 	Log("[InitOPCUAServerServer] Initializing...")
 
 	' Spin up the Core 0 open62541 network engine with callback
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnTriggerCall")
+	OPCUAServer.Initialize( _
+		WiFi.LocalIp, PORT, _
+		"", "", _ 
+		"OnTriggerCall", _		' Invoked when the clients sends to nodeid ns=1;s=Trigger
+		"OnDataWrite")			' Invoked when a client write directo to a node like ns=1;s=Tank1.Setpoint
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOpcServer] Awaiting background core network initialization...")
@@ -113,22 +121,28 @@ Private Sub InitOPCUAServer As Boolean
 		Log("[InitOPCUAServer][E] Initialization TIMEOUT! Core 0 failed.")
 		' Optional: Run local emergency fallback routine or let local sensors run offline
 	Else
-		Log("[InitOPCUAServer] Core 0 online! Spawning dynamic address space nodes...")
+		Log("[InitOPCUAServer] OK. Adding nodes...")
 
+		' Float node for OnDataWrite event
+		OPCUAServer.AddIntNode(NODEID_TANK_SETPOINT, "Tank Setpoint", 0)
+
+		' Trigger event
 		' Add trigger received from the client and call event OnMethodCall
 		' The clients sends the commands to set the state of the gate to open or closed.
 		OPCUAServer.AddTriggerNode(NODEID_TRIGGER, "Remote Trigger", "0")	
 		' > Event OnTriggerCall
 		' Node-RED example:
 		' Send string START or buffer [1,2,3]
-
 		OPCUAServer.AddIntNode(NODEID_TRIGGER_RESULT, "Remote Trigger Result", 0)
 
+		' MethodCall event
 		' Register the native executable method node!
-		OPCUAServer.AddMethodNode(NODEID_METHODCALL, "Remote Method Call", "OnMethodCall")	
+		OPCUAServer.AddMethodNode(NODEID_METHODCALL_A, "Remote Method Call A", "OnMethodCallA")
 		' > Event OnMethodCall
 		' Node-RED Example:
 		' objectId = "ns=1;s=Factory_Floor"; methodId = "ns=1;s=ExecuteJob"; msg.inputArguments = [{dataType: "ByteString",value: "START_BATCH"}];
+		
+		OPCUAServer.AddMethodNode(NODEID_METHODCALL_B, "Remote Method Call B", "OnMethodCallB")
 
 	End If
 	Return Not(ServerBootFailed)
@@ -137,6 +151,20 @@ End Sub
 '==============================================
 ' EVENTS
 '==============================================
+
+' OnDataWrite
+' Runs when client writes to a node direct.
+' In OPC UA, when a client changes a variable node, it is executing a Write service. This callback intercepts that write event.
+Private Sub OnDataWrite(nodeid As String, rawvalue() As Byte)
+	Log("[OnDataWrite] OPC UA Client write to nodeid=", nodeid, ", value=", bc.HexFromBytes(rawvalue))
+	' Received string:
+	'[OnDataWrite] OPC UA Client write To nodeid=ns=1;s=Tank.Setpoint, value=23000000
+	Select nodeid
+		Case NODEID_TANK_SETPOINT
+			Dim sp As Int = Convert.BytesToInt(rawvalue)
+			Log("[OnDataWrite] New Tank Setpoint=", sp)			
+	End Select
+End Sub
 
 ' OnTriggerCall
 ' Runs when client triggers the method over the network using namespace 1 and string identifier Trigger
@@ -147,27 +175,46 @@ Private Sub OnTriggerCall(buffer() As Byte)
 	' [OnDataWrite] OPC UA Client invoked trigger with argument=START, hex=5354415254
 	' Received byte array 0x01,0x02,0x03:
 	' [OnDataWrite] OPC UA Client invoked trigger with argument=, hex=010203
-	OPCUAServer.WriteNumeric(NODEID_TRIGGER_RESULT, Rnd(0, 11))
-	'OPCUAServer.WriteNumeric(NODEID_TRIGGER_RESULT, OPCUAServer.STATUS_GOOD)
+	OPCUAServer.WriteInt(NODEID_TRIGGER_RESULT, Rnd(0, 11))
+	'OPCUAServer.WriteInt(NODEID_TRIGGER_RESULT, OPCUAServer.STATUS_GOOD)
 End Sub
 
-' OnMethodCall
+' OnMethodCallA
 ' Fired automatically when a client invokes OpcServer.CallMethod()
 ' In OPC UA, executing a method node uses the standard Call service. This callback handles that explicit method call request.
 ' Bound directly to MethodCallSub execution loop.
-Private Sub OnMethodCall(InputParams() As Byte)
+Private Sub OnMethodCallA(InputParams() As Byte)
 	Dim ParamText As String = bc.StringFromBytes(InputParams)
-	Log("[OnMethodCall] OPC UA Client invoked method with argument=", bc.StringFromBytes(InputParams), ", hex=", bc.HexFromBytes(InputParams))
-	' [OnMethodCall] OPC UA Client invoked method with argument=START_BATCH
+	Log("[OnMethodCallA] OPC UA Client invoked method with argument=", bc.StringFromBytes(InputParams), ", hex=", bc.HexFromBytes(InputParams))
+	' [OnMethodCallA] OPC UA Client invoked method with argument=START_BATCH
 	
 	' Example evaluate action
 	If ParamText = "START_BATCH" Then
-		Log("[OnMethodCall] Command accepted. Running production batch code...")
+		Log("[OnMethodCallA] Command accepted. Running production batch code...")
         
 		' Sends "Success" back to OPC UA client
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
 	Else
-		Log("[OnMethodCall] Command rejected. Invalid parameter format.")
+		Log("[OnMethodCallA] Command rejected. Invalid parameter format.")
+        
+		' Sends "Fault/Error" back to OPC UA client
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_FAILURE)
+	End If
+End Sub
+
+Private Sub OnMethodCallB(InputParams() As Byte)
+	Dim ParamText As String = bc.StringFromBytes(InputParams)
+	Log("[OnMethodCallB] OPC UA Client invoked method with argument=", bc.StringFromBytes(InputParams), ", hex=", bc.HexFromBytes(InputParams))
+	' [OnMethodCallB] OPC UA Client invoked method with argument=START_BATCH
+	
+	' Example evaluate action
+	If ParamText = "START_BATCH" Then
+		Log("[OnMethodCallB] Command accepted. Running production batch code...")
+        
+		' Sends "Success" back to OPC UA client
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
+	Else
+		Log("[OnMethodCallB] Command rejected. Invalid parameter format.")
         
 		' Sends "Fault/Error" back to OPC UA client
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_FAILURE)
@@ -181,9 +228,19 @@ End Sub
 #if C
 #include "esp_wifi.h"
 
+// RunNative("DisableWiFiSleep", Null)
 void DisableWiFiSleep(B4R::Object* o) {
     // Force Espressif lwIP stack to set Power Save to NONE
     esp_wifi_set_ps(WIFI_PS_NONE);
     ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
+}
+
+
+// RunNative("SetSystemClock", Null)
+void SetSystemClock(B4R::Object* o) {
+    // Configures the system to poll pool.ntp.org with a standard global UTC offset
+    // Adjust the 3600 (seconds) based on your target local timezone offset (e.g. 3600 = UTC+1)
+    configTime(3600, 0, "pool.ntp.org", "time.nist.gov");
+    ::Serial.println("[SetSystemClock] SNTP Client started. Synchronizing baseline...");
 }
 #End If
