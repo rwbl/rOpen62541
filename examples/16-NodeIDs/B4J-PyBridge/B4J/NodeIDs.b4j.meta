@@ -1,0 +1,12 @@
+﻿ModuleBookmarks0=
+ModuleBookmarks1=
+ModuleBookmarks2=
+ModuleBreakpoints0=
+ModuleBreakpoints1=
+ModuleBreakpoints2=
+ModuleClosedNodes0=
+ModuleClosedNodes1=
+ModuleClosedNodes2=
+NavigationStack=B4XMainPage,StartBackgroundEventLoop,160,0,B4XMainPage,TileIOConnectSwitch_Click,263,0,PyOpcUaClient,Class_Globals,25,0,B4XMainPage,GetNodeIdentifier,308,0,B4XMainPage,OpcUaClient_ConnectionChanged,181,0,Visual Designer,MainPage.bjl,-100,4,PyOpcUaClient,RaiseB4jEvent,261,6,PyOpcUaClient,InjectPythonCoreCode,282,2,B4XMainPage,OpcUaClient_ReadResult,200,6,B4XMainPage,Class_Globals,33,0
+SelectedBuild=0
+VisibleModules=1,2

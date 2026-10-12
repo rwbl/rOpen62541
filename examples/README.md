@@ -16,7 +16,8 @@ The following examples are structured into dedicated sub-folders:
 - [**16-NodeIDs**](16-NodeIDs/) — Low-level standard namespace lookup implementations. 
 	- Demonstrates querying standard Namespace 0 (`ns=0`) system variables and parsing complex structure payloads.
 	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
-	- Example 2 Node.js with the `node-opcua` stack.
+	- Example 2 B4J with `PyBridge` framework and Python package `asyncua`, `HMITilesIO` (Dashboard).
+	- Example 3 Node.js with the `node-opcua` stack.
 - [**18-ServoControl**](18-ServoControl/) — Control the position of a servo motor connected to the ESP32S3. 
 	- Demonstrates using the `Trigger` callback to control an output device servo motor and show its state on Traffic Light LEDs.
 	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).

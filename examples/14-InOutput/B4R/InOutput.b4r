@@ -1,9 +1,9 @@
 ﻿Build1=Default,B4RDev
 Group=Default Group
-Library1=rcore
-Library2=ropen62541
-Library3=rrandomaccessfile
-Library4=resp8266wifi
+Library1=rconvert
+Library2=rcore
+Library3=resp8266wifi
+Library4=ropen62541
 NumberOfFiles=0
 NumberOfLibraries=4
 NumberOfModules=0
@@ -12,39 +12,28 @@ Version=4
 #Region Project Header
 '==============================================
 ' Project:		rOpen6241
-' Brief:		Example in- and output with LE and Pushbutton.
-' Date:			2026-10-02
-' Author: 		Robert W.B. Linn
-' License:		MIT — see LICENSE file.
+' Brief:		Example in- and output with an LED and Pushbutton.
+' Date:			See process_globals VERSION
+' Author: 		Robert W.B. Linn (c) 2026 MIT - see LICENSE file.
 ' Description:	This example uses an LED as output and pushbutton as input.
-'				There are 2 OPC UA nodes: Int and String
-' 				State LED 0=off, 1=on sent to the connected client:
-'				NodeID LedState with values 0 or 1
-'				Trigger received from the client to set LED state:
-'				NodeID Trigger with values 0 or 1
-'				There are 2 scenarios:
+'				The state of the LED is set by writing a boolean (true or false) to the node ns=1;s=System.LedState
 '				Scenario 1
 '				- The pushbutton sets the state of the LED on or off.
-'				- If the LED state changes, the node with nodeid LedState is updated with 0 = Off, 1 = On.
+'				- If the LED state changes, the nodeid ns=1;System.LedState is updated with false or true.
 '				Scenario 2
-'				- The server receives a msg from the connected client with nodeid Trigger.
-'				- The value of the msg is used to set the state of the LED, 0 = Off, 1 = On			
-' Hardware:		ESP32-S3-N16R8
+'				- The server receives a msg from the connected client with nodeid ns=1;System.LedState.
+'				- The event OnDataWrite with the nodeid and 4-byte array as value is triggered.
+'				- Nodeid ns=1;System.LedState i selected and the first byte of the value is used used to set the state of the LED to true or false.
+' Hardware:		diymore ESP32-S3 DevKitC-1 N16R8
 '				Board settings:
 '				- Unleash the 8MB Octal PSRAM footprint
 '				- Partitionscheme: Huge App
 '				- PSRAM: OPI PSRAM
 ' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
-'				Arduino Board Manager ESP32 3.3.11.
-' Wiring:		Output
-'				ESP32S3 = LED
-'				IO43 = Signal
-'				GND = GND
-'				Input
-'				ESP32S3 = Pushbutton (DFRobot)
-'				IO4 = Signal
-'				3.3V = VCC
-'				GND = GND
+'				Arduino Board Manager ESP32 3.3.12.
+'				rOpen62541, rConvert
+' Wiring:		(Output) ESP32S3 = LED: IO12 = Signal; GND = GND; Input
+'				(Input) ESP32S3 = Pushbutton (DFRobot): IO14 = Signal; 3.3V = VCC; GND = GND
 ' Log:
 '==============================================
 #End Region
@@ -57,7 +46,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 InOutput v20261002"
+	Private VERSION 			As String = "rOpen62541 InOutput v20261012"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -67,22 +56,20 @@ Sub Process_Globals
 
 	' LED
 	Private LedRedPin As Pin
-	Private LED_RED_PIN_NR 		As Byte = 42
-	Private LedRedState 		As Boolean			' Keep the ledred state set by the button or opc
+	Private LED_PIN_NR 			As Byte = 12
+	Private LedState 			As Boolean			' Keep the ledstate set by the button or opc
 	
 	' Buttons
-	Private ButtonPin As Pin
-	Private BUTTON_PIN_NR As Byte = 4
+	Private ButtonPin 			As Pin
+	Private BUTTON_PIN_NR 		As Byte = 14
 	
 	' Open62541
-	Private OPCUAServer			As Open62541						' Lib rOpen62541
+	Private OPCUAServer			As Open62541		' Lib rOpen62541
 	Private PORT 				As Int = 4840
-	Private NODEID_TRIGGER		As String = "ns=1;s=Trigger"		' Triggers event OnDataWrite
-	Private NODEID_LED_STATE 	As String = "ns=1;s=LedState"
+	Private NODEID_LED_STATE 	As String = "ns=1;s=System.LedState"
 
 	'Helper
 	Private FirstTime As Boolean = True
-	Private ByteConv As ByteConverter	'ignore
 End Sub
 
 Sub AppStart
@@ -90,25 +77,24 @@ Sub AppStart
 	Log(CRLF, "[AppStart] ", VERSION)
 	
 	' Init Input and Output
-	LedRedPin.Initialize(LED_RED_PIN_NR, LedRedPin.MODE_OUTPUT)
-	LedRedState = False
-	LedRedPin.DigitalWrite(LedRedState)
+	LedRedPin.Initialize(LED_PIN_NR, LedRedPin.MODE_OUTPUT)
+	LedState = False
+	LedRedPin.DigitalWrite(LedState)
+
 	ButtonPin.Initialize(BUTTON_PIN_NR, ButtonPin.MODE_INPUT_PULLUP)
 	ButtonPin.AddListener("Button_StateChanged")
 	
 	' Connect to the network first
 	If WiFi.Connect2(SSID, PW) Then
 		Log("[AppStart] WiFi connected > local ip=", WiFi.LocalIP)
-		' [AppStart] WiFi connected. IP=192.168.1.68
+		' [AppStart] WiFi connected. IP=192.168.1.176
 
-		' CRITICAL HARDWARE FIX: DISABLE WI-FI SLEEP LAYERS
-		' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
-		' from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
 		RunNative("DisableWiFiSleep", Null)
+		RunNative("SetSystemClock", Null)
 	       
-		Log("[AppStart] Init opc server")
+		Log("[AppStart] OPC UA server init...")
 		If InitOPCUAServer Then
-			Log("[AppStart] Opc server started")
+			Log("[AppStart] OPC UA server started")
 		End If
 	Else
 		Log("[AppStart][E] WiFi Connection Failed")
@@ -119,7 +105,7 @@ End Sub
 ' InitOPCUAServer
 ' Steps:
 ' Init the server with ip, port and client callback
-' Wait till the opc server has been started successfully
+' Wait till the opc ua server has been started successfully
 ' Add various nodes
 Private Sub InitOPCUAServer As Boolean
 	Dim TimeoutCounter As Int = 0
@@ -127,7 +113,10 @@ Private Sub InitOPCUAServer As Boolean
 
 	Log("[InitOPCUAServer] Initializing...")
 	' Spin up the Core 0 open62541 network engine with callback
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", "OnTriggerCall", Null)
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, _
+						   "", "", _
+						   Null, _					' Event to handle special trigger by client not used
+						   "OnDataWrite")			' Event triggered when clients writes to a node
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOPCUAServer] Awaiting background core network initialization...")
@@ -145,21 +134,12 @@ Private Sub InitOPCUAServer As Boolean
 	Loop
     
 	If ServerBootFailed Then
-		Log("[InitOPCUAServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
+		Log("[InitOPCUAServer][E] Initialization failed by TIMEOUT.")
 		' Optional: Run local emergency fallback routine or let local sensors run offline
 	Else
-		Log("[InitOPCUAServer] Core 0 online! Spawning dynamic address space nodes...")
-
+		Log("[InitOPCUAServer] OK")
 		' Register nodes
-		
-		' Register state of the led 0=off, 1=on
-		OPCUAServer.AddIntNode(NODEID_LED_STATE, "LED State", 0)
-		
-		' Register trigger method received from the client and call event OnDataWrite
-		OPCUAServer.AddStringNode(NODEID_TRIGGER, "Remote Action Trigger", "0")
-		
-		' Register native executable method node and call event OnMethodCall
-		OPCUAServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OnMethodCall")
+		OPCUAServer.AddBooleanNode(NODEID_LED_STATE, "LED State", False)
 	End If
 	Return Not(ServerBootFailed)
 End Sub
@@ -168,41 +148,23 @@ End Sub
 ' EVENTS
 '==============================================
 
-' OnTriggerCall
-' This event is fired when client triggers the method over the network using namespace 1 and string identifier Trigger
-' Example B4J where the client sends value 68: OpcClient.Write("ns=1;s=Trigger", 68)
-Private Sub OnTriggerCall(buffer() As Byte)
-	Dim cmd As String = ByteConv.StringFromBytes(buffer)
-	Log("[OnTriggerCall] Client trigger method cmd=", cmd, " length=", buffer.length)
-	Select cmd
-		Case "ledon"
-			LedRedPin.DigitalWrite(True)
-			LedRedState = True
-		Case "ledoff"
-			LedRedPin.DigitalWrite(False)
-			LedRedState = False
+' OnDataWrite
+' This event is fired when client changed a node value.
+' Parameter:
+'	nodeid - Node id which value is updated, e.g, ns=1;s=System.LedState
+'	rawvalue - 4-Byte Array. The first byte holds the LED state 1 (ON) or 0 (OFF)
+' Example:
+' [OnDataWrite] OPC UA Client write to nodeid=ns=1;s=System.LedState, value=01000000 length=4
+Private Sub OnDataWrite(nodeid As String, rawvalue() As Byte)
+	Log("[OnDataWrite] OPC UA Client write to nodeid=", nodeid, ", value=", Convert.BytesToHex(rawvalue), " length=", rawvalue.Length)
+
+	Select nodeid
+		Case NODEID_LED_STATE
+			Dim state As Boolean = Convert.ByteToBool(rawvalue(0))
+			Log("[OnDataWrite] state=", state)
+			LedRedPin.DigitalWrite(state)
 		' add more
 	End Select
-End Sub
-
-' OnMethodCall
-' This event is fired automatically when a client invokes OPCUAServer.CallMethod()
-Private Sub OnMethodCall(InputParams() As Byte)
-	Dim ParamText As String = ByteConv.StringFromBytes(InputParams)
-	Log("[OnMethodCall] Client invoked the method node with argument:", _
-		" hex=", ByteConv.StringFromBytes(InputParams), _
-		" string=", ByteConv.HexFromBytes(InputParams))
-    
-	' Evaluate your local logic parameters safely
-	If ParamText = "START_BATCH" Then
-		Log("[OnMethodCall] Command accepted. Running production batch code...")
-		' Invoke via your active OPCUAServer instance prefix!
-		OPCUAServer.SetMethodReturnCode(100) ' Sends "Success" back to SCADA
-	Else
-		Log("[OnMethodCall][E] Command rejected. Invalid parameter format.")
-		' Invoke via your active OPCUAServer instance prefix!
-		OPCUAServer.SetMethodReturnCode(400) ' Sends "Fault/Error" back to SCADA
-	End If
 End Sub
 #End Region
 
@@ -220,14 +182,18 @@ Sub Button_StateChanged (State As Boolean)
 	'The state will be false when the button is clicked because of the PULLUP mode.
 	If Not(State) Then
 		' Set Led state
-		LedRedState = Not(LedRedState)
-		LedRedPin.DigitalWrite(LedRedState)
+		LedState = Not(LedState)
+		LedRedPin.DigitalWrite(LedState)
 		
 		' Update the opc ua node
-		OPCUAServer.WriteInt(NODEID_LED_STATE, IIf(LedRedState, 1, 0))
+		OPCUAServer.WriteBoolean(NODEID_LED_STATE, LedState)
 	End If
 End Sub
 #End Region
+
+'==============================================
+' INLINEC
+'==============================================
 
 #if C
 #include "esp_wifi.h"
@@ -236,5 +202,13 @@ void DisableWiFiSleep(B4R::Object* o) {
     // Force Espressif lwIP stack to set Power Save to NONE
     esp_wifi_set_ps(WIFI_PS_NONE);
     ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
+}
+
+// RunNative("SetSystemClock", Null)
+void SetSystemClock(B4R::Object* o) {
+    // Configures the system to poll pool.ntp.org with a standard global UTC offset
+    // Adjust the 3600 (seconds) based on your target local timezone offset (e.g. 3600 = UTC+1)
+    configTime(3600, 0, "pool.ntp.org", "time.nist.gov");
+    ::Serial.println("[SetSystemClock] SNTP Client started. Synchronizing baseline...");
 }
 #End If
