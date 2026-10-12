@@ -5,18 +5,17 @@ Type=Class
 Version=9.85
 @EndOfDesignText@
 ' Project:		rOpen62541 (OPC UA Server)
-' Brief:		OPC UA server for the envsim example
-' Date:			2026-10-02
+' Brief:		OPC UA client for the envsim example.
+' Date:			See class_globals VERSION.
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	Experiment to simulate environment data and update nodes.
-' DependsOn:	SS_OPCUAClient 1.00 (Thanks, see https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/ )
-'				HMITilesIO 0.70 (see https://www.b4x.com/android/forum/threads/hmitilesio.171863/#content )
 ' Hardware:		ESP32-S3-N16R8
 ' Software:		B4J 10.70
-' Log Example:
+' DependsOn:	SS_OPCUAClient 1.00 (Thanks, see https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/ )
+'				HMITilesIO 0.70 (see https://www.b4x.com/android/forum/threads/hmitilesio.171863/#content )
  
 #Region Shared Files
-#CustomBuildAction: folders ready, %WINDIR%\System32\Robocopy.exe,"..\..\Shared Files" "..\Files"
+' #CustomBuildAction: folders ready, %WINDIR%\System32\Robocopy.exe,"..\..\Shared Files" "..\Files"
 'Ctrl + click to sync files: ide://run?file=%WINDIR%\System32\Robocopy.exe&args=..\..\Shared+Files&args=..\Files&FilesSync=True
 #End Region
 
@@ -24,7 +23,7 @@ Version=9.85
 
 Sub Class_Globals
 	' Info
-	Private VERSION As String = "rOpen62541 OPC UA Server EnvSim v20261002"
+	Private VERSION As String = "rOpen62541 OPC UA Server EnvSim v20261012"
 	
 	' UI Base
 	Private xui As XUI
@@ -38,15 +37,14 @@ Sub Class_Globals
 	Private TileTemperatureGauge As HMITilesIO
 	Private TileHumidityGauge As HMITilesIO
 
-	' Communication OPC UA Server
-	Private ENDPOINT 			As String = "opc.tcp://192.168.1.175:4840"
+	' OPC UA Server
+	Private ENDPOINT 			As String = "opc.tcp://192.168.1.176:4840"
 	Private SAMPLING_INTERVAL 	As Int = 1000	'ms
 	Private OpcClient 			As OPCUAClient
 	Private IsConnected 		As Boolean
-	' 
-	Private NODE_TEMPERATURE 	As String = "ns=1;s=Temperature"
-	Private NODE_HUMIDITY 		As String = "ns=1;s=Humidity"
-	Private NODE_TRIGGER 		As String = "ns=1;s=Trigger"		'ignore
+	' Nodes
+	Private NODEID_TEMPERATURE 	As String = "ns=1;s=Temperature"
+	Private NODEID_HUMIDITY 	As String = "ns=1;s=Humidity"
 End Sub
 
 Public Sub Initialize
@@ -80,7 +78,7 @@ End Sub
 Private Sub B4XPage_CloseRequest As ResumableSub
 	Log("[B4XPage_CloseRequest] Forcefully closing OPC UA Client socket channels.")
 	Try
-		' If your client object is active, shut it down to clear the PC's socket cache
+		' If client object is active, shut it down to clear the PC's socket cache
 		If OpcClient.IsConnected Then
 			OpcClient.Disconnect
 		End If
@@ -102,14 +100,14 @@ Public Sub SubscribeNodes
 	' Subscribe to live changes
 	' ns is namespace index 1; s is the string identifier
 	' These are defined in the B4R program
-	OpcClient.Subscribe(NODE_TEMPERATURE, SAMPLING_INTERVAL)
-	OpcClient.Subscribe(NODE_HUMIDITY, SAMPLING_INTERVAL)
+	OpcClient.Subscribe(NODEID_TEMPERATURE, SAMPLING_INTERVAL)
+	OpcClient.Subscribe(NODEID_HUMIDITY, SAMPLING_INTERVAL)
 	' OpcClient.Subscribe("ns=1;s=RawTelemetry", SAMPLING_INTERVAL)
 End Sub
 
 Public Sub ReadNodes
-	OpcClient.Read(NODE_TEMPERATURE)
-	OpcClient.Read(NODE_HUMIDITY)
+	OpcClient.Read(NODEID_TEMPERATURE)
+	OpcClient.Read(NODEID_HUMIDITY)
 End Sub
 
 Public Sub UpdateHMITiles(NodeId As String, Value As Object)

@@ -75,7 +75,7 @@ Sub Class_Globals
 	Private TileBrowse As HMITilesIO
 
 	' Communication OPC UA Server
-	Private ENDPOINT 					As String = "opc.tcp://192.168.1.175:4840"
+	Private ENDPOINT 					As String = "opc.tcp://192.168.1.176:4840"
 	Private OpcClient 					As OPCUAClient 
 	Private IsConnected 				As Boolean
 

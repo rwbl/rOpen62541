@@ -8,13 +8,11 @@ The following examples are structured into dedicated sub-folders:
 	- Example 2 B4J with the `PyBridge` framework and Python package `asyncua`, `HMITilesIO` (Dashboard).
 - [**12-Callbacks**](12-Callbacks/) — Trigger & Remote Procedure Call (RPC) execution routing. 
 	- Demonstrates server-side functions triggered remotely by automation nodes like Node-RED.
-	- Example 1 `Node-RED` with `node-red-contrib-opcua` nodes.
-	- Example 2 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
-	- Example 3 `Python` with `asyncua` package and additional library `HMITilesIO` (Dashboard).
+	- Example 1 `Python` with `asyncua` package and additional library `HMITilesIO` (Dashboard).
+	- Example 2 `Node-RED` with `node-red-contrib-opcua` nodes.
 - [**14-InOutput**](14-InOutput/) — Industrial peripheral I/O mapping configurations. 
 	- Shows how to dynamically read physical hardware states (Pushbuttons) and drive physical outputs (LEDs).
-	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
-	- Example 2 B4J with `PyBridge` framework and Python package `asyncua`, `HMITilesIO` (Dashboard).
+	- Example 1 B4J with `PyBridge` framework and Python package `asyncua`, `HMITilesIO` (Dashboard).
 - [**16-NodeIDs**](16-NodeIDs/) — Low-level standard namespace lookup implementations. 
 	- Demonstrates querying standard Namespace 0 (`ns=0`) system variables and parsing complex structure payloads.
 	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
@@ -31,11 +29,20 @@ The following examples are structured into dedicated sub-folders:
 
 ---
 
+## Shared Folder
+
+- [**shared/**](shared/) — Centralized cross-project asset dependency utilities.
+	- Contains **`PyOpcUaClient.bas`**, a reusable B4J class module that wraps the `PyBridge` communication layer.
+	- Eliminates boilerplate code across multiple client dashboard applications (`10-EnvSim`, `14-InOutput`, `20-DHT22`) by standardizing background Python `asyncua` task handling.
+	- Requires a valid Python runtime environment on the host PC with the `asyncua` package installed.
+
+---
+
 ## Development Tools
 - [B4R](https://www.b4x.com/b4r.html) 4.0
 - [B4J](https://www.b4x.com/b4j.html) 10.7
-	- [B4J SS_OPCUAClient Library](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/) 1.0
 	- [B4J PyBridge Framework](https://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/) 1.0
+	- [B4J SS_OPCUAClient Library](https://www.b4x.com/android/forum/threads/opc-ua-industrial-client-library-connect-to-servers-devices.171977/) 1.0
 	- [B4J HMITilesIO Library](https://www.b4x.com/android/forum/threads/hmitilesio.171863/) 0.70
 - [Node-RED](https://nodered.org) 5.0.7
 	- [Node-RED OPC UA Nodes](https://github.com/mikakaraila/node-red-contrib-opcua)  0.2.355
@@ -43,3 +50,4 @@ The following examples are structured into dedicated sub-folders:
 - [Arduino IDE](https://docs.arduino.cc/software/ide/) 2.3.10
 	- [Arduino core for the ESP32 family of SoCs](https://github.com/espressif/arduino-esp32) 3.3.12
 - [Fuxa](https://github.com/frangoteam/fuxa) 1.3.4
+- [opcua-commander](https://github.com/node-opcua/opcua-commander) 0.40.0

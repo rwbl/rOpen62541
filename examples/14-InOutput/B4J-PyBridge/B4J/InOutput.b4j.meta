@@ -7,5 +7,6 @@ ModuleBreakpoints2=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
 ModuleClosedNodes2=
+NavigationStack=B4XMainPage,StartBackgroundEventLoop,207,0,B4XMainPage,TileIOConnectSwitch_Click,284,0,B4XMainPage,TileIOBrowse_Click,313,1,B4XMainPage,TileIOLedSwitch_Click,303,4,B4XMainPage,Class_Globals,78,0,B4XMainPage,B4XPage_Background,163,0,B4XMainPage,BrowseFull,211,0,B4XMainPage,OpcUaClient_DataChanged,253,1,B4XMainPage,OpcUaClient_ConnectionChanged,237,1,B4XMainPage,B4XPage_Created,137,0
 SelectedBuild=0
 VisibleModules=1,2

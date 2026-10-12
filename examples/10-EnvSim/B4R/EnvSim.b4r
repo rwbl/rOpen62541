@@ -13,9 +13,8 @@ Version=4
 '==============================================
 ' Project:		rOpen62541
 ' Brief:		Example simulating sensor data and listening to client callback.
-' Date:			2026-10-10
-' Author: 		Robert W.B. Linn
-' License:		MIT — see LICENSE file.
+' Date:			See Process_Globals VERSION.
+' Author: 		Robert W.B. Linn - (c) 2026 MIT - see LICENSE file.
 ' Description:	Simulating temperature and humidity sensor data.
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
@@ -25,6 +24,7 @@ Version=4
 ' Software:		B4R 4.00 (64 bit), B4R IDE Board selected: ESP32S3 Dev Module COM15
 '				Arduino Board Manager ESP32 3.3.12.
 ' Wiring:		N/A
+' Hints:		Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 '==============================================
 #End Region
 
@@ -33,10 +33,9 @@ Version=4
 	#CheckArrayBounds: True
 	#StackBufferSize: 900
 #End Region
-'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 EnvSim v20261010"
+	Private VERSION 			As String = "rOpen62541 EnvSim v20261012"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -50,7 +49,6 @@ Sub Process_Globals
 	' Nodes
 	Private NODEID_TEMPERATURE	As String = "ns=1;s=Temperature"
 	Private NODEID_HUMIDITY		As String = "ns=1;s=Humidity"
-	Private NODEID_COUNTER		As String = "ns=1;s=Counter"
 
 	' Timer simulating sensor data
 	Private AppTimer As Timer
@@ -83,7 +81,7 @@ Sub AppStart
 		If InitOPCUAServer Then
 			' All good > start the app timer to update nodes
 			AppTimer.Enabled = True
-			Log("[AppStart] OPC UA server started")
+			Log("[AppStart] OPC UA server & simulation started every ", APPTIMER_INTERVAL, "ms")
 		End If
 	Else
 		Log("[AppStart][E] WiFi Connection Failed")
@@ -101,7 +99,10 @@ Private Sub InitOPCUAServer As Boolean
 
 	Log("[InitOPCUAServer] Initializing...")
 	' Init the OPC UA server witj no callbacks (set to null)
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", Null, Null)
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, _				' See log after boot which IP:Port
+						   "", "", _ 							' No auth
+						   Null, _ 								' No Trigger callback
+						   Null)								' No data write callback
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOPCUAServer] Awaiting background core network initialization...")
@@ -123,7 +124,6 @@ Private Sub InitOPCUAServer As Boolean
 		' Add nodes holding data
 		OPCUAServer.AddFloatNode(NODEID_TEMPERATURE, "Room Temperature", 20.0)
 		OPCUAServer.AddFloatNode(NODEID_HUMIDITY, "Room Humidity", 68.0)
-		OPCUAServer.AddIntNode(NODEID_COUNTER, "Total Shift Cycle Count", 0)
 	End If
 	Return Not(ServerBootFailed)
 End Sub
@@ -141,10 +141,6 @@ Sub AppTimer_Tick
 		
         ' Log update
 		Log("[AppTimer] Sensor read complete > t=", CurrentTemp, " h=", CurrentHum)
-		
-		' IMPORTANT YIELD: Give the cooperative B4R scheduler and
-		' the background lwIP core sockets time to process network stacks!
-		' Delay(50)
 	End If
 End Sub
 

@@ -7,7 +7,7 @@ Version=9.85
 #Region Class Info
 ' Project:		rOpen62541 (OPC UA Server)
 ' Brief:		OPC UA client for the Input/Output example.
-' Date:			2026-09-20
+' Date:			2026-10-12
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	B4X pages project with the PyBridge to Control the OPC UA Server LED.
 '				The OPC UA server receives from this OPC UA client a msg with nodeid "Trigger" and value "ledon" or "ledoff".
@@ -47,17 +47,17 @@ Version=9.85
 '				[TileIOConnectSwitch_Click] Initiating manual connection sequence...
 '				[OpcUaClient] Connecting To Opc.tcp://192.168.1.175:4840...
 '				[StartBackgroundEventLoop] Dispatched Event From Queue name=opc_connection_changed value=True
-'				[OpcClient_ConnectionChanged] connected=True
-'				[OpcClient_ConnectionChanged] Connection verified! Activating subscriptions...
-'				[OpcClient_ConnectionChanged] Subscribing To ns=1;s=LedState
+'				[OpcUaClient_ConnectionChanged] connected=True
+'				[OpcUaClient_ConnectionChanged] Connection verified! Activating subscriptions...
+'				[OpcUaClient_ConnectionChanged] Subscribing To ns=1;s=LedState
 '				Revised values returned differ from subscription values: CreateSubscriptionResult(SubscriptionId=1, RevisedPublishingInterval=500.0, RevisedLifetimeCount=10000, RevisedMaxKeepAliveCount=100)
 '				[OpcUaClient] Subscribed cleanly To ns=1;s=LedState
 '				[StartBackgroundEventLoop] Dispatched Event From Queue name=opc_datachange value=ns=1;s=LedState 0
-'				[OpcClient_DataChanged] Event Received nodeid=[ns=1;s=LedState] value=0
+'				[OpcUaClient_DataChanged] Event Received nodeid=[ns=1;s=LedState] value=0
 '				[TileIOLedSwitch_Click] Toggled switch To True using Trigger Node
 '				[B4XPage_CloseRequest] Opc disconnect
 '				[StartBackgroundEventLoop] Dispatched Event From Queue name=opc_connection_changed value=False
-'				[OpcClient_ConnectionChanged] connected=False
+'				[OpcUaClient_ConnectionChanged] connected=False
 '				[B4XPage_CloseRequest] PyBridge stopping
 '				[Py_Disconnected] PyBridge dropped.
 '				Process completed. ExitCode: 1
@@ -78,7 +78,7 @@ Version=9.85
 #Macro: Title, Export B4XPages, ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 
 Sub Class_Globals
-	Private VERSION As String = "rOpc62541 InOut Example v20260920"
+	Private VERSION As String = "rOpc62541 InOut Example v20261012"
 	' UI
 	Private xui As XUI
 	Private Root As B4XView
@@ -87,14 +87,12 @@ Sub Class_Globals
 	Public Py 		As PyBridge
 	
 	' OpcUaClient Instance
-	Private Opc 					As OpcUaClient					' Connect url = opc.tcp://192.168.1.175:4840
-	Private IP 						As String = "192.168.1.175"		' Set according ESP32 OPC UA Server
+	Private OpcUaClient 			As PyOpcUaClient					' Connect url = opc.tcp://192.168.1.175:4840
+	Private IP 						As String = "192.168.1.176"		' Set according ESP32 OPC UA Server
 	Private PORT 					As Int = 4840					' Default port
 
 	' NodeIDs
-	Private NODEID_LED				As String = "ns=1;s=LedState"	' Subscribe to led changes (see OpcClient_ConnectionChanged)
-	Private NODEID_TRIGGER			as string = "ns=1;s=Trigger"
-	Private NODEID_FACTORY_FLOOR	As String = "ns=1;s=Factory_Floor"
+	Private NODEID_LED				As String = "ns=1;s=LedState"	' Subscribe to led changes (see OpcUaClient_ConnectionChanged)
 
 	' Trigger Commands
 	Private LED_CMD_ON 				As String = "ledon"				' Trigger command to set led state on (true)
@@ -143,7 +141,7 @@ Private Sub B4XPage_Created (Root1 As B4XView)
 
 	' OpcUaClient initialize custom Class object reference (event OpcClient)
 	Sleep(50)
-	Opc.Initialize(Me, "OpcClient", Py)
+	OpcUaClient.Initialize(Me, "OpcUaClient", Py)
 	
 	' Start the background extraction loop instantly
 	StartBackgroundEventLoop
@@ -151,9 +149,9 @@ End Sub
 
 ' Clean up allocations cleanly when context minimizes or closes
 Private Sub B4XPage_CloseRequest As ResumableSub
-	If Opc.Connected Then
-		Log("[B4XPage_CloseRequest] Opc disconnect")
-		Opc.Disconnect
+	If OpcUaClient.Connected Then
+		Log("[B4XPage_CloseRequest] OPC UA Server disconnected")
+		OpcUaClient.Disconnect
 		Sleep(200)
 		TileIOConnected.Value = "Disconnected"
 	End If
@@ -193,7 +191,7 @@ Private Sub StartBackgroundEventLoop
 	
 	Do While True
 		' Ask the custom class if Python has any queued events waiting for us
-		Wait For (Opc.PollNextEvent) Complete (EventData As Object)
+		Wait For (OpcUaClient.PollNextEvent) Complete (EventData As Object)
 		
 		' If an event is waiting, parse its dictionary parameters safely
 		If EventData <> Null Then
@@ -201,11 +199,11 @@ Private Sub StartBackgroundEventLoop
 			Dim EvName As String = EvMap.Get("event")
 			Dim EvValue As Object = EvMap.Get("value")
 			
-			Log($"[StartBackgroundEventLoop] Dispatched Event From Queue name=${EvName} | value=${EvValue}"$)
+			' Log($"[StartBackgroundEventLoop] Dispatched Event From Queue name=${EvName} | value=${EvValue}"$)
 			' [StartBackgroundEventLoop] Dispatched Event From Queue name=opc_datachange | value=ns=1;s=LedState 1
 			
 			' Execute 2-parameter signature call
-			Opc.RaiseB4jEvent(EvName, EvValue)
+			OpcUaClient.RaiseB4jEvent(EvName, EvValue)
 		End If
 		
 		' Sleep for 100ms to allow smooth UI rendering and prevent CPU spikes
@@ -230,21 +228,20 @@ End Sub
 '=============================================================================
 
 ' Raised automatically when Connect or Disconnect completes execution loops
-Private Sub OpcClient_ConnectionChanged (Connected As Boolean)
-	Log($"[OpcClient_ConnectionChanged] connected=${Connected}"$)		'Opc.Connected
-	TileIOConnectSwitch.State = Connected
-	
+Private Sub OpcUaClient_ConnectionChanged (Connected As Boolean)
+	Log($"[OpcUaClient_ConnectionChanged] connected=${Connected}"$)		'Opc.Connected
 	' If successfully online, activate the subscriptions
 	If Connected = True Then
-		Log("[OpcClient_ConnectionChanged] Connection verified! Activating subscriptions...")
+		Log("[OpcUaClient_ConnectionChanged] Connection verified! Activating subscriptions...")
 		
 		' Subscribe to the read telemetry state node
-		Log("[OpcClient_ConnectionChanged] Subscribing to ns=1;s=LedState")
-		Opc.Subscribe(NODEID_LED)
+		Log("[OpcUaClient_ConnectionChanged] Subscribing to ns=1;s=LedState")
+		OpcUaClient.Subscribe(NODEID_LED)
 		
 		' Give the ESP32 network stack a tiny 100ms break to register the table writes
-		Sleep(100)
+		Sleep(50)
 		TileIOConnected.Value = "Connected"
+		TileIOConnectSwitch.State = True
 	Else
 		TileIOLedSwitch.State = False
 		TileIOConnected.Value = "Disconnected"
@@ -252,9 +249,9 @@ Private Sub OpcClient_ConnectionChanged (Connected As Boolean)
 End Sub
 
 ' Raised automatically whenever the ESP32 server signals a subscription update!
-' [OpcClient_DataChanged] Event Received nodeid=[ns=1;s=LedState] value=1
-Private Sub OpcClient_DataChanged (NodeId As String, Value As String)
-	Log($"[OpcClient_DataChanged] Event Received nodeid=[${NodeId}] | value=${Value}"$)
+' [OpcUaClient_DataChanged] Event Received nodeid=[ns=1;s=LedState] value=1
+Private Sub OpcUaClient_DataChanged (NodeId As String, Value As String)
+	Log($"[OpcUaClient_DataChanged] Event Received nodeid=[${NodeId}] | value=${Value}"$)
 	
 	' Handles both numeric states and string actions using pure text conditional cases safely
 	Select Case NodeId
@@ -266,8 +263,8 @@ Private Sub OpcClient_DataChanged (NodeId As String, Value As String)
 			End If
 			TileIOLedState.Footer = GetTime
 			
-		Case NODEID_TRIGGER
-			Log($"[OpcClient_DataChanged] Trigger Action text=${Value}"$)
+		Case OpcUaClient.NODEID_TRIGGER
+			Log($"[OpcUaClient_DataChanged] Trigger Action text=${Value}"$)
 	End Select
 End Sub
 #End Region
@@ -281,23 +278,23 @@ Private Sub TileIOConnectSwitch_Click(State As Boolean, Value As String)
 	Log($"[TileIOConnectSwitch_Click] Toggled switch to ${State}"$)
 	
 	' Freeze switch position in place until background connection status resolves
-	TileIOConnectSwitch.State = Opc.Connected
+	TileIOConnectSwitch.State = OpcUaClient.Connected
 	
 	If State = True Then
 		Log("[TileIOConnectSwitch_Click] Initiating manual connection sequence...")
 		TileIOConnected.Value = "Connecting"
-		Opc.Connect(IP, PORT)
+		OpcUaClient.Connect(IP, PORT)
 	Else
 		Log("[TileIOConnectSwitch_Click] Closing connection manually.")
 		TileIOConnected.Value = "Disconnecting"
-		Opc.Disconnect
+		OpcUaClient.Disconnect
 	End If
 	TileIOConnected.Footer = GetTime
 End Sub
 
 Private Sub TileIOLedSwitch_Click(State As Boolean, Value As String)
 	' Pure object check safety interlock protection check
-	If Not(Opc.Connected) Then
+	If Not(OpcUaClient.Connected) Then
 		Log("[TileIOLedSwitch_Click][E] Action Aborted: Connect to the OPC UA Server first!")
 		TileIOLedSwitch.State = False
 		Return
@@ -307,9 +304,9 @@ Private Sub TileIOLedSwitch_Click(State As Boolean, Value As String)
 	Log($"[TileIOLedSwitch_Click] Toggled switch using Trigger Node state=${State} "$)
 
 	If State = True Then
-		Opc.SendOpcTrigger(LED_CMD_ON)
+		OpcUaClient.WriteTrigger(OpcUaClient.NODEID_TRIGGER, LED_CMD_ON)
 	Else
-		Opc.SendOpcTrigger(LED_CMD_OFF)
+		OpcUaClient.WriteTrigger(OpcUaClient.NODEID_TRIGGER, LED_CMD_OFF)
 	End If
 	
 	TileIOLedSwitch.State = State
@@ -317,9 +314,8 @@ Private Sub TileIOLedSwitch_Click(State As Boolean, Value As String)
 End Sub
 
 Private Sub TileIOBrowse_Click(State As Boolean, Value As String)
-	BrowseFull(NODEID_FACTORY_FLOOR)	
+	BrowseFull(OpcUaClient.NODEID_FACTORY_FLOOR)
 End Sub
-
 #End Region
 
 '==============================================================

@@ -1,25 +1,25 @@
 """opcua_client.py.
-
-Project: rOpen62541
-Brief: Object-Oriented Class for rOpen62541 to demonstrate Call Method function..
-Date: 20261005
-Author: Robert W.B. Linn (c) 2026 - MIT
+Project:      rOpen62541
+Brief:        Object-Oriented Class for rOpen62541 to demonstrate multiple Call Methods.
+Date:         20261012
+Author:       Robert W.B. Linn (c) 2026 - MIT
 Dependencies: asyncua library (https://pypi.org)
-
-This module serves as a pedagogical reference for strict PEP 8 and PEP 257
-styling guidelines, demonstrating non-blocking communication patterns with an
-embedded open62541 OPC UA server running on an ESP32-S3 microcontroller.
-
+Description:  Invoke call methods to the B4R OPC UA server.
 Log:
->>> %Run callmethod.py
-Connecting to opc.tcp://192.168.1.175:4840 (Timeout: 10s)...
-Connected successfully!
+                >>> %Run callmethod.py
+                Connecting to opc.tcp://192.168.1.175:4840 (Timeout: 10s)...
+                Connected successfully!
 
---- Control Panel Active (Type 'exit' to quit) ---
-Enter command ('START_BATCH' or 'exit'): START_BATCH
-Method 'ns=1;s=ExecuteJob' called successfully: command='START_BATCH', result=0
-Enter command ('START_BATCH' or 'exit'): exit
-Disconnecting from server...
+                --- Control Panel Active (Type 'exit' to quit) ---
+                Enter command ('START_BATCH' or 'exit'): START_BATCH
+                Method 'ns=1;s=ExecuteJob' called successfully: command='START_BATCH', result=0
+                Enter command ('START_BATCH' or 'exit'): exit
+                Disconnecting from server...
+B4R Log:
+                [OnMethodCallA] OPC UA Client invoked method with argument=START_BATCH, hex=53544152545F4241544348
+                [OnMethodCallA] Command accepted. Running production batch code...
+                [OnMethodCallB] OPC UA Client invoked method with argument=START_BATCH, hex=53544152545F4241544348
+                [OnMethodCallB] Command accepted. Running production batch code...
 """
 
 import asyncio
@@ -30,7 +30,7 @@ from asyncua import Client, ua
 # =============================================================================
 # GLOBAL CONFIGURATION CONSTANTS (PEP 8 Compliant Uppercase)
 # =============================================================================
-SERVER_IP: str = "192.168.1.175"
+SERVER_IP: str = "192.168.1.176"
 SERVER_PORT: int = 4840
 OPC_UA_URL: str = f"opc.tcp://{SERVER_IP}:{SERVER_PORT}"
 
@@ -39,7 +39,8 @@ CONNECTION_TIMEOUT_SEC: int = 10
 
 # Node Identifiers configured within the B4R open62541 wrapper
 NODE_ID_OBJECT: str = "ns=1;s=Factory_Floor"
-NODE_ID_METHOD: str = "ns=1;s=ExecuteJob"
+NODE_ID_METHOD_A: str = "ns=1;s=ExecuteJobA"
+NODE_ID_METHOD_B: str = "ns=1;s=ExecuteJobB"
 
 CMD_START_BATCH: str = "START_BATCH"
 CMD_STOP_BATCH: str = "STOP_BATCH"
@@ -145,22 +146,33 @@ class Open62541Client:
         print("Disconnected cleanly.")
 
     async def call_method(self, command: str) -> None:
-        """Call the ExecuteJob OPC UA method.
+        """Call the ExecuteJobA OPC UA method.
 
         Args:
             command (str): Command string passed to the ExecuteJob method.
         """
         object_node = self.client.get_node(NODE_ID_OBJECT)
-        method_node = self.client.get_node(NODE_ID_METHOD)
+        method_a_node = self.client.get_node(NODE_ID_METHOD_A)
+        method_b_node = self.client.get_node(NODE_ID_METHOD_B)
 
         try:
             result = await object_node.call_method(
-                method_node,
+                method_a_node,
                 ua.Variant(command.encode("utf-8"), ua.VariantType.ByteString)
             )
 
             print(
-                f"Method '{NODE_ID_METHOD}' called successfully: "
+                f"Method '{NODE_ID_METHOD_A}' called successfully: "
+                f"command='{command}', result={result}"
+            )
+
+            result = await object_node.call_method(
+                method_b_node,
+                ua.Variant(command.encode("utf-8"), ua.VariantType.ByteString)
+            )
+
+            print(
+                f"Method '{NODE_ID_METHOD_B}' called successfully: "
                 f"command='{command}', result={result}"
             )
 

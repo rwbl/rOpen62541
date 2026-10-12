@@ -6,9 +6,9 @@ Version=10.7
 @EndOfDesignText@
 #Region Class Info
 ' Project:      rOpen62541 (OPC UA Server Client Module)
-' File:         OpcUaClient.bas
+' File:         PyOpcUaClient.bas
 ' Brief:        Proper Object-Oriented Class for managing OPC UA via PyBridge.
-' Date:         2026-10-04
+' Date:         2026-10-12
 ' Author:       Robert W.B. Linn (c) 2026 - MIT
 ' Description:  Manages asynchronous OPC UA connections and live telemetry 
 '               subscriptions using a decoupled producer-consumer memory queue.
@@ -108,16 +108,49 @@ def CallSubscribe(target_node_str):
 	Return Py.RunCode("CallSubscribe", Array(NodeId), CodeExec)
 End Sub
 
-' SendOpcTrigger 
-' Send (Write) method profile
-Public Sub SendOpcTrigger (CommandValue As String) As PyWrapper
+' WriteFloat
+Public Sub WriteFloat(NodeID As String, Value As String) As PyWrapper
 	Dim CodeExec As String = $"
-def SendOpcTrigger(cmd):
+def WriteFloat(nodeid, cmd):
     if global_worker:
-        return global_worker.write_trigger(cmd)
+        return global_worker.write_float(nodeid, cmd)
     return "Error"
 "$
-	Return Py.RunCode("SendOpcTrigger", Array(CommandValue), CodeExec)
+	Return Py.RunCode("WriteFloat", Array(NodeID, Value), CodeExec)
+End Sub
+
+' WriteInt
+Public Sub WriteInt(NodeID As String, Value As String) As PyWrapper
+	Dim CodeExec As String = $"
+def WriteInt(nodeid, cmd):
+    if global_worker:
+        return global_worker.write_int(nodeid, cmd)
+    return "Error"
+"$
+	Return Py.RunCode("WriteInt", Array(NodeID, Value), CodeExec)
+End Sub
+
+' WriteBool
+Public Sub WriteBoolean(NodeID As String, Value As String) As PyWrapper
+	Dim CodeExec As String = $"
+def WriteBoolean(nodeid, cmd):
+    if global_worker:
+        return global_worker.write_boolean(nodeid, cmd)
+    return "Error"
+"$
+	Return Py.RunCode("WriteBoolean", Array(NodeID, Value), CodeExec)
+End Sub
+
+' SendOpcTrigger 
+' Send (Write) method profile
+Public Sub SendOpcTrigger (NodeID As String, CommandValue As String) As PyWrapper
+	Dim CodeExec As String = $"
+def SendOpcTrigger(nodeid, cmd):
+    if global_worker:
+        return global_worker.write_trigger(nodeid, cmd)
+    return "Error"
+"$
+	Return Py.RunCode("SendOpcTrigger", Array(NodeID, CommandValue), CodeExec)
 End Sub
 #End Region
 
@@ -308,13 +341,66 @@ class OpcSyncWorker:
             print(f"[OpcUaClient][E] Subscription error: {err}", flush=True)
 			# [OpcUaClient][E] Subscription error: The node id refers to a node that does not exist in the server address space.(BadNodeIdUnknown)
 
-    def write_trigger(self, value_str):
+    def write_trigger(self, nodeid_str, value_str):
         try:
             if not self.is_connected:
                 return
-            trigger_node = self.client.get_node("ns=1;s=Trigger")
+            trigger_node = self.client.get_node(nodeid_str)
             payload = ua.Variant(value_str, ua.VariantType.String)
             trigger_node.write_value(payload)
+        except Exception as err:
+            print(f"[OpcUaClient][E] Write error: {err}", flush=True)
+
+    def write_boolean(self, nodeid_str, value_str):
+        try:
+            if not self.is_connected:
+                return
+            write_node = self.client.get_node(nodeid_str)
+            
+            # 1. Standardize text input and parse it into a real Python Boolean
+            # This handles inputs like "true", "True", "1", or "on" safely
+            clean_val = value_str.strip().lower()
+            bool_value = clean_val in ("true", "1", "on", "yes")
+            
+            # 2. CRITICAL: Wrap it as an OPC UA Boolean (1 byte)
+            payload = ua.Variant(bool_value, ua.VariantType.Boolean)
+            
+            write_node.write_value(payload)
+            print(f"[OpcUaClient] Successfully wrote Boolean {bool_value} to {nodeid_str}")
+        except Exception as err:
+            print(f"[OpcUaClient][E] Write error: {err}", flush=True)
+
+    def write_int(self, nodeid_str, value_str):
+        try:
+            if not self.is_connected:
+                return
+            write_node = self.client.get_node(nodeid_str)
+            
+            # 1. Convert the incoming string text "35" into a real Python int
+            numeric_value = int(value_str) 
+            
+            # 2. CRITICAL: Specify Int32 to match open62541's explicit data type layouts
+            payload = ua.Variant(numeric_value, ua.VariantType.Int32)
+            
+            write_node.write_value(payload)
+            print(f"[OpcUaClient] Successfully wrote Int32 {numeric_value} to {nodeid_str}")
+        except Exception as err:
+            print(f"[OpcUaClient][E] Write error: {err}", flush=True)
+
+    def write_float(self, nodeid_str, value_str):
+        try:
+            if not self.is_connected:
+                return
+            write_node = self.client.get_node(nodeid_str)
+            
+            # 1. Convert the incoming string text "35.0" into a real Python float
+            numeric_value = float(value_str) 
+            
+            # 2. CRITICAL: Wrap it strictly as an OPC UA Float (Float32) payload
+            payload = ua.Variant(numeric_value, ua.VariantType.Float)
+            
+            write_node.write_value(payload)
+            print(f"[OpcUaClient] Successfully wrote float {numeric_value} to {nodeid_str}")
         except Exception as err:
             print(f"[OpcUaClient][E] Write error: {err}", flush=True)
 

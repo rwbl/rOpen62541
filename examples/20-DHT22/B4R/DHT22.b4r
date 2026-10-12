@@ -14,7 +14,7 @@ Version=4
 '==============================================
 ' Project:		rOpen62541
 ' Brief:		Example writing DHT22 sensor data temperature & humidity.
-' Date:			2026-10-07
+' Date:			See process_globals VERSION
 ' Author: 		Robert W.B. Linn (c) 2026 - MIT
 ' Description:	Read and write the DHT22 sensor data Temperature and Humidity as float on every change.
 '				DHT22 event [OnDHTStateChanged] t=19.5000, h=57.7000.
@@ -49,7 +49,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 DHT22 v20261007"
+	Private VERSION 			As String = "rOpen62541 DHT22 v20261012"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -69,10 +69,10 @@ Sub Process_Globals
 	Private PORT 				As Int = 4840
 
 	' Nodes
-	Private NODEID_TRIGGER		As String = "ns=1;s=Trigger"				' Triggers event OnDataWrite
-	Private NODEID_TEMPERATURE	As String = "ns=1;s=Sensor.Temperature"		' Register node
-	Private NODEID_HUMIDITY		As String = "ns=1;s=Sensor.Humidity"		' Register node
-	Private NODEID_AVAILABLERAM	As String = "ns=1;s=System.AvailableRAM"	' Register node
+	Private NODEID_TEMPERATURE	As String = "ns=1;s=Sensor.Temperature"		
+	Private NODEID_HUMIDITY		As String = "ns=1;s=Sensor.Humidity"		
+	Private NODEID_AVAILABLERAM	As String = "ns=1;s=System.AvailableRAM"	
+	Private NODEID_REQUEST_DATA	As String = "ns=1;s=System.RequestData"		' This is a method call
 	
 	'Helper
 	Private ByteConv As ByteConverter	'ignore
@@ -96,7 +96,7 @@ Sub AppStart
 		' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
 		' from ~100ms+ down to an immediate 2ms, completely wiping out Bad_Timeout.
 		RunNative("DisableWiFiSleep", Null)
-		RunNative("InitSystemClock", Null)
+		RunNative("SetSystemClock", Null)
 	       
 		Log("[AppStart] Init OPC UA server")
 		If InitOPCUAServer Then
@@ -121,7 +121,9 @@ Private Sub InitOPCUAServer As Boolean
 
 	Log("[InitOPCUAServer] Initializing...")
 	' Spin up the Core 0 open62541 network engine with callback
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", Null, Null)
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, _
+						   "", "", _				' No auth
+						   Null, Null)				' No callbacks
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOPCUAServer] Awaiting background core network initialization...")
@@ -149,13 +151,10 @@ Private Sub InitOPCUAServer As Boolean
 		OPCUAServer.AddFloatNode(NODEID_HUMIDITY, "Humdity", 0)
 
 		' Register AvailableRAM
-		OPCUAServer.AddFloatNode(NODEID_AVAILABLERAM,"AvailableRAM", AvailableRAM)
-		
-		' Register trigger method received from the client and call event OnDataWrite
-		OPCUAServer.AddStringNode(NODEID_TRIGGER, "Remote Action Trigger", "0")
-		
-		' Register native executable method node and call event OnMethodCall
-		OPCUAServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OnMethodCall")
+		OPCUAServer.AddFloatNode(NODEID_AVAILABLERAM, "AvailableRAM", AvailableRAM)
+				
+		' Register native executable method node and call event OnRequestData
+		OPCUAServer.AddMethodNode(NODEID_REQUEST_DATA, "Request Data", "OnRequestData")
 
 		Log("[InitOPCUAServer] Register nodes OK")
 	End If
@@ -188,26 +187,43 @@ Private Sub OnDHTStateChanged(t As Float, h As Float)
 	OPCUAServer.WriteFloat(NODEID_AVAILABLERAM, AvailableRAM)
 End Sub
 
-' OnMethodCall
+' OnRequestData
 ' This event is fired automatically when a client invokes OPCUAServer.CallMethod()
-Private Sub OnMethodCall(InputParams() As Byte)
+Private Sub OnRequestData(InputParams() As Byte)
 	Dim ParamText As String = ByteConv.StringFromBytes(InputParams)
-	Log("[OnMethodCall] Client invoked the method node with argument:", _
+	Log("[OnRequestData] Client invoked the method node with argument:", _
 		" hex=", ByteConv.StringFromBytes(InputParams), _
 		" string=", ByteConv.HexFromBytes(InputParams))
-    
-	' Evaluate your local logic parameters safely
+   
+   	' Evaluate command
 	If ParamText = "REQUEST_DATA" Then
-		Log("[OnMethodCall] Command accepted.")
-		OPCUAServer.WriteFloat(NODEID_TEMPERATURE, Dht.Temperature)
-		OPCUAServer.WriteFloat(NODEID_HUMIDITY, Dht.Humidity)
-		' Invoke via your active OPCUAServer instance prefix!
-		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
+		Log("[OnRequestData] Command accepted.")
+		' Always call using callsubplus else blocking the event callback
+		CallSubPlus("RequestData", 100, 5)
 	Else
-		Log("[OnMethodCall][E] Command rejected. Invalid parameter format.")
+		Log("[OnRequestData][E] Command rejected. Invalid parameter format.")
 		' Invoke via your active OPCUAServer instance prefix!
 		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_BAD) 
 	End If
+End Sub
+
+Private Sub RequestData(tag As Byte)
+	Dim t As Float = Dht.Temperature
+	Dim h As Float = Dht.Humidity
+	Log("[RequestData] t=", t, ", h=", h)
+	If IsNumber(t) Then 
+		OPCUAServer.WriteFloat(NODEID_TEMPERATURE, t)
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
+	Else
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_BAD)
+	End If
+	If IsNumber(h) Then 
+		OPCUAServer.WriteFloat(NODEID_HUMIDITY, h)
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_GOOD)
+	Else
+		OPCUAServer.SetMethodReturnCode(OPCUAServer.STATUS_BAD)
+	End If
+	Log("[RequestData] Completed")
 End Sub
 #End Region
 
@@ -220,9 +236,8 @@ void DisableWiFiSleep(B4R::Object* o) {
     ::Serial.println("[DisableWiFiSleep] Disabled > Radio set to high-performance mode.");
 }
 
-
-// RunNative("InitSystemClock", Null)
-void InitSystemClock(B4R::Object* o) {
+// RunNative("SetSystemClock", Null)
+void SetSystemClock(B4R::Object* o) {
     // Configures the system to poll pool.ntp.org with a standard global UTC offset
     // Adjust the 3600 (seconds) based on your target local timezone offset (e.g. 3600 = UTC+1)
     configTime(3600, 0, "pool.ntp.org", "time.nist.gov");

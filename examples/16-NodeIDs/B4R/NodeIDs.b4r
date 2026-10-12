@@ -13,7 +13,7 @@ Version=4
 '==============================================
 ' Project:		rOpen6241
 ' Brief:		Low-level standard namespace lookup implementations. 
-' Date:			2026-10-07
+' Date:			See process_globals VERSION.
 ' Author: 		Robert W.B. Linn
 ' License:		MIT — see LICENSE file.
 ' Description:	Demonstrates querying standard Namespace 0 (`ns=0`) system variables And parsing complex structure payloads.
@@ -52,7 +52,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 NodeIDs v20261007"
+	Private VERSION 			As String = "rOpen62541 NodeIDs v20261012"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -63,6 +63,9 @@ Sub Process_Globals
 	' Open62541
 	Private OPCUAServer			As Open62541						' Lib rOpen62541
 	Private PORT 				As Int = 4840
+
+	' Nodes
+	Private NODEID_SERVERTIME 	As String = "ns=0;i=2258"
 	
 	'Helper
 	Private bc As ByteConverter	'ignore
@@ -81,7 +84,7 @@ Sub AppStart
 		RunNative("DisableWiFiSleep", Null)
 
 		Log("[AppStart] Synchronizing system clock via NTP...")
-		RunNative("InitSystemClock", Null)
+		RunNative("SetSystemClock", Null)
 
 		Log("[AppStart] Init opc server")
 		If InitOPCUAServer Then
@@ -103,7 +106,9 @@ Private Sub InitOPCUAServer As Boolean
 	Dim ServerBootFailed As Boolean = False
 
 	Log("[InitOPCUAServer] Initializing...")
-	OPCUAServer.Initialize(WiFi.LocalIp, PORT, "", "", Null, Null)
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, _
+							"", "", _				' No auth
+							Null, Null)				' No callbacks
 	
 	' Wait for the background thread layout initialization to complete!
 	Log("[InitOpcServer] Awaiting background core network initialization...")
@@ -121,24 +126,18 @@ Private Sub InitOPCUAServer As Boolean
 	Loop
     
 	If ServerBootFailed Then
-		Log("[InitOpcServer][E] OPC UA Server initialization TIMEOUT! Core 0 failed.")
+		Log("[InitOpcServer][E] Failed caused by TIMEOUT.")
 		' Optional: Run local emergency fallback routine or let local sensors run offline
 	Else
-		Log("[InitOpcServer] Core 0 online! Spawning dynamic address space nodes...")
-
-		' Register the native executable method node!
-		OPCUAServer.AddMethodNode("ExecuteJob", "Trigger Production Job Routine", "OnMethodCall")
-		' Node-RED Example:
-		' objectId = "ns=1;s=Factory_Floor"; methodId = "ns=1;s=ExecuteJob"; msg.inputArguments = [{dataType: "ByteString",value: "START_BATCH"}];
-
+		Log("[InitOpcServer] OK")
 	End If
 	Return Not(ServerBootFailed)
 End Sub
 
 Private Sub GetServerTime(tag As Byte)
-	Dim nodeid As String = "ns=0;i=2258"
-	Log("[GetSystemNode] ", nodeid, "=", OPCUAServer.ReadNumeric(nodeid))
-	' [GetSystemNode] 2258:2026-09-18 17:13:20
+	Dim nodeid As String = NODEID_SERVERTIME
+	Log("[GetServerTime] ", nodeid, "=", OPCUAServer.ReadNumeric(nodeid))
+	' [GetServerTime] ns=0;i=2258=2026-10-12 09:18:38Z
 End Sub
 
 '==============================================
@@ -160,8 +159,8 @@ void DisableWiFiSleep(B4R::Object* o) {
 }
 
 // Synchronize system clock via NTP.
-// RunNative("InitSystemClock", Null)
-void InitSystemClock(B4R::Object* o) {
+// RunNative("SetSystemClock", Null)
+void SetSystemClock(B4R::Object* o) {
     // Configures the system to poll pool.ntp.org with a standard global UTC offset
     // Adjust the 3600 (seconds) based on your target local timezone offset (e.g. 3600 = UTC+1)
     configTime(3600, 0, "pool.ntp.org", "time.nist.gov");

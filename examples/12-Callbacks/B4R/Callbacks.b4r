@@ -14,12 +14,13 @@ Version=4
 '==============================================
 ' Project:		rOpen62541
 ' Brief:		Example trigger and method callbacks.
-' Date:			2026-10-11
-' Author: 		Robert W.B. Linn (c) 2026 - MIT — see LICENSE file.
+' Date:			See process_globals VERSION.
+' Author: 		Robert W.B. Linn (c) 2026 - MIT - see LICENSE file.
 ' Description:	Listen to commands received from the connected OPC UA client.
-'				There are two events:
-'				OnTriggerCall = received if the client writes to node ns=1;s=Trigger
-'				OnMethodCall = received when the client invoked the method call.
+'				There are three events:
+'				OnDataWrite		- triggered if the client writes to a node
+'				OnTriggerCall	- triggered if the client writes to the specific nodeid ns=1;s=Trigger
+'				OnMethodCall	- received when the client invoked the method call.
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
 '				Unleash the 8MB Octal PSRAM footprint
@@ -39,7 +40,7 @@ Version=4
 'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
 
 Sub Process_Globals
-	Private VERSION 				As String = "rOpen62541 Callbacks v20261011"
+	Private VERSION 				As String = "rOpen62541 Callbacks v20261012"
 
 	' Communication
 	Public Serial1 					As Serial
@@ -50,11 +51,12 @@ Sub Process_Globals
 	' Open62541
 	Private OPCUAServer				As Open62541						' Lib rOpen62541
 	Private PORT 					As Int = 4840
+	' 
+	Private NODEID_TANK_SETPOINT	As String = "ns=1;s=Tank.Setpoint"	' Client writes to this node direct (value update)
 	Private NODEID_TRIGGER			As String = "ns=1;s=Trigger"		' Client sends string Trigger
 	Private NODEID_TRIGGER_RESULT	As String = "ns=1;s=TriggerResult"	' Store the trigger result which the client can subscribe to
 	Private NODEID_METHODCALL_A		As String = "ns=1;s=ExecuteJobA"	' Client sends callmethod
 	Private NODEID_METHODCALL_B		As String = "ns=1;s=ExecuteJobB"	' Client sends callmethod
-	Private NODEID_TANK_SETPOINT	As String = "ns=1;s=Tank.Setpoint"	' Client writes to node direct
 	
 	'Helper
 	Private bc As ByteConverter	'ignore
@@ -67,7 +69,7 @@ Sub AppStart
 	' Connect to the network first
 	If WiFi.Connect2(SSID, PW) Then
 		Log("[AppStart] WiFi connected > local ip=", WiFi.LocalIP)
-		' [AppStart] WiFi connected. IP=192.168.1.68
+		' [AppStart] WiFi connected. IP=192.168.1176
 
 		' DISABLE WI-FI SLEEP LAYERS
 		' Forces the ESP32-S3 Wi-Fi radio to stay 100% active, dropping latency
@@ -93,7 +95,7 @@ Private Sub InitOPCUAServer As Boolean
 	Dim TimeoutCounter As Int = 0
 	Dim ServerBootFailed As Boolean = False
 
-	Log("[InitOPCUAServerServer] Initializing...")
+	Log("[InitOPCUAServer] Initializing...")
 
 	' Spin up the Core 0 open62541 network engine with callback
 	OPCUAServer.Initialize( _
@@ -118,21 +120,22 @@ Private Sub InitOPCUAServer As Boolean
 	Loop
     
 	If ServerBootFailed Then
-		Log("[InitOPCUAServer][E] Initialization TIMEOUT! Core 0 failed.")
+		Log("[InitOPCUAServer][E] Initialization failed (TIMEOUT).")
 		' Optional: Run local emergency fallback routine or let local sensors run offline
 	Else
 		Log("[InitOPCUAServer] OK. Adding nodes...")
 
-		' Float node for OnDataWrite event
+		' OnDataWrite event
+		' Int node which value 0-100 is updated by the client > triggers the OnDataWrite event.
 		OPCUAServer.AddIntNode(NODEID_TANK_SETPOINT, "Tank Setpoint", 0)
 
 		' Trigger event
 		' Add trigger received from the client and call event OnMethodCall
-		' The clients sends the commands to set the state of the gate to open or closed.
 		OPCUAServer.AddTriggerNode(NODEID_TRIGGER, "Remote Trigger", "0")	
 		' > Event OnTriggerCall
 		' Node-RED example:
 		' Send string START or buffer [1,2,3]
+		' Add int node to sent the trigger result.
 		OPCUAServer.AddIntNode(NODEID_TRIGGER_RESULT, "Remote Trigger Result", 0)
 
 		' MethodCall event
@@ -141,7 +144,7 @@ Private Sub InitOPCUAServer As Boolean
 		' > Event OnMethodCall
 		' Node-RED Example:
 		' objectId = "ns=1;s=Factory_Floor"; methodId = "ns=1;s=ExecuteJob"; msg.inputArguments = [{dataType: "ByteString",value: "START_BATCH"}];
-		
+		' Second method node		
 		OPCUAServer.AddMethodNode(NODEID_METHODCALL_B, "Remote Method Call B", "OnMethodCallB")
 
 	End If
