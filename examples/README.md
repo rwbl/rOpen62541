@@ -27,12 +27,13 @@ The following examples are structured into dedicated sub-folders:
 - [**24-TankSim**](24-TankSim/) — Simulate 2 tanks levels.
 	- Example 1 `Node-RED` and `node-red-contrib-opcua` nodes.
 	- Example 2 `Fuxa`
+- [**80-PythonTests**](80-PythonTests/) — Python tests using package `asyncua`.
 
 ---
 
 ## Shared Folder
 
-- [**shared/**](shared/) — Centralized cross-project asset dependency utilities.
+- [**Shared/**](Shared/) — Centralized cross-project asset dependency utilities.
 	- Contains **`PyOpcUaClient.bas`**, a reusable B4J class module that wraps the `PyBridge` communication layer.
 	- Eliminates boilerplate code across multiple client dashboard applications (like `10-EnvSim`, `14-InOutput`, `20-DHT22`) by standardizing background Python `asyncua` task handling.
 	- Requires a valid Python runtime environment on the host PC with the `asyncua` package installed.
