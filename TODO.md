@@ -3,24 +3,23 @@
 ## Final Testing
 The API is freezed and complete final testing before releasing as v1.0.0. 
 **Testscenarios**
-| Priority | Test Goal                      | Test                                                          | Example       | Result        |
-|----------|--------------------------------|---------------------------------------------------------------|---------------|---------------|
-| H        | ByteString round-trip          |                                                               |               | ToDo          |
-| H        | Method callback + return code  | OPC UA Clients: B4J with PyBridge; Node-RED.                  | 12-MethodCall | OK            |
-| H        | Disconnect/reconnect           | NR client: 1. NR stopped/started; 2. ESP32 restarted.         | 20-DHT22      | OK            |
-| H        | Larger realistic flat node set | Two Tank simulator with 21 nodes (including soak test).       | 24-TankSim    | In progress   |
-| H        | 12–24 h soak test              | HA client. Monitoring with node `ns=1;s=System.AvailableRAM`. | 20-DHT22      | OK            |
-| M        | Namespace 1 / Namespace 2      | Namespace 2 deliberately not used in current API examples.    |               | Not required  |
-| M        | Multiple simultaneous clients  | HA, NR and opcua-commander connected simultaneously.          | 20-DHT22      | OK            |
+| Prio | Goal                           | Remarks                                           | Clients          | Example       | Result        |
+|------|--------------------------------|---------------------------------------------------|------------------|---------------|---------------|
+| H    | ByteString round-trip          |                                                   | B4J PyBridge     |               | ToDo          |
+| H    | Callbacks Trigger,Method,Write |                                                   | B4J PyBridge, NR | 12-MethodCall | OK            |
+| H    | Disconnect/reconnect           | Remove MCU power > wait > power up again.         | NR               | 20-DHT22      | OK            |
+| H    | Larger realistic flat node set | Two Tank simulator with 25+ nodes.                | NR, Fuxa         | 24-TankSim    | OK            |
+| H    | 12–24 h soak test              | Monitoring with node `ns=1;s=System.AvailableRAM`.| HA               | 20-DHT22      | OK            |
+| M    | Namespace 1 / Namespace 2      | `ns=2` deliberately not used in API examples      |                  |               | Not required  |
+| M    | Multiple simultaneous clients  |                                                   | HA, NR, OC       | 20-DHT22      | OK            |
 
-*Legend:* H = High, M = Medium, L = Low; HA = Home Assistant; NR = Node-RED.
+*Legend:* MCU = ESP32S3-N16R8; H = High, M = Medium, L = Low; HA = Home Assistant; NR = Node-RED; OC = opcua-commander
 
 #### Status
 The current B4R API has been tested, documented, and is stable enough that existing client applications should not need API changes.
 
 ## Additional Examples
 * Communication between B4R and B4J using the B4R Serializator - methods `WriteByteString` and `ReadByteString` as added in v0.90.
-* Two Tank simulator with more then 20 nodes. OPC UA client to be determined, like Node-RED (Dashboard), Fuxa.
 #### Status
 In progress.
 
