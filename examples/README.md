@@ -34,7 +34,7 @@ The following examples are structured into dedicated sub-folders:
 
 - [**shared/**](shared/) — Centralized cross-project asset dependency utilities.
 	- Contains **`PyOpcUaClient.bas`**, a reusable B4J class module that wraps the `PyBridge` communication layer.
-	- Eliminates boilerplate code across multiple client dashboard applications (`10-EnvSim`, `14-InOutput`, `20-DHT22`) by standardizing background Python `asyncua` task handling.
+	- Eliminates boilerplate code across multiple client dashboard applications (like `10-EnvSim`, `14-InOutput`, `20-DHT22`) by standardizing background Python `asyncua` task handling.
 	- Requires a valid Python runtime environment on the host PC with the `asyncua` package installed.
 
 ---

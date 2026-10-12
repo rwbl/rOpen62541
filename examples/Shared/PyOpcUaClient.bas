@@ -8,15 +8,18 @@ Version=10.7
 ' Project:      rOpen62541 (OPC UA Server Client Module)
 ' File:         PyOpcUaClient.bas
 ' Brief:        Proper Object-Oriented Class for managing OPC UA via PyBridge.
-' Date:         2026-10-12
+' Date:         See class_globals VERSION.
 ' Author:       Robert W.B. Linn (c) 2026 - MIT
 ' Description:  Manages asynchronous OPC UA connections and live telemetry 
 '               subscriptions using a decoupled producer-consumer memory queue.
-'				The trigger nodeid "ns=1;s=Trigger" is used to send a command to the OPC US Server.
+'				The trigger nodeid "ns=1;s=Trigger" is used to send a command to the OPC UA Server.
 '				(see InjectPythonCoreCode > write_trigger)
 #End Region
 
 Sub Class_Globals
+	' version
+	Public VERSION As String = "PyOpcUaClient v20261012"
+	
 	' UI
 	Private xui As XUI
 	
@@ -24,11 +27,19 @@ Sub Class_Globals
 	Private mTarget As Object
 	Private mEventName As String
 	
-	' OPC
+	' OPC UA events
 	Private EVENT_OPC_CONNECTION_CHANGED	As String = "opc_connection_changed"
 	Private EVENT_OPC_DATACHANGED 			As String = "opc_datachange"			' Python uses data_change, but B4J event data_changed to align with other B4J events
 	Private EVENT_OPC_BROWSE_ITEM			As String = "opc_browse_item"
+	Private EVENT_OPC_CALL_METHOD			As String = "opc_call_method"
+	Private EVENT_OPC_READ_RESULT			As String = "opc_read_result"
 	
+	' OPC UA public nodes
+	Public NODEID_ROOT_OBJECTS 				As String = "ns=0;i=85"
+	Public NODEID_FACTORY_FLOOR 			As String = "ns=1;s=Factory_Floor"
+	Public NODEID_TRIGGER					As String = "ns=1;s=Trigger"			' Trigger callback in B4R > onTriggerCallback
+	Public NODEID_TRIGGER_RESULT			As String = "ns=1;s=TriggerResult"
+		
 	' PyBridge Instance
 	Private Py As PyBridge
 	
@@ -141,18 +152,46 @@ def WriteBoolean(nodeid, cmd):
 	Return Py.RunCode("WriteBoolean", Array(NodeID, Value), CodeExec)
 End Sub
 
-' SendOpcTrigger 
-' Send (Write) method profile
-Public Sub SendOpcTrigger (NodeID As String, CommandValue As String) As PyWrapper
+' WriteTrigger 
+' Write special trigger
+Public Sub WriteTrigger (NodeID As String, CommandValue As String) As PyWrapper
 	Dim CodeExec As String = $"
-def SendOpcTrigger(nodeid, cmd):
+def WriteTrigger(nodeid, cmd):
     if global_worker:
         return global_worker.write_trigger(nodeid, cmd)
     return "Error"
 "$
-	Return Py.RunCode("SendOpcTrigger", Array(NodeID, CommandValue), CodeExec)
+	Return Py.RunCode("WriteTrigger", Array(NodeID, CommandValue), CodeExec)
 End Sub
+
+' Read
+' Read a nodeid value
+Public Sub Read (NodeID As String) As PyWrapper
+	Dim CodeExec As String = $"
+def Read(nodeid):
+    if global_worker:
+        return global_worker.read(nodeid)
+    return "Error"
+"$
+	Return Py.RunCode("Read", Array(NodeID), CodeExec)
+End Sub
+
 #End Region
+
+' CallMethod
+' Synchronously executes an explicit industrial OPC UA RPC method call on the remote ESP32-S3 Server.
+' Pass parameters directly as strings; the underlying engine handles automatic binary encoding layouts.
+Public Sub CallMethod(NodeId As String, Argument As String) As PyWrapper
+	' Send the string instruction command payload through the PyBridge pipe channel
+	Dim CodeExec As String = $"
+def CallMethod(nodeid, cmd):
+	if global_worker:
+		return global_worker.call_method(nodeid, cmd)
+"$
+	Return Py.RunCode("CallMethod", Array(NodeId, Argument), CodeExec)
+End Sub
+
+' EVENTS
 
 #Region Events
 ' Safe Asynchronous Event Queue Poller (Exactly 1 return value to prevent casting faults)
@@ -171,7 +210,7 @@ End Sub
 
 ' Core 2-parameter event handler dispatcher routing back up to the MainPage
 Public Sub RaiseB4jEvent (EventName As String, Value As Object)
-	Log($"[OpcUaClient] RaiseB4jEvent name=${EventName} | value=${Value}"$)
+	Log($"[PyOpcUaClient] RaiseB4jEvent name=${EventName}, value=${Value}"$)
 	' [OpcClient_DataChanged] Event Received nodeid=[ns=1;s=LedState] | value=0
 	
 	' Select the event raised
@@ -184,16 +223,15 @@ Public Sub RaiseB4jEvent (EventName As String, Value As Object)
 
 		Case EVENT_OPC_DATACHANGED
 			' Value arrives as a combined space-separated text string: "NodeID Value"
-			Dim Line As String = Value
-			Dim Parts() As String = Regex.Split(" ", Line)
+			Dim Parts() As String = Regex.Split(" ", Value)
 			
 			If Parts.Length > 1 Then
 				Dim NodeId As String = Parts(0).Trim
-				Dim RealValue As String = Parts(1).Trim
+				Dim NewValue As String = Parts(1).Trim
 					
 				' Forward the isolated components using CallSub3
 				If xui.SubExists(mTarget, mEventName & "_DataChanged", 1) Then
-					CallSub3(mTarget, mEventName & "_DataChanged", NodeId, RealValue)
+					CallSub3(mTarget, mEventName & "_DataChanged", NodeId, NewValue)
 				End If
 			End If
 			
@@ -220,8 +258,23 @@ Public Sub RaiseB4jEvent (EventName As String, Value As Object)
 				End If
 			End If
 
+		Case EVENT_OPC_CALL_METHOD
+			If xui.SubExists(mTarget, mEventName & "_MethodCalled",1) Then
+				CallSub2(mTarget, mEventName & "_MethodCalled", Value)
+			End If
+
+		Case EVENT_OPC_READ_RESULT
+			If xui.SubExists(mTarget, mEventName & "_ReadResult",1) Then
+				Dim Parts() As String = Regex.Split("#", Value)
+				If Parts.Length >= 2 Then
+					Dim NodeId As String = Parts(0).Trim
+					Dim NewValue As String = Parts(1).Trim
+					CallSub3(mTarget, mEventName & "_ReadResult", NodeId, NewValue)
+				End If
+			End If
+
 		Case Else
-			Log($"[OpcUaClient][W] RaiseB4jEvent unknown event name=${EventName} | value=${Value}"$)			
+			Log($"[PyOpcUaClient][W] RaiseB4jEvent unknown event name=${EventName} | value=${Value}"$)			
 	End Select
 End Sub
 #End Region
@@ -233,6 +286,7 @@ End Sub
 Private Sub InjectPythonCoreCode
 	Dim Code As String = $"
 import logging
+import json
 from asyncua import ua
 from asyncua.sync import Client
 logging.getLogger("asyncua").setLevel(logging.CRITICAL)	# Setting to CRITICAL surpresses connection error also
@@ -262,12 +316,12 @@ class OpcSyncWorker:
     def connect_server(self):
         global global_event_queue
         try:
-            print(f"[OpcUaClient] Connecting to {self.url}...", flush=True)
+            print(f"[PyOpcUaClient] Connecting to {self.url}...", flush=True)
             self.client.connect()
             self.is_connected = True
             global_event_queue.append({"event": "opc_connection_changed", "value": True})
         except Exception as err:
-            print(f"[OpcUaClient][E] Connection failed: {err}", flush=True)
+            print(f"[PyOpcUaClient][E] Connection failed: {err}", flush=True)
             self.is_connected = False
             global_event_queue.append({"event": "opc_connection_changed", "value": False})
 
@@ -310,7 +364,7 @@ class OpcSyncWorker:
 
         except Exception as err:
             print(
-                f"[OpcUaClient][W] Connection lost: {err}",
+                f"[PyOpcUaClient][W] Connection lost: {err}",
                 flush=True
             )
 
@@ -336,10 +390,10 @@ class OpcSyncWorker:
             # Reuse that single channel to monitor multiple nodes securely
             target_node = self.client.get_node(node_str)
             self.master_sub.subscribe_data_change(target_node)
-            print(f"[OpcUaClient] Subscribed cleanly to {node_str}", flush=True)
+            print(f"[PyOpcUaClient] Subscribed to {node_str}", flush=True)
         except Exception as err:
-            print(f"[OpcUaClient][E] Subscription error: {err}", flush=True)
-			# [OpcUaClient][E] Subscription error: The node id refers to a node that does not exist in the server address space.(BadNodeIdUnknown)
+            print(f"[PyOpcUaClient][E] Subscription to node {node_str} error: {err}", flush=True)
+			# [PyOpcUaClient][E] Subscription error: The node id refers to a node that does not exist in the server address space.(BadNodeIdUnknown)
 
     def write_trigger(self, nodeid_str, value_str):
         try:
@@ -349,7 +403,7 @@ class OpcSyncWorker:
             payload = ua.Variant(value_str, ua.VariantType.String)
             trigger_node.write_value(payload)
         except Exception as err:
-            print(f"[OpcUaClient][E] Write error: {err}", flush=True)
+            print(f"[PyOpcUaClient][E] Write error: {err}", flush=True)
 
     def write_boolean(self, nodeid_str, value_str):
         try:
@@ -366,9 +420,9 @@ class OpcSyncWorker:
             payload = ua.Variant(bool_value, ua.VariantType.Boolean)
             
             write_node.write_value(payload)
-            print(f"[OpcUaClient] Successfully wrote Boolean {bool_value} to {nodeid_str}")
+            print(f"[PyOpcUaClient] Successfully wrote Boolean {bool_value} to {nodeid_str}")
         except Exception as err:
-            print(f"[OpcUaClient][E] Write error: {err}", flush=True)
+            print(f"[PyOpcUaClient][E] Write error: {err}", flush=True)
 
     def write_int(self, nodeid_str, value_str):
         try:
@@ -383,9 +437,9 @@ class OpcSyncWorker:
             payload = ua.Variant(numeric_value, ua.VariantType.Int32)
             
             write_node.write_value(payload)
-            print(f"[OpcUaClient] Successfully wrote Int32 {numeric_value} to {nodeid_str}")
+            print(f"[PyOpcUaClient] Successfully wrote Int32 {numeric_value} to {nodeid_str}")
         except Exception as err:
-            print(f"[OpcUaClient][E] Write error: {err}", flush=True)
+            print(f"[PyOpcUaClient][E] Write error: {err}", flush=True)
 
     def write_float(self, nodeid_str, value_str):
         try:
@@ -400,9 +454,9 @@ class OpcSyncWorker:
             payload = ua.Variant(numeric_value, ua.VariantType.Float)
             
             write_node.write_value(payload)
-            print(f"[OpcUaClient] Successfully wrote float {numeric_value} to {nodeid_str}")
+            print(f"[PyOpcUaClient] Successfully wrote float {numeric_value} to {nodeid_str}")
         except Exception as err:
-            print(f"[OpcUaClient][E] Write error: {err}", flush=True)
+            print(f"[PyOpcUaClient][E] Write error: {err}", flush=True)
 
     def browse_and_sync_nodes(self, start_node_str):
         """
@@ -412,7 +466,7 @@ class OpcSyncWorker:
         global global_event_queue
         try:
             if not self.is_connected or not self.client:
-                print("[OpcUaClient][W] Discovery skipped - Client is offline", flush=True)
+                print("[PyOpcUaClient][W] Discovery skipped - Client is offline", flush=True)
                 return
             
             # 1. Target the requested node dynamically (e.g. "ns=1;s=Factory_Floor")
@@ -439,7 +493,71 @@ class OpcSyncWorker:
                 global_event_queue.append({"event": "opc_browse_item", "value": serialized_payload})
                 
         except Exception as err:
-            print(f"[OpcUaClient][E] Dynamic Python browsing failed: {err}", flush=True)
+            print(f"[PyOpcUaClient][E] Dynamic Python browsing failed: {err}", flush=True)
+
+    def call_method(self, method_node_str, value_str):
+        try:
+            if not self.is_connected:
+                return
+            
+            # Hardcode the absolute static Parent Object Node ID
+            parent_object = self.client.get_node("ns=1;s=Factory_Floor")
+            target_method = self.client.get_node(method_node_str)
+            
+            # Binary Translation: Encode string payload to raw UTF-8 bytes
+            payload = ua.Variant(value_str.encode("utf-8"), ua.VariantType.ByteString)
+            
+            print(f"[PyOpcUaClient] Invoking Method {method_node_str}...", flush=True)
+            
+            # Synchronous cross-core execution call
+            response = parent_object.call_method(target_method, payload)
+            print(f"[PyOpcUaClient] Method completed. Server return token code: {response}", flush=True)
+            global_event_queue.append({"event": "opc_call_method", "value": response})
+            
+        except Exception as err:
+            print(f"[PyOpcUaClient][E] Method invocation failed: {err}", flush=True)
+
+    def read(self, nodeid_str):
+        global global_event_queue
+        try:
+            if not self.is_connected:
+                return
+            
+            # Resolve the node target
+            read_node = self.client.get_node(nodeid_str)
+            
+            # Execute the synchronous read service call over the wire
+            val = read_node.read_value()
+            
+            # Serialize and push the data into the event queue for B4J to intercept
+            # Format: "ns=1;s=YourNode#Value" matches your subscription protocol setup
+			
+			# Check for the official ServerStatus Node ID or DataType properties
+            if nodeid_str == "ns=0;i=2256" or hasattr(val, 'BuildInfo'):
+                status_dict = {
+                    "is_complex": True,
+                    "StartTime": val.StartTime.isoformat() if val.StartTime else "N/A",
+                    "CurrentTime": val.CurrentTime.isoformat() if val.CurrentTime else "N/A",
+                    "State": str(val.State).split(".")[-1], # e.g. "Running"
+                    "ProductUri": val.BuildInfo.ProductUri,
+                    "ManufacturerName": val.BuildInfo.ManufacturerName,
+                    "ProductName": val.BuildInfo.ProductName,
+                    "SoftwareVersion": val.BuildInfo.SoftwareVersion,
+                    "BuildNumber": val.BuildInfo.BuildNumber
+                }
+                val_str = json.dumps(status_dict)
+            else:
+                # Normal scalar variables (Floats, Ints, Booleans)
+                val_str = str(val)
+
+            combined_payload = f"{nodeid_str}#{val_str}"
+            global_event_queue.append({"event": "opc_read_result", "value": combined_payload})
+            
+            print(f"[PyOpcUaClient] Successfully read node {nodeid_str} | Value: {val}", flush=True)
+            
+        except Exception as err:
+            print(f"[PyOpcUaClient][E] Read error on {nodeid_str}: {err}", flush=True)
+
 
 def InjectPythonCoreCode():
     return "Ready"
