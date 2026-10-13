@@ -11,7 +11,7 @@
  *       ns=1;s=Factory_Floor.Sensors.Temperature
  *       ns=1;s=Factory_Floor.System.AvailableRAM
  * @version See below version
- * @date 2026-10-11
+ * @date 2026-10-12
  * @author Robert W. B. Linn (c) 2026 — MIT License provided with rOpen62541.
  */
 
@@ -21,7 +21,7 @@
 // Open 62541 library stored locally
 #include "open62541.h"
 
-//~version: 0.95
+//~version: 0.96
 namespace B4R {
 	//~shortname: Open62541
 	
@@ -164,7 +164,7 @@ namespace B4R {
 			 * Perfect for transferring B4RSerializator binary buffers or plain byte sets.
 			 * @param NodeIdentifier The targeting unique string Node ID (e.g., "ns=1;s=BinaryData").
 			 * @param DisplayName The human-readable string representation exposed to SCADA clients.
-			 * @param InitialBytes The starting B4R ArrayByte buffer package payload to assign on boot.
+			 * @param InitialBytes The starting B4R ArrayByte buffer package payload to assign on boot (do not set Null).
 			 */
 			void AddByteStringNode(B4RString* NodeIdentifier, B4RString* DisplayName, ArrayByte* InitialBytes);
 
@@ -197,7 +197,7 @@ namespace B4R {
 			 */
 
 			/**
-			 * Thread-safely updates an active OPC UA Float variable node.
+			 * Updates an active OPC UA Float variable node.
 			 * Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 			 * @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=Tank1.Level").
 			 * @param NewValue The floating-point value payload to assign.
@@ -205,7 +205,7 @@ namespace B4R {
 			void WriteFloat(B4RString* NodeIdentifier, float NewValue);
 
 			/**
-			 * Thread-safely updates an active OPC UA Int32 variable node.
+			 * Updates an active OPC UA Int32 variable node.
 			 * Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 			 * @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=Counter").
 			 * @param NewValue The signed 32-bit integer value payload to assign.
@@ -213,7 +213,7 @@ namespace B4R {
 			void WriteInt(B4RString* NodeIdentifier, Int NewValue);
 
 			/**
-			 * Thread-safely updates an active OPC UA UInt32 variable node.
+			 * Updates an active OPC UA UInt32 variable node.
 			 * Perfect for transferring B4R ULong values or memory metrics cleanly without floating-point shifts.
 			 * Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 			 * @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=System.AvailableRAM").
@@ -222,7 +222,7 @@ namespace B4R {
 			void WriteUInt(B4RString* NodeIdentifier, UInt NewValue);
 
 			/**
-			 * Thread-safely updates an active OPC UA Boolean variable node.
+			 * Updates an active OPC UA Boolean variable node.
 			 * Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 			 * @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=Relay1.State").
 			 * @param NewValue The Boolean flag state status to assign.
@@ -230,7 +230,7 @@ namespace B4R {
 			void WriteBoolean(B4RString* NodeIdentifier, bool NewValue);
 
 			/**
-			 * Thread-safely updates an active OPC UA Int64 variable node.
+			 * Updates an active OPC UA Int64 variable node.
 			 * Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 			 * @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=LargeCounter").
 			 * @param NewValue The signed 64-bit integer value payload to assign.
@@ -238,7 +238,7 @@ namespace B4R {
 			void WriteLong(B4RString* NodeIdentifier, Long NewValue);
 
 			/**
-			 * Thread-safely updates an active OPC UA UInt64 variable node.
+			 * Updates an active OPC UA UInt64 variable node.
 			 * Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 			 * @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=LargeUnsignedCounter").
 			 * @param NewValue The unsigned 64-bit integer value payload to assign.
@@ -246,7 +246,7 @@ namespace B4R {
 			void WriteULong(B4RString* NodeIdentifier, ULong NewValue);
 
 			/**
-			 * Thread-safely writes a string text payload into an active OPC UA node.
+			 * writes a string text payload into an active OPC UA node.
 			 * Automatically handles string memory copying and verifies the target node data type.
 			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 			 * @param NewValue The B4RString payload to write into the node address space.
@@ -254,7 +254,7 @@ namespace B4R {
 			void WriteString(B4RString* NodeIdentifier, B4RString* NewValue);
 
 			/**
-			 * Thread-safely writes a binary ByteString payload into an active OPC UA node.
+			 * writes a binary ByteString payload into an active OPC UA node.
 			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 			 * @param Data The B4R ArrayByte payload to write into the node address space.
 			 */
@@ -266,7 +266,7 @@ namespace B4R {
 
 			/**
 			 * OPC UA Standard Read Service.
-			 * Thread-safely reads a node value using a numeric identifier.
+			 * reads a node value using a numeric identifier.
 			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=0) and the string identifier (i=2258) (e.g., "ns=0;i=2258" for the server time).
 			 * @return Returns the scalar node value formatted as a B4R String.
 			 */
@@ -274,7 +274,7 @@ namespace B4R {
 
 			/**
 			 * OPC UA Standard Read Service.
-			 * Thread-safely reads a node value using a string identifier.
+			 * reads a node value using a string identifier.
 			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 			 * @return A B4RString pointer containing the text-formatted value payload.
 			 */
@@ -282,7 +282,7 @@ namespace B4R {
 
 			/**
 			 * OPC UA Standard Read Service.
-			 * Thread-safely reads a binary ByteString value using a string identifier.
+			 * reads a binary ByteString value using a string identifier.
 			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=ServerData) (e.g., "ns=1;s=ServerData").
 			 * @return An ArrayByte containing the binary ByteString payload.
 			 */

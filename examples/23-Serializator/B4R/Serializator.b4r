@@ -1,0 +1,172 @@
+﻿Build1=Default,B4RDev
+Group=Default Group
+Library1=rconvert
+Library2=rcore
+Library3=resp8266wifi
+Library4=ropen62541
+Library5=rrandomaccessfile
+NumberOfFiles=0
+NumberOfLibraries=5
+NumberOfModules=0
+Version=4
+@EndOfDesignText@
+#Region Project Header
+'==============================================
+' Project:		rOpen62541
+' Brief:		Example read/write bytestring using the B4RSerializator.
+' Date:			See process_globals VERSION
+' Author: 		Robert W.B. Linn (c) 2026 - MIT
+' Description:	Read 2 serialized objects received froma B4J client.
+' OPC UA Nodes:	2 children under ns=1;s=Factory_Floor
+'				value=ns=1;s=ByteString|ByteString|Variable
+'				value=ns=1;s=Int|Int|Variable
+' Hardware:		ESP32-S3-N16R8
+'				Board settings:
+'				- Unleash the 8MB Octal PSRAM footprint
+'				- Partitionscheme: Huge App
+'				- PSRAM: OPI PSRAM
+' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
+'				Arduino Board Manager ESP32 3.3.12.
+'				rOpen62541 0.90, rESP32DHT 1.00, rRandomAccessFile 1.91.
+' Wiring:		N/A
+'==============================================
+#End Region
+
+#Region Project Attributes
+	#AutoFlushLogs: True
+	#CheckArrayBounds: True
+	#StackBufferSize: 900
+#End Region
+'Ctrl+Click to open the C code folder: ide://run?File=%WINDIR%\System32\explorer.exe&Args=%PROJECT%\Objects\Src
+
+Sub Process_Globals
+	Private VERSION 			As String = "rOpen62541 Serializator v20261013"
+
+	' Communication
+	Public Serial1 				As Serial
+	Private WiFi 				As ESP8266WiFi						' Lib rESP8266WiFi
+	Private SSID				As String = "***"
+	Private PW 					As String = "***"
+
+	Private Ser					As B4RSerializator					' Lib rRandomAccessFile
+	Private SerBuffer(10) 		As Object 							' Objects storage buffer
+	
+	' Open62541
+	Private OPCUAServer			As Open62541						' Lib rOpen62541
+	Private PORT 				As Int = 4840
+
+	' Nodes
+	Private NODEID_BYTESTRING	As String = "ns=1;s=ByteString"		' Triggers event OnDataWrite
+	Private NODEID_INT			As String = "ns=1;s=Int"			' Triggers event OnDataWrite
+
+End Sub
+
+Sub AppStart
+	Serial1.Initialize(115200)
+	Log(CRLF, "[AppStart] ", VERSION)
+
+
+	' Connect to the network
+	If WiFi.Connect2(SSID, PW) Then
+		Log("[AppStart] WiFi connected > local ip=", WiFi.LocalIP)
+		' [AppStart] WiFi connected. IP=192.168.1.68
+
+		RunNative("DisableWiFiSleep", Null)
+		RunNative("SetSystemClock", Null)
+	       
+		Log("[AppStart] Init OPC UA server")
+		If InitOPCUAServer Then
+			Log("[AppStart] OPC UA server started")
+		End If
+	Else
+		Log("[AppStart][E] WiFi Connection Failed")
+	End If
+End Sub
+
+#Region OPCUAServer
+' InitOPCUAServer
+' Steps:
+' Init the server with ip, port and client callback
+' Wait till the opc server has been started successfully
+' Add various nodes
+Private Sub InitOPCUAServer As Boolean
+	Dim TimeoutCounter As Int = 0
+	Dim ServerBootFailed As Boolean = False
+
+	Log("[InitOPCUAServer] Initializing...")
+	OPCUAServer.Initialize(WiFi.LocalIp, PORT, _
+						   "", "", _				' No auth
+						   Null, _					' No trigger event used
+						   "OnDataWrite")			' Event when node value gets updated > OnDataWrite(nodeid As String, buffer() As Byte)
+	
+	' Wait for the background thread layout initialization to complete!
+	Log("[InitOPCUAServer] Awaiting background core network initialization...")
+	Do While OPCUAServer.IsReady = False
+		' 100ms yield ticks for the cooperative scheduler
+		Delay(100) 
+        
+		TimeoutCounter = TimeoutCounter + 1
+		' 50 ticks * 100ms = 5000ms (5 Seconds Timeout)
+		If TimeoutCounter >= 50 Then 
+			ServerBootFailed = True
+			' Break out of the endless loop safely!
+			Exit 
+		End If
+	Loop
+    
+	If ServerBootFailed Then
+		Log("[InitOPCUAServer][E] Failed by timeout.")
+		' Optional: Run local emergency fallback routine or let local sensors run offline
+	Else
+		Log("[InitOPCUAServer] OK")
+		
+		' Register node
+		OPCUAServer.AddByteStringNode(NODEID_BYTESTRING, "ByteString", Array As Byte(0))
+		OPCUAServer.AddIntNode(NODEID_INT, "Int", 1958)
+
+		Log("[InitOPCUAServer] Nodes registered")
+	End If
+	Return Not(ServerBootFailed)
+End Sub
+
+'==============================================
+' EVENTS
+'==============================================
+
+' OnDataWrite
+' Event fired when the client writes to a node.
+Private Sub OnDataWrite(nodeid As String, buffer() As Byte)
+	Log("[OnDataWrite] nodeid=", nodeid, ", buffer=", Convert.BytesToHex(buffer))
+	
+	Select nodeid
+		Case NODEID_BYTESTRING
+			Dim data() As Object = Ser.ConvertBytesToArray(buffer, SerBuffer)
+			If data.Length = 2 Then
+				Log("[OnDataWrite] nodeid=", nodeid, ", objects=", data.Length, ", object1=", data(0), ", object2=", data(1))	
+				' [OnDataWrite] nodeid=ns=1;s=ByteString, objects=2, object1=1958, object2=98
+			End If
+			
+		Case NODEID_INT
+			Log("[OnDataWrite] nodeid=", nodeid, ", value=", Convert.BytesToInt(buffer))
+			' [OnDataWrite] nodeid=ns=1;s=Int, value=361
+	End Select
+End Sub
+#End Region
+
+#if C
+#include "esp_wifi.h"
+
+void DisableWiFiSleep(B4R::Object* o) {
+    // Force Espressif lwIP stack to set Power Save to NONE
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    ::Serial.println("[DisableWiFiSleep] Disabled > Radio set to high-performance mode.");
+}
+
+// RunNative("SetSystemClock", Null)
+void SetSystemClock(B4R::Object* o) {
+    // Configures the system to poll pool.ntp.org with a standard global UTC offset
+    // Adjust the 3600 (seconds) based on your target local timezone offset (e.g. 3600 = UTC+1)
+    configTime(3600, 0, "pool.ntp.org", "time.nist.gov");
+    ::Serial.println("[Hardware Engine] SNTP Client started. Synchronizing baseline...");
+}
+#End If

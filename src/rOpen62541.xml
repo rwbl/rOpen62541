@@ -239,7 +239,7 @@ into the global trigger buffer. Supported types include:
         </method>
         <method>
             <name DesignerName="WriteFloat">WriteFloat</name>
-            <comment>Thread-safely updates an active OPC UA Float variable node.
+            <comment>Updates an active OPC UA Float variable node.
 Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=Tank1.Level").
 @param NewValue The floating-point value payload to assign.</comment>
@@ -255,7 +255,7 @@ Temporarily lowers the user-callback execution flag to ensure internal values ar
         </method>
         <method>
             <name DesignerName="WriteInt">WriteInt</name>
-            <comment>Thread-safely updates an active OPC UA Int32 variable node.
+            <comment>Updates an active OPC UA Int32 variable node.
 Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=Counter").
 @param NewValue The signed 32-bit integer value payload to assign.</comment>
@@ -271,7 +271,7 @@ Temporarily lowers the user-callback execution flag to ensure internal values ar
         </method>
         <method>
             <name DesignerName="WriteUInt">WriteUInt</name>
-            <comment>Thread-safely updates an active OPC UA UInt32 variable node.
+            <comment>Updates an active OPC UA UInt32 variable node.
 Perfect for transferring B4R ULong values or memory metrics cleanly without floating-point shifts.
 Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=System.AvailableRAM").
@@ -288,7 +288,7 @@ Temporarily lowers the user-callback execution flag to ensure internal values ar
         </method>
         <method>
             <name DesignerName="WriteBoolean">WriteBoolean</name>
-            <comment>Thread-safely updates an active OPC UA Boolean variable node.
+            <comment>Updates an active OPC UA Boolean variable node.
 Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=Relay1.State").
 @param NewValue The Boolean flag state status to assign.</comment>
@@ -304,7 +304,7 @@ Temporarily lowers the user-callback execution flag to ensure internal values ar
         </method>
         <method>
             <name DesignerName="WriteLong">WriteLong</name>
-            <comment>Thread-safely updates an active OPC UA Int64 variable node.
+            <comment>Updates an active OPC UA Int64 variable node.
 Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=LargeCounter").
 @param NewValue The signed 64-bit integer value payload to assign.</comment>
@@ -320,7 +320,7 @@ Temporarily lowers the user-callback execution flag to ensure internal values ar
         </method>
         <method>
             <name DesignerName="WriteULong">WriteULong</name>
-            <comment>Thread-safely updates an active OPC UA UInt64 variable node.
+            <comment>Updates an active OPC UA UInt64 variable node.
 Temporarily lowers the user-callback execution flag to ensure internal values are updated silently.
 @param NodeIdentifier The complete NodeId string (e.g., "ns=1;s=LargeUnsignedCounter").
 @param NewValue The unsigned 64-bit integer value payload to assign.</comment>
@@ -336,7 +336,7 @@ Temporarily lowers the user-callback execution flag to ensure internal values ar
         </method>
         <method>
             <name DesignerName="WriteString">WriteString</name>
-            <comment>Thread-safely writes a string text payload into an active OPC UA node.
+            <comment>writes a string text payload into an active OPC UA node.
 Automatically handles string memory copying and verifies the target node data type.
 @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 @param NewValue The B4RString payload to write into the node address space.</comment>
@@ -352,7 +352,7 @@ Automatically handles string memory copying and verifies the target node data ty
         </method>
         <method>
             <name DesignerName="WriteByteString">WriteByteString</name>
-            <comment>Thread-safely writes a binary ByteString payload into an active OPC UA node.
+            <comment>writes a binary ByteString payload into an active OPC UA node.
 @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 @param Data The B4R ArrayByte payload to write into the node address space.</comment>
             <returntype>B4R::void</returntype>
@@ -368,7 +368,7 @@ Automatically handles string memory copying and verifies the target node data ty
         <method>
             <name DesignerName="ReadNumeric">ReadNumeric</name>
             <comment>OPC UA Standard Read Service.
-Thread-safely reads a node value using a numeric identifier.
+reads a node value using a numeric identifier.
 @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=0) and the string identifier (i=2258) (e.g., "ns=0;i=2258" for the server time).
 @return Returns the scalar node value formatted as a B4R String.</comment>
             <returntype>B4R::B4RString*</returntype>
@@ -380,7 +380,7 @@ Thread-safely reads a node value using a numeric identifier.
         <method>
             <name DesignerName="ReadString">ReadString</name>
             <comment>OPC UA Standard Read Service.
-Thread-safely reads a node value using a string identifier.
+reads a node value using a string identifier.
 @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Temperature) (e.g., "ns=1;s=Temperature").
 @return A B4RString pointer containing the text-formatted value payload.</comment>
             <returntype>B4R::B4RString*</returntype>
@@ -392,7 +392,7 @@ Thread-safely reads a node value using a string identifier.
         <method>
             <name DesignerName="ReadByteString">ReadByteString</name>
             <comment>OPC UA Standard Read Service.
-Thread-safely reads a binary ByteString value using a string identifier.
+reads a binary ByteString value using a string identifier.
 @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=ServerData) (e.g., "ns=1;s=ServerData").
 @return An ArrayByte containing the binary ByteString payload.</comment>
             <returntype>Byte[]</returntype>
@@ -432,5 +432,5 @@ Thread-safely reads a binary ByteString value using a string identifier.
             <returntype>ULong</returntype>
         </field>
     </class>
-    <version>0.95</version>
+    <version>0.96</version>
 </root>

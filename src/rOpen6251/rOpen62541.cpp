@@ -25,7 +25,8 @@ static volatile size_t globalTriggerLength = 0;
 // Generic Variable Data Write Context 
 static volatile bool scadaDataWriteCalled = false;     	// Flag for standard node updates
 static char globalWriteNodeIdBuffer[64]; 				// Safe space for full "ns=1;s=..." string
-static uint8_t globalWriteValueBuffer[4]; 				// Simple 4-byte container for numeric data
+static uint8_t globalWriteValueBuffer[64];
+static size_t globalWriteValueLength = 0;
 static volatile bool isOnDataWrite = true; 				// Controlled exclusively by internal Write methods
 
 // Method Call initiated from OPCUA client (Method Call)
@@ -112,29 +113,90 @@ namespace B4R {
 							const UA_NodeId *sessionId, void *sessionContext,
 							const UA_NodeId *nodeId, void *nodeContext,
 							const UA_NumericRange *range, const UA_DataValue *value) {
-		
+
 		// If an internal write method lowered this flag, exit instantly!
 		if (!isOnDataWrite) return;
-		
+				
 		if (nodeId == NULL || nodeId->identifierType != UA_NODEIDTYPE_STRING) return;
+		if (value == NULL || !value->hasValue) return;
+
 		const UA_Variant *data = &value->value;
-		if (data == NULL || data->data == NULL) return; 
+		if (data->data == NULL || !UA_Variant_isScalar(data)) return;
 
-		// Format the full ID cleanly
+		// ::Serial.printf("[rOpen62541] Variant type index: %u\n", (unsigned)data->type->typeIndex);
+		// ::Serial.printf("[rOpen62541] Is scalar: %s\n", data->arrayLength == 0 ? "yes" : "no");
+
+		// Format the full Node ID
 		int nodeIdLen = (int)nodeId->identifier.string.length;
-		if (nodeIdLen > 52) nodeIdLen = 52; 
-		snprintf(globalWriteNodeIdBuffer, sizeof(globalWriteNodeIdBuffer), "ns=%d;s=%.*s", 
-				 nodeId->namespaceIndex, nodeIdLen, (const char*)nodeId->identifier.string.data);
+		if (nodeIdLen > 52) nodeIdLen = 52;
 
-		// Store the raw numeric memory block
-		memset(globalWriteValueBuffer, 0, 4);
+		snprintf(globalWriteNodeIdBuffer, sizeof(globalWriteNodeIdBuffer),
+				 "ns=%d;s=%.*s",
+				 nodeId->namespaceIndex, nodeIdLen,
+				 (const char*)nodeId->identifier.string.data);
+
+		// Reset the shared value buffer
+		memset(globalWriteValueBuffer, 0, sizeof(globalWriteValueBuffer));
+		globalWriteValueLength = 0;
+
+		// Boolean: 1 byte
 		if (UA_Variant_hasScalarType(data, &UA_TYPES[UA_TYPES_BOOLEAN])) {
-			memcpy(globalWriteValueBuffer, data->data, 1);
-		} else {
-			memcpy(globalWriteValueBuffer, data->data, 4); // Handles Float, Int32, UInt32 uniformly
+			globalWriteValueLength = sizeof(UA_Boolean);
+		}
+		// 32-bit numeric values: 4 bytes
+		else if (UA_Variant_hasScalarType(data, &UA_TYPES[UA_TYPES_FLOAT]) ||
+				 UA_Variant_hasScalarType(data, &UA_TYPES[UA_TYPES_INT32]) ||
+				 UA_Variant_hasScalarType(data, &UA_TYPES[UA_TYPES_UINT32])) {
+			globalWriteValueLength = 4;
+		}
+		// 64-bit numeric values and DateTime: 8 bytes
+		else if (UA_Variant_hasScalarType(data, &UA_TYPES[UA_TYPES_DOUBLE]) ||
+				 UA_Variant_hasScalarType(data, &UA_TYPES[UA_TYPES_DATETIME])) {
+			globalWriteValueLength = 8;
+		}
+		// String: copy the string payload
+		else if (UA_Variant_hasScalarType(data, &UA_TYPES[UA_TYPES_STRING])) {
+			const UA_String *str = (const UA_String*)data->data;
+			globalWriteValueLength = str->length;
+
+			if (globalWriteValueLength > sizeof(globalWriteValueBuffer)) {
+				globalWriteValueLength = sizeof(globalWriteValueBuffer);
+			}
+
+			if (globalWriteValueLength > 0 && str->data != NULL) {
+				memcpy(globalWriteValueBuffer, str->data, globalWriteValueLength);
+			}
+
+			scadaDataWriteCalled = true;
+			return;
+		}
+		// ByteString: copy the raw payload
+		else if (UA_Variant_hasScalarType(data, &UA_TYPES[UA_TYPES_BYTESTRING])) {
+			const UA_ByteString *bs = (const UA_ByteString*)data->data;
+			globalWriteValueLength = bs->length;
+
+			if (globalWriteValueLength > sizeof(globalWriteValueBuffer)) {
+				globalWriteValueLength = sizeof(globalWriteValueBuffer);
+			}
+
+			if (globalWriteValueLength > 0 && bs->data != NULL) {
+				memcpy(globalWriteValueBuffer, bs->data, globalWriteValueLength);
+			}
+
+			scadaDataWriteCalled = true;
+			return;
+		}
+		else {
+			// Unsupported datatype
+			return;
 		}
 
-		scadaDataWriteCalled = true; 
+		// Copy the raw numeric value
+		if (globalWriteValueLength > sizeof(globalWriteValueBuffer)) return;
+
+		memcpy(globalWriteValueBuffer, data->data, globalWriteValueLength);
+
+		scadaDataWriteCalled = true;
 	}
 
     // ============================================================================
@@ -170,7 +232,7 @@ namespace B4R {
 
 				ArrayByte* b4rValueBytes = CreateStackMemoryObject(ArrayByte);
 				b4rValueBytes->data = (Byte*)globalWriteValueBuffer;
-				b4rValueBytes->length = 4; // Always pass 4 bytes for uniform simplicity
+				b4rValueBytes->length = globalWriteValueLength;
 
 				me->DataWriteSub(b4rNodeId, b4rValueBytes);
 
@@ -230,7 +292,7 @@ namespace B4R {
         buildOpcUaTree();
 
         if (UA_Server_run_startup(server) == UA_STATUSCODE_GOOD) {
-            ::Serial.println("[opcuaServerTask] OPC UA Server successfully running on Core 0!");
+            // ::Serial.println("[opcuaServerTask] OPC UA Server successfully running on Core 0!");
             globalIsReady = true; 
         } else {
             ::Serial.println("[opcuaServerTask][E] Critical open62541 Startup Sequence Failed!");
@@ -558,7 +620,7 @@ namespace B4R {
 									  UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), 
 									  vAttr, NULL, NULL);
 
-			// UA_Server_setVariableNode_valueCallback(server, targetNodeId, *(new UA_ValueCallback{NULL, onDataWrite}));
+			UA_Server_setVariableNode_valueCallback(server, targetNodeId, *(new UA_ValueCallback{NULL, onDataWrite}));
 
 			xSemaphoreGive(open62541Mutex);
 		}
@@ -593,7 +655,7 @@ namespace B4R {
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), 
                                       vAttr, NULL, NULL);
 
-			// UA_Server_setVariableNode_valueCallback(server, targetNodeId, *(new UA_ValueCallback{NULL, onDataWrite}));
+			UA_Server_setVariableNode_valueCallback(server, targetNodeId, *(new UA_ValueCallback{NULL, onDataWrite}));
                                       
             xSemaphoreGive(open62541Mutex);
         }

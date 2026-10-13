@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## v0.95 BETA (Build 20261011)
+## v0.96 BETA (Build 20261013)
+**Focus: Finalizing Type-Explicit Write API**
+- NEW: Universal `OnDataWrite` background routing callback engine added `ByteString` and increased to max 64-byte raw value payload array.
+- NEW: Example `ByteString` with standard byte array and serialized byte array (`B4RSerializator`).
+
+## v0.95 (Build 20261011)
 **Focus: Bi-Directional SCADA Control, Type-Explicit Write API & Multi-Method Architecture Optimization**
 - NEW: [CRITICAL] Introduced a type-explicit internal Write API (`WriteFloat`, `WriteInt`, `WriteUInt`, `WriteBoolean`, `WriteLong`, `WriteULong`) that directly aligns with native B4R types (`Float`, `Int`, `UInt`, `Long`, `ULong`). This bypasses unstable 64-bit floating-point `double` casting, ensuring exact bit-level matching inside open62541 memory registers.
 - NEW: [CRITICAL] Implemented a thread-safe execution barrier flag (`isOnDataWrite`) inside the synchronized mutex scope of all internal write methods. This guarantees that internal server loops (such as sensor updates or tracking `AvailableRAM`) execute silently without triggering recursive user-facing callbacks or watchdog timeouts.
