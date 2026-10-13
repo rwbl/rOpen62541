@@ -5,8 +5,8 @@ The API is freezed and complete final testing before releasing as v1.0.0.
 **Testscenarios**
 | Prio | Goal                           | Remarks                                           | Clients          | Example       | Result        |
 |------|--------------------------------|---------------------------------------------------|------------------|---------------|---------------|
-| H    | ByteString round-trip          |                                                   | B4J PyBridge     |               | ToDo          |
-| H    | Callbacks Trigger,Method,Write |                                                   | B4J PyBridge, NR | 12-MethodCall | OK            |
+| H    | ByteString round-trip          |                                                   | B4J PyBridge     | 22-ByteString | OK            |
+| H    | Callbacks Trigger,Method,Write |                                                   | B4J PyBridge, NR | 12-Callbacks  | OK            |
 | H    | Disconnect/reconnect           | Remove MCU power > wait > power up again.         | NR               | 20-DHT22      | OK            |
 | H    | Larger realistic flat node set | Two Tank simulator with 25+ nodes.                | NR, Fuxa         | 24-TankSim    | OK            |
 | H    | 12–24 h soak test              | Monitoring with node `ns=1;s=System.AvailableRAM`.| HA               | 20-DHT22      | OK            |

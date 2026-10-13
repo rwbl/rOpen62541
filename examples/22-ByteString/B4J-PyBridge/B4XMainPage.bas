@@ -9,13 +9,7 @@ Version=9.85
 ' Brief:		OPC UA client for the ByteStringexample.
 ' Date:			See class_globals VERSION.
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
-' Description:	Subscribe to the OPC UA server nodes Temperature and Humidity.
-'				Display the data tiles from the library HMITilesIO.
-' OPC UA Nodes:	4 children under ns=1;s=Factory_Floor
-'				value=ns=1;s=Temperature|Temperature|Variable
-'				value=ns=1;s=Humidity|Humdity|Variable
-'				value=ns=1;s=Trigger|Remote Action Trigger|Variable
-'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Object
+' Description:	Read/write a byte staring (array as byte).
 ' DependsOn:	PyBridge (http://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/)
 '				Python package asyncua (https://pypi.org) v2.0.1
 '				HMITilesIO 0.70 (https://www.b4x.com/android/forum/threads/HMITilesIO.171863/)
@@ -188,7 +182,7 @@ Private Sub OpcUaClient_ConnectionChanged (Connected As Boolean)
 	' If successfully online, activate the subscriptions
 	If Connected = True Then
 		' Subscribe to reading nodes here
-		' ...			
+		OpcUaClient.Subscribe(NODEID_BYTESTRING)
 		' Give the ESP32 network stack a tiny 100ms break to register the table writes
 		Sleep(100)
 		TileIOConnectSwitch.Footer = "Connected"
@@ -198,10 +192,22 @@ Private Sub OpcUaClient_ConnectionChanged (Connected As Boolean)
 	End If
 End Sub
 
+' OpcUaClient_DataChanged 
 ' Raised automatically whenever the ESP32 server signals a subscription update!
-' [OpcUaClient_DataChanged] Event Received nodeid=[ns=1;s=LedState] value=1
 Private Sub OpcUaClient_DataChanged (NodeId As String, Value As String)
 	Log($"[OpcUaClient_DataChanged] Event Received nodeid=[${NodeId}] | value=${Value}"$)
+	' [OpcUaClient_DataChanged] Event Received nodeid=[ns=1;s=ByteString] | value=E7010000
+	
+	Select NodeId
+		Case NODEID_BYTESTRING
+			' Only convert 4-byte integer
+			' [PyOpcUaClient] RaiseB4jEvent name=opc_datachange, value=ns=1;s=ByteString 6E010000
+			If Value.Length = 8 Then
+				Log($"[OpcUaClient_DataChanged] Event Received nodeid=[${NodeId}] | value=${HexToInt(Value)}"$)
+				' [OpcUaClient_DataChanged] Event Received nodeid=[ns=1;s=ByteString] | value=487				
+			End If
+	End Select
+		
 End Sub
 #End Region
 
@@ -265,4 +271,17 @@ Public Sub GetNodeIdentifier(msg As String) As String
 		result = components(1).Replace("s=", "")
 	End If
 	Return result
+End Sub
+
+' HexToInt
+' Convert HEX string to Integer
+Public Sub HexToInt(hex As String) As Int
+	hex = hex.Replace("#", "")
+	Dim data() As Byte = ByteConv.HexToBytes(hex)
+	Dim v As Int = Bit.Or( _
+	    Bit.Or(Bit.ShiftLeft(Bit.And(data(3), 0xFF), 24), _
+	           Bit.ShiftLeft(Bit.And(data(2), 0xFF), 16)), _
+	    Bit.Or(Bit.ShiftLeft(Bit.And(data(1), 0xFF), 8), _
+	           Bit.And(data(0), 0xFF)))
+	Return v
 End Sub

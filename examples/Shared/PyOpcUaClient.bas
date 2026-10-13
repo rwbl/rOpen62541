@@ -35,7 +35,7 @@ Sub Class_Globals
 	' OPC UA public nodes
 	Public NODEID_ROOT_OBJECTS 				As String = "ns=0;i=85"
 	Public NODEID_FACTORY_FLOOR 			As String = "ns=1;s=Factory_Floor"
-	Public NODEID_TRIGGER					As String = "ns=1;s=Trigger"			' Trigger callback in B4R > onTriggerCallback
+	Public NODEID_TRIGGER					As String = "ns=1;s=Trigger"			' Trigger callback in B4R > onTriggerCall
 	Public NODEID_TRIGGER_RESULT			As String = "ns=1;s=TriggerResult"
 		
 	' PyBridge Instance
@@ -244,13 +244,15 @@ Public Sub RaiseB4jEvent (EventName As String, Value As Object)
 			End If
 
 		Case EVENT_OPC_DATACHANGED
-			' Value arrives as a combined space-separated text string: "NodeID Value"
-			Dim Parts() As String = Regex.Split(" ", Value)
-			
-			If Parts.Length > 1 Then
-				Dim NodeId As String = Parts(0).Trim
-				Dim NewValue As String = Parts(1).Trim
-					
+			' Value arrives as: "NodeID Value"
+			Dim ValueStr As String = Value
+			' Split only at the first space to preserve the complete value.
+			Dim Separator As Int = ValueStr.IndexOf(" ")
+
+			If Separator > 0 Then
+				Dim NodeId As String = ValueStr.SubString2(0, Separator).Trim
+				Dim NewValue As String = ValueStr.SubString(Separator + 1).Trim
+
 				' Forward the isolated components using CallSub3
 				If xui.SubExists(mTarget, mEventName & "_DataChanged", 1) Then
 					CallSub3(mTarget, mEventName & "_DataChanged", NodeId, NewValue)
@@ -287,11 +289,19 @@ Public Sub RaiseB4jEvent (EventName As String, Value As Object)
 
 		Case EVENT_OPC_READ_RESULT
 			If xui.SubExists(mTarget, mEventName & "_ReadResult",1) Then
-				Dim Parts() As String = Regex.Split("#", Value)
-				If Parts.Length >= 2 Then
-					Dim NodeId As String = Parts(0).Trim
-					Dim NewValue As String = Parts(1).Trim
-					CallSub3(mTarget, mEventName & "_ReadResult", NodeId, NewValue)
+				' Value arrives as: "NodeID Value"
+				Dim ValueStr As String = Value
+				' Split only at the first space to preserve the complete value.
+				Dim Separator As Int = ValueStr.IndexOf(" ")
+
+				If Separator > 0 Then
+					Dim NodeId As String = ValueStr.SubString2(0, Separator).Trim
+					Dim NewValue As String = ValueStr.SubString(Separator + 1).Trim
+
+					' Forward the isolated components using CallSub3
+					If xui.SubExists(mTarget, mEventName & "_ReadResult", 1) Then
+						CallSub3(mTarget, mEventName & "_ReadResult", NodeId, NewValue)
+					End If
 				End If
 			End If
 
@@ -320,9 +330,12 @@ class SyncSubHandler:
     def datachange_notification(self, node, val, data):
         global global_event_queue
         node_id_str = node.nodeid.to_string()
-        
-        # Combine Node ID and Value into a single text entry string payload
-        # This completely side-steps numeric format casting crashes for strings like "ledoff"
+
+        # Convert ByteString values to hexadecimal text.
+        if isinstance(val, bytes):
+            val = val.hex().upper()
+
+        # Combine Node ID and Value into a single text entry string payload.
         combined_payload = f"{node_id_str} {val}"
         global_event_queue.append({"event": "opc_datachange", "value": combined_payload})
 
@@ -612,7 +625,7 @@ class OpcSyncWorker:
                 # Normal scalar variables (Floats, Ints, Booleans)
                 val_str = str(val)
 
-            combined_payload = f"{nodeid_str}#{val_str}"
+            combined_payload = f"{nodeid_str} {val_str}"
             global_event_queue.append({"event": "opc_read_result", "value": combined_payload})
             
             print(f"[PyOpcUaClient] Successfully read node {nodeid_str} | Value: {val}", flush=True)

@@ -15,13 +15,7 @@ Version=4
 ' Brief:		Example read/write bytestring.
 ' Date:			See process_globals VERSION
 ' Author: 		Robert W.B. Linn (c) 2026 - MIT
-' Description:	Read and write the DHT22 sensor data Temperature and Humidity as float on every change.
-'				DHT22 event [OnDHTStateChanged] t=19.5000, h=57.7000.
-' OPC UA Nodes:	4 children under ns=1;s=Factory_Floor|BaseObject
-'				value=ns=1;s=Temperature|Temperature|Variable|Write
-'				value=ns=1;s=Humidity|Humdity|Variable|Write					
-'				value=ns=1;s=Trigger|Remote Action Trigger|Variable|Read
-'				value=ns=1;s=ExecuteJob|Trigger Production Job Routine|Method|Read
+' Description:	Read and write a byte string (array as byte).
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
 '				- Unleash the 8MB Octal PSRAM footprint
@@ -30,12 +24,7 @@ Version=4
 ' Software:		B4R 4.00 (64 bit), IDE ESP32 Dev Module
 '				Arduino Board Manager ESP32 3.3.12.
 '				rOpen62541 0.90, rESP32DHT 1.00, rRandomAccessFile 1.91.
-' Wiring:		Requires 4.7K resistor R between signal and VCC.
-'				DHT22 = ESP32S3
-'				VCC = 3.3V - after R
-'				Signal = IO17
-'				Signal > R = 3.3V
-'				GND = GND
+' Wiring:		N/A
 '==============================================
 #End Region
 
@@ -143,6 +132,8 @@ Private Sub OnDataWrite(nodeid As String, buffer() As Byte)
 	
 	Select nodeid
 		Case NODEID_INT
+			' Write a bytestring back to the client
+			OPCUAServer.WriteByteString(NODEID_BYTESTRING, buffer)
 			Log("[OnDataWrite] nodeid=", nodeid, ", value=", Convert.BytesToInt(buffer))
 	End Select
 End Sub
