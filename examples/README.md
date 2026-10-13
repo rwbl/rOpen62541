@@ -24,6 +24,10 @@ The following examples are structured into dedicated sub-folders:
 - [**20-DHT22**](20-DHT22/) — Read live telemetry sensor data from a DHT22 sensor. 
 	- Example 1 B4J with `PyBridge` framework and Python package `asyncua` and additional library `HMITilesIO` (Dashboard).
 	- Example 2 `Home Assistant`with `Node-RED` and `node-red-contrib-opcua` nodes.
+- [**22-ByteArray**](22-ByteArray/) — Read byte array. 
+	- Example 1 B4J with `PyBridge` framework and Python package `asyncua` and additional library `HMITilesIO` (Dashboard).
+- [**23-Serializator**](23-Serializator/) — Read serialized byte array with 2 object using the B4RSerializator.
+	- Example 1 B4J with `PyBridge` framework and Python package `asyncua` and additional library `HMITilesIO` (Dashboard).
 - [**24-TankSim**](24-TankSim/) — Simulate 2 tanks levels.
 	- Example 1 `Node-RED` and `node-red-contrib-opcua` nodes.
 	- Example 2 `Fuxa`
@@ -37,6 +41,7 @@ The following examples are structured into dedicated sub-folders:
 	- Contains **`PyOpcUaClient.bas`**, a reusable B4J class module that wraps the `PyBridge` communication layer.
 	- Eliminates boilerplate code across multiple client dashboard applications (like `10-EnvSim`, `14-InOutput`, `20-DHT22`) by standardizing background Python `asyncua` task handling.
 	- Requires a valid Python runtime environment on the host PC with the `asyncua` package installed.
+	- Contains **`B4RSerializator.bas`**, a reusable B4J class module that send and receive objects instead of bytes.
 
 ---
 
