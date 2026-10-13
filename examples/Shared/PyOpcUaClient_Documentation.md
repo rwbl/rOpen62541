@@ -1,51 +1,42 @@
 # PyOpcUaClient --- B4J Class Module
 
-**Project:** rOpen62541 / PyBridge OPC UA client\
-**Class:** `PyOpcUaClient`\
-**Version:** `PyOpcUaClient v20261012`\
-**Author:** Robert W. B. Linn\
-**License:** MIT (as stated in the source header)
-
 ## 1. Overview
 
-`PyOpcUaClient` is a B4J class module that provides an OPC UA client
-interface through **PyBridge** and Python's `asyncua` package. It
-manages the client connection, reads and writes node values, creates
-data-change subscriptions, invokes OPC UA methods, and forwards selected
+`PyOpcUaClient` is a B4J class module that provides an OPC UA client interface through **PyBridge** and Python's `asyncua` package. 
+It manages the client connection, reads and writes node values, creates data-change subscriptions, invokes OPC UA methods, and forwards selected
 events from Python to a B4J target module.
 
-The Python client implementation is injected into the PyBridge engine
-when the class is initialized. The Python code uses
-`asyncua.sync.Client`, so the OPC UA service operations exposed here are
-called through the synchronous client API.
+`PyOpcUaClient` using the **PyBridge** handles the essential operations:
+- OPC UA connection and disconnection
+- Reading and writing values
+- Subscriptions and data-change events
+- Browsing nodes
+- Calling OPC UA methods
+- ByteString read/write and subscription notifications
+- Connection-loss checking and process cleanup
+
+The Python client implementation is injected into the PyBridge engine when the class is initialized.   
+The Python code uses `asyncua.sync.Client`, so the OPC UA service operations exposed here are called through the synchronous client API.
 
 The class uses a producer-consumer event queue:
-
-1.  Python callbacks or operations append event dictionaries to
-    `global_event_queue`.
+1.  Python callbacks or operations append event dictionaries to `global_event_queue`.
 2.  B4J calls `PollNextEvent` to retrieve the next queued event.
 3.  The application passes the event name and value to `RaiseB4jEvent`.
-4.  `RaiseB4jEvent` translates the event into a callback on the
-    configured B4J target module.
+4.  `RaiseB4jEvent` translates the event into a callback on the configured B4J target module.
 
-**Important:** The class module defines `PollNextEvent`, but the
-application must arrange for it to be called regularly and pass returned
-events to `RaiseB4jEvent`. The class source shown does not start this
-polling loop itself.
+**Important:** The class module defines `PollNextEvent`, but the application must arrange for it to be called regularly and pass returned
+events to `RaiseB4jEvent`. The class source shown does not start this polling loop itself.
 
 ## 2. Requirements and dependencies
 
--   B4J.
--   PyBridge, with a `PyBridge` engine instance supplied to
+-   [B4J](https://www.b4x.com/b4j.html).
+-   [PyBridge](https://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/) Framework, with a `PyBridge` engine instance supplied to
     `Initialize`.
--   Python with the `asyncua` package available to that PyBridge
-    environment.
+-   Python with the `asyncua` package available to that PyBridge environment.
 -   An OPC UA server reachable from the Python runtime.
--   The server's node IDs and data types must match the IDs and types
-    used by the application.
+-   The server's node IDs and data types must match the IDs and types used by the application.
 
-The injected Python code imports `logging`, `json`, `ua` from `asyncua`,
-and `Client` from `asyncua.sync`.
+The injected Python code imports `logging`, `json`, `ua` from `asyncua`, and `Client` from `asyncua.sync`.
 
 ## 3. Initialization
 
@@ -57,8 +48,7 @@ Sub AppStart (Form1 As Form)
 End Sub
 ```
 
-The example assumes that `Py` is an already initialized `PyBridge`
-instance and that the class module is available to the project.
+The example assumes that `Py` is an already initialized `PyBridge` instance and that the class module is available to the project.
 
 ### `Initialize(TargetModule, EventName, PyBridgeEngine)`
 
@@ -94,18 +84,15 @@ Requests a connection to the OPC UA server at
 Opc.Connect("192.168.1.50", 4840)
 ```
 
-The Python code creates an `OpcSyncWorker`, calls `connect_server`, and
-queues an `opc_connection_changed` event with `True` or `False`.
+The Python code creates an `OpcSyncWorker`, calls `connect_server`, and queues an `opc_connection_changed` event with `True` or `False`.
 
-**Implementation note:** `Connect` does not expose the Python return
-value as a B4J result. Use the connection-change callback and/or
+**Implementation note:** `Connect` does not expose the Python return value as a B4J result. Use the connection-change callback and/or
 `CheckConnection` to determine the reported connection state.
 
 ### `Disconnect`
 
-Disconnects the current worker if one exists. The Python implementation
-attempts to delete the master subscription and disconnect the client,
-clears the event queue, and then queues a connection-change event with
+Disconnects the current worker if one exists.  
+The Python implementation attempts to delete the master subscription and disconnect the client, clears the event queue, and then queues a connection-change event with
 `False`.
 
 ``` vb
@@ -537,5 +524,4 @@ claims that the class is currently broken:
 ------------------------------------------------------------------------
 
 *Documentation generated from the supplied `PyOpcUaClient.bas` source.
-Behaviors described as current implementation details reflect that
-source version (`v20261012`).*
+Behaviors described as current implementation details reflect that source version (`v20261012`).*
