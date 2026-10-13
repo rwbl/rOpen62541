@@ -12,13 +12,11 @@ Version=10.7
 ' Author:       Robert W.B. Linn (c) 2026 - MIT
 ' Description:  Manages asynchronous OPC UA connections and live telemetry 
 '               subscriptions using a decoupled producer-consumer memory queue.
-'				The trigger nodeid "ns=1;s=Trigger" is used to send a command to the OPC UA Server.
-'				(see InjectPythonCoreCode > write_trigger)
 #End Region
 
 Sub Class_Globals
 	' version
-	Public VERSION As String = "PyOpcUaClient v20261012"
+	Public VERSION As String = "PyOpcUaClient v20261013"
 	
 	' UI
 	Private xui As XUI
@@ -44,7 +42,7 @@ Sub Class_Globals
 	Private Py As PyBridge
 	
 	' OPC UA Server flags
-	Private IsConnected As Boolean = False
+	Public IsConnected As Boolean = False
 End Sub
 
 ' Initializes the class module and links it to the PyBridge engine framework
@@ -122,9 +120,9 @@ End Sub
 ' WriteFloat
 Public Sub WriteFloat(NodeID As String, Value As String) As PyWrapper
 	Dim CodeExec As String = $"
-def WriteFloat(nodeid, cmd):
+def WriteFloat(nodeid, val):
     if global_worker:
-        return global_worker.write_float(nodeid, cmd)
+        return global_worker.write_float(nodeid, val)
     return "Error"
 "$
 	Return Py.RunCode("WriteFloat", Array(NodeID, Value), CodeExec)
@@ -133,9 +131,9 @@ End Sub
 ' WriteInt
 Public Sub WriteInt(NodeID As String, Value As String) As PyWrapper
 	Dim CodeExec As String = $"
-def WriteInt(nodeid, cmd):
+def WriteInt(nodeid, val):
     if global_worker:
-        return global_worker.write_int(nodeid, cmd)
+        return global_worker.write_int(nodeid, val)
     return "Error"
 "$
 	Return Py.RunCode("WriteInt", Array(NodeID, Value), CodeExec)
@@ -144,9 +142,9 @@ End Sub
 ' WriteBool
 Public Sub WriteBoolean(NodeID As String, Value As String) As PyWrapper
 	Dim CodeExec As String = $"
-def WriteBoolean(nodeid, cmd):
+def WriteBoolean(nodeid, val):
     if global_worker:
-        return global_worker.write_boolean(nodeid, cmd)
+        return global_worker.write_boolean(nodeid, val)
     return "Error"
 "$
 	Return Py.RunCode("WriteBoolean", Array(NodeID, Value), CodeExec)
@@ -154,14 +152,25 @@ End Sub
 
 ' WriteTrigger 
 ' Write special trigger
-Public Sub WriteTrigger (NodeID As String, CommandValue As String) As PyWrapper
+Public Sub WriteTrigger (NodeID As String, Value As String) As PyWrapper
 	Dim CodeExec As String = $"
-def WriteTrigger(nodeid, cmd):
+def WriteTrigger(nodeid, val):
     if global_worker:
-        return global_worker.write_trigger(nodeid, cmd)
+        return global_worker.write_trigger(nodeid, val)
     return "Error"
 "$
-	Return Py.RunCode("WriteTrigger", Array(NodeID, CommandValue), CodeExec)
+	Return Py.RunCode("WriteTrigger", Array(NodeID, Value), CodeExec)
+End Sub
+
+' WriteByteArray
+Public Sub WriteByteArray(NodeID As String, Value() As Byte) As PyWrapper
+	Dim CodeExec As String = $"
+def WriteByteArray(nodeid, arr):
+	if global_worker:
+		return global_worker.write_bytearray(nodeid, arr)
+	return "Error"
+"$
+	Return Py.RunCode("WriteByteArray", Array(NodeID, Value), CodeExec)
 End Sub
 
 ' Read
@@ -176,6 +185,19 @@ def Read(nodeid):
 	Return Py.RunCode("Read", Array(NodeID), CodeExec)
 End Sub
 
+' Browse
+' Browse for child nodes from a root node.
+' [PyBridge Browser] Found 1 children under ns=1;s=Factory_Floor
+' [PyOpcUaClient] RaiseB4jEvent name=opc_browse_item, value=ns=1;s=ByteString|ByteString|Variable
+Public Sub Browse (StartNodeId As String)
+	Dim CodeExec As String = $"
+def CallBrowse(target_start_node):
+    if global_worker:
+        global_worker.browse_and_sync_nodes(target_start_node)
+    return "OK"
+"$
+	Py.RunCode("CallBrowse", Array(StartNodeId), CodeExec)
+End Sub
 #End Region
 
 ' CallMethod
@@ -420,7 +442,7 @@ class OpcSyncWorker:
             payload = ua.Variant(bool_value, ua.VariantType.Boolean)
             
             write_node.write_value(payload)
-            print(f"[PyOpcUaClient] Successfully wrote Boolean {bool_value} to {nodeid_str}")
+            # print(f"[PyOpcUaClient] Successfully wrote Boolean {bool_value} to {nodeid_str}")
         except Exception as err:
             print(f"[PyOpcUaClient][E] Write error: {err}", flush=True)
 
@@ -437,7 +459,7 @@ class OpcSyncWorker:
             payload = ua.Variant(numeric_value, ua.VariantType.Int32)
             
             write_node.write_value(payload)
-            print(f"[PyOpcUaClient] Successfully wrote Int32 {numeric_value} to {nodeid_str}")
+            # print(f"[PyOpcUaClient] Successfully wrote Int32 {numeric_value} to {nodeid_str}")
         except Exception as err:
             print(f"[PyOpcUaClient][E] Write error: {err}", flush=True)
 
@@ -454,9 +476,49 @@ class OpcSyncWorker:
             payload = ua.Variant(numeric_value, ua.VariantType.Float)
             
             write_node.write_value(payload)
-            print(f"[PyOpcUaClient] Successfully wrote float {numeric_value} to {nodeid_str}")
+            # print(f"[PyOpcUaClient] Successfully wrote float {numeric_value} to {nodeid_str}")
         except Exception as err:
             print(f"[PyOpcUaClient][E] Write error: {err}", flush=True)
+
+    def write_bytearray(self, nodeid_str, arr):
+        try:
+            if not self.is_connected:
+                return
+
+            write_node = self.client.get_node(nodeid_str)
+
+            # Convert the PyBridge input to actual bytes.
+            if isinstance(arr, bytes):
+                byte_array = arr
+            elif isinstance(arr, (bytearray, list, tuple)):
+                byte_array = bytes(arr)
+            elif isinstance(arr, str):
+                # Fallback if PyBridge transfers the array as text.
+                byte_array = arr.encode("latin-1")
+            else:
+                raise TypeError(
+                    f"Unsupported byte array type: {type(arr).__name__}"
+                )
+
+            # Create an OPC UA ByteString variant.
+            payload = ua.Variant(
+                byte_array,
+                ua.VariantType.ByteString
+            )
+
+            write_node.write_value(payload)
+
+            #print(
+            #    f"[PyOpcUaClient] Successfully wrote ByteString "
+            #    f"{byte_array.hex(' ')} to {nodeid_str}",
+            #    flush=True
+            #)
+
+        except Exception as err:
+            print(
+                f"[PyOpcUaClient][E] WriteByteArray error: {err}",
+                flush=True
+            )
 
     def browse_and_sync_nodes(self, start_node_str):
         """
