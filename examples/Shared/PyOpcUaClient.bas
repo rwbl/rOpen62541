@@ -639,6 +639,8 @@ class OpcSyncWorker:
             print(f"[PyOpcUaClient] Successfully read node {nodeid_str} | Value: {val}", flush=True)
             
         except Exception as err:
+            combined_payload = f"{nodeid_str} {err}"
+            global_event_queue.append({"event": "opc_read_result", "value": combined_payload})
             print(f"[PyOpcUaClient][E] Read error on {nodeid_str}: {err}", flush=True)
 
 

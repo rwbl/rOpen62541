@@ -22,7 +22,8 @@ Version=9.85
 #Macro: Title, Export B4XPages, ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 
 Sub Class_Globals
-	Private VERSION As String = "rOpc62541 NodeIDs Example v20261012"
+	Private VERSION As String = "rOpc62541 NodeIDs Example v20261014"
+
 	' UI
 	Private xui As XUI
 	Private Root As B4XView
@@ -187,6 +188,8 @@ End Sub
 ' [OpcUaClient_DataChanged] Event Received nodeid=[ns=1;s=System.LedState] | value=True
 Private Sub OpcUaClient_ReadResult (NodeId As String, Value As String)
 	Log($"[OpcUaClient_ReadResult] nodeid=[${NodeId}], value=${Value}"$)
+	TextAreaNodeIDValue.Text = $"No result"$
+	
 	Select NodeId
 		Case OpcUaClient.NODEID_SERVERSTATUS
 			TextAreaNodeIDValue.Text = $"NodeID:${CRLF}${NodeId}${CRLF}Value:${CRLF}${Value}"$
