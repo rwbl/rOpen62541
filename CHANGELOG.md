@@ -1,27 +1,14 @@
 # CHANGELOG
 
-## v0.96 BETA (Build 20261013)
-**Focus: Finalizing Type-Explicit Write API**
+## v0.96 BETA (Build 20261014)
+**Focus: Finalizing API & Tests**
 - NEW: Universal `OnDataWrite` background routing callback engine added `ByteString` and increased to max 64-byte raw value payload array.
 - NEW: Example `ByteString` with standard byte array and serialized byte array (`B4RSerializator`).
 - NEW: Folder `examples/Shared` with [B4J](https://www.b4x.com/b4j.html) helper classes and code modules.
 - NEW: `PyOpcUaClient` is a B4J class module that provides an OPC UA client interface through **PyBridge** and Python's `asyncua` package
 
-## v0.95 (Build 20261011)
-**Focus: Bi-Directional SCADA Control, Type-Explicit Write API & Multi-Method Architecture Optimization**
-- NEW: [CRITICAL] Introduced a type-explicit internal Write API (`WriteFloat`, `WriteInt`, `WriteUInt`, `WriteBoolean`, `WriteLong`, `WriteULong`) that directly aligns with native B4R types (`Float`, `Int`, `UInt`, `Long`, `ULong`). This bypasses unstable 64-bit floating-point `double` casting, ensuring exact bit-level matching inside open62541 memory registers.
-- NEW: [CRITICAL] Implemented a thread-safe execution barrier flag (`isOnDataWrite`) inside the synchronized mutex scope of all internal write methods. This guarantees that internal server loops (such as sensor updates or tracking `AvailableRAM`) execute silently without triggering recursive user-facing callbacks or watchdog timeouts.
-- NEW: Added the universal `OnDataWrite` background routing callback engine. Real-time network modifications originating from external clients (FUXA, Node-RED, etc.) now instantly fire standard event handler subroutines (`Sub OnDataWrite`) natively in B4R, providing the qualified full network Node ID string prefix (`ns=X;s=...`) alongside a clean 4-byte raw value payload array.
-- NEW: Added `AddTriggerNode` to create a polymorphic node initialized with `UA_VALUERANK_ANY`. This allows a single Node ID to dynamically accept, process, and parse multi-format incoming data payloads (Strings, ByteStrings, Byte Arrays, and Scalar Numbers) seamlessly without runtime configuration failures or casting issues.
-- NEW: Refactored `AddMethodNode` to utilize native `methodContext` tracking. Multiple custom method nodes (e.g., separate Tank 1 and Tank 2 control lines) can now be initialized concurrently. Execution routing bypasses rigid global class member fields, firing assigned B4R subroutines instantly and synchronously inside the callback envelope.
-- NEW: Added `AddObjectNode` to allow standardized structural grouping of process variables and method handlers under a single parent object asset profile (BaseObjectType), maximizing compliance with the official OPC UA Information Modeling specification.
-- FIX: Patched an internal memory cross-talk bug inside `AddMethodNode` by transitioning argument parameters from temporary stack/shared configurations to unique, permanent heap allocations via `new UA_ValueCallback`. This guarantees distinct pointer isolation and stable memory persistence when initializing multiple nodes sequentially.
-- FIX: Resolved a binary array serialization bug where raw bytes (`Array As Byte`) passed from high-level client wrappers (such as B4J with PyBridge) were failing parsing conditions and turning into empty buffers. Implementations can now pass data securely via an `ISO-8859-1` encoded wrapper or explicit `ByteString` writers.
-- FIX: Standardized Core 0 background worker task configuration (`Priority 1`) to preserve an ultra-low-overhead networking profile, ensuring maximum processing headroom remains dedicated to real-time B4R control algorithms running on Core 1.
-- FIX: Main execution loop managing real-time tank simulation timers and handling synchronous event callbacks instantly (TankSim 25-Node example optimized with standard `justValue` compressed reading payload arrays).
-
 ### Development Status
-B4R-facing OPC UA server API implements:
+[B4R](https://www.b4x.com/b4r.html)-facing OPC UA server API implements:
 - OPC UA Server Core Configuration: Complete initialization handling with clean IsReady state reporting.
 - Robust Security Profiles: Supports both full Anonymous Access and strict Username/Password authentication.
 - Dual-Core Asymmetric Processing: High-performance ESP32 FreeRTOS background server task architecture (Core 0 networking / Core 1 B4R control logic).
@@ -31,6 +18,19 @@ B4R-facing OPC UA server API implements:
 - Bi-Directional SCADA Interception: High-speed generic data-write callbacks (OnDataWrite) that instantly execute B4R subroutines on remote client network updates.
 - Type-Explicit Application Writes: Dedicated hardware-aligned write API (WriteFloat, WriteInt, WriteUInt, etc.) utilizing thread-isolated flag suppression (isOnDataWrite) to allow silent internal sensor/RAM loops.
 - Remote Procedure Calls (RPC): Native Method node creation with multi-context data routing and synchronous input/output payload array response handling.
+
+## v0.95 (Build 20261011)
+**Focus: Bi-Directional SCADA Control, Type-Explicit Write API & Multi-Method Architecture Optimization**
+- NEW: Introduced a type-explicit internal Write API (`WriteFloat`, `WriteInt`, `WriteUInt`, `WriteBoolean`, `WriteLong`, `WriteULong`) that directly aligns with native B4R types (`Float`, `Int`, `UInt`, `Long`, `ULong`). This bypasses unstable 64-bit floating-point `double` casting, ensuring exact bit-level matching inside open62541 memory registers.
+- NEW: Implemented a thread-safe execution barrier flag (`isOnDataWrite`) inside the synchronized mutex scope of all internal write methods. This guarantees that internal server loops (such as sensor updates or tracking `AvailableRAM`) execute silently without triggering recursive user-facing callbacks or watchdog timeouts.
+- NEW: Added the universal `OnDataWrite` background routing callback engine. Real-time network modifications originating from external clients (FUXA, Node-RED, etc.) now instantly fire standard event handler subroutines (`Sub OnDataWrite`) natively in B4R, providing the qualified full network Node ID string prefix (`ns=X;s=...`) alongside a clean 4-byte raw value payload array.
+- NEW: Added `AddTriggerNode` to create a polymorphic node initialized with `UA_VALUERANK_ANY`. This allows a single Node ID to dynamically accept, process, and parse multi-format incoming data payloads (Strings, ByteStrings, Byte Arrays, and Scalar Numbers) seamlessly without runtime configuration failures or casting issues.
+- NEW: Refactored `AddMethodNode` to utilize native `methodContext` tracking. Multiple custom method nodes (e.g., separate Tank 1 and Tank 2 control lines) can now be initialized concurrently. Execution routing bypasses rigid global class member fields, firing assigned B4R subroutines instantly and synchronously inside the callback envelope.
+- NEW: Added `AddObjectNode` to allow standardized structural grouping of process variables and method handlers under a single parent object asset profile (BaseObjectType), maximizing compliance with the official OPC UA Information Modeling specification.
+- FIX: Patched an internal memory cross-talk bug inside `AddMethodNode` by transitioning argument parameters from temporary stack/shared configurations to unique, permanent heap allocations via `new UA_ValueCallback`. This guarantees distinct pointer isolation and stable memory persistence when initializing multiple nodes sequentially.
+- FIX: Resolved a binary array serialization bug where raw bytes (`Array As Byte`) passed from high-level client wrappers (such as B4J with PyBridge) were failing parsing conditions and turning into empty buffers. Implementations can now pass data securely via an `ISO-8859-1` encoded wrapper or explicit `ByteString` writers.
+- FIX: Standardized Core 0 background worker task configuration (`Priority 1`) to preserve an ultra-low-overhead networking profile, ensuring maximum processing headroom remains dedicated to real-time B4R control algorithms running on Core 1.
+- FIX: Main execution loop managing real-time tank simulation timers and handling synchronous event callbacks instantly (TankSim 25-Node example optimized with standard `justValue` compressed reading payload arrays).
 
 ## v0.91 (Build 20261007)
 **Focus: API Aligned Simplification & Full Multi-Format Node Support**

@@ -2,7 +2,7 @@
 
 ## Description
 
-A B4XPages project utilizing the PyBridge framework to interface with and control the rOpen62541 OPC UA Server.
+A B4XPages project utilizing the PyBridge framework to interface with and control the **rOpen62541** OPC UA Server.
 
 ## Environment Dependencies & Prerequisites
 
@@ -18,27 +18,45 @@ A B4XPages project utilizing the PyBridge framework to interface with and contro
 ### Python Environment Setup (Windows / B4J IDE Integration)
 Installing the asyncua Core Package
 
-1. Open the global Python command-line shell directly from the B4J IDE by navigating to the shortcut: ide://run?File=%B4J_PYTHON%\..\WinPython+Command+Prompt.exe
-2. Once the console shell opens at C:\Prog\B4J\Libraries\Python\Notebooks, execute:cmd
+1. Open the global Python command-line shell directly from the B4J IDE by navigating to the shortcut: 
+```
+ide://run?File=%B4J_PYTHON%\..\WinPython+Command+Prompt.exe
+```
+
+2. Once the console shell opens at C:\<YOUR PATH>Libraries\Python\Notebooks, execute:
+```cmd
 pip install asyncua
-3. Verified Setup Target Dependencies Log:text
+```
+
+3. Verified Setup Target Dependencies Log:
+```text
 Successfully installed aiosqlite-0.22.1 anyio-4.15.1 asyncua-2.0.1 cffi-2.1.1 cryptography-50.0.1 idna-3.19 pycparser-3.0 pyopenssl-26.4.0 python-dateutil-2.9.0.post0 pytz-2026.3.post1 six-1.17.0 sortedcontainers-2.4.0 typing-extensions-4.16.0
+```
 
 ### IDE Automation Shortcuts & Shell Routing Hints
 
-* Create localized Python runtime workspace environment variables:
+Create localized Python runtime workspace environment variables:
+```
 ide://run?File=%WINDIR%\System32\Robocopy.exe&args=%B4X%\libraries\Python&args=Python&args=/E
-* Launch local project Python terminal space:
+```
+
+Launch local project Python terminal space:
+```
 ide://run?File=%PROJECT%\Objects\Python\WinPython+Command+Prompt.exe
-* Launch global environment Python shell: (Ensure exact path definitions are assigned inside Tools ➔ Configure Paths. Do not modify internal standard vendor package bundles)
+```
+
+Launch global environment Python shell: 
+Ensure exact path definitions are assigned inside Tools > Configure Paths. Do not modify internal standard vendor package bundles.
+```
 ide://run?File=%B4J_PYTHON%\..\WinPython+Command+Prompt.exe
+```
 
 ## Standard Execution Logs
 
 ### PyBridge Framework Console Stream
 
 ```text
-Server Is listening on PORT: 54067
+Server is listening on PORT: 54067
 Python path: C:\Prog\B4J\libraries\Python\python\python.exe
 connected
 starting PyBridge v1.00
