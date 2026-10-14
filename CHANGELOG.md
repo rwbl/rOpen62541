@@ -4,7 +4,7 @@
 **Focus: Finalizing Type-Explicit Write API**
 - NEW: Universal `OnDataWrite` background routing callback engine added `ByteString` and increased to max 64-byte raw value payload array.
 - NEW: Example `ByteString` with standard byte array and serialized byte array (`B4RSerializator`).
-- NEW: Folder `examples/Shared` with [B4J](https://www.b4x.com/b4j.html) helper classes and code modulles.
+- NEW: Folder `examples/Shared` with [B4J](https://www.b4x.com/b4j.html) helper classes and code modules.
 - NEW: `PyOpcUaClient` is a B4J class module that provides an OPC UA client interface through **PyBridge** and Python's `asyncua` package
 
 ## v0.95 (Build 20261011)
