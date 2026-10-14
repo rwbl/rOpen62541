@@ -15,8 +15,7 @@ Version=10.7
 #End Region
 
 Sub Class_Globals
-	' version
-	Public VERSION As String = "PyOpcUaClient v20261013"
+	Public VERSION							As String = "PyOpcUaClient v20261014"
 	
 	' UI
 	Private xui As XUI
@@ -37,6 +36,15 @@ Sub Class_Globals
 	Public NODEID_FACTORY_FLOOR 			As String = "ns=1;s=Factory_Floor"
 	Public NODEID_TRIGGER					As String = "ns=1;s=Trigger"			' Trigger callback in B4R > onTriggerCall
 	Public NODEID_TRIGGER_RESULT			As String = "ns=1;s=TriggerResult"
+
+	' These are variable nodes without children and not an folder or object node.
+	' ns=0 is a static Namespace 0 system variable.
+	Public NODEID_SERVERSTATUS 				As String = "ns=0;i=2256"	' | ServerStatus | Parent structure containing all runtime states. |
+	Public NODEID_CURRENTTIME 				As String = "ns=0;i=2258"	' | CurrentTime | The exact server clock timestamp NODE. |
+	Public NODEID_STARTTIME 				As String = "ns=0;i=2259"	' | StartTime | Shows exactly when the ESP32 server booted up. |
+	Public NODEID_SECONDSTILLSHUTDOWN		As String = "ns=0;i=2262"	' | SecondsTillShutdown | Used To warn clients before a server restarts. |
+	Public NODEID_STATE 					As String = "ns=0;i=2295"	' | State | Returns an integer indicating server health (0=Running, 1=Failed). |
+	Public NODEID_BUILDINFO 				As String = "ns=0;i=2261"	' | BuildInfo | Sub-folder holding the firmware manufacturer and engine version details. |
 		
 	' PyBridge Instance
 	Private Py As PyBridge

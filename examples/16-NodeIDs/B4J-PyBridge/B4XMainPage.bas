@@ -42,15 +42,6 @@ Sub Class_Globals
 	Private PORT 						As Int = 4840					' Default port
 
 	' NodeIDs
-	' NodeIDs
-	' These are variable nodes without children and not an folder or object node.
-	' ns=0 is a static Namespace 0 system variable.
-	Private NODEID_SERVERSTATUS 		As String = "ns=0;i=2256"	' | ServerStatus | Parent structure containing all runtime states. |
-	Private NODEID_CURRENTTIME 			As String = "ns=0;i=2258"	' | CurrentTime | The exact server clock timestamp NODE. |
-	Private NODEID_STARTTIME 			As String = "ns=0;i=2259"	' | StartTime | Shows exactly when the ESP32 server booted up. |
-	Private NODEID_SECONDSTILLSHUTDOWN	As String = "ns=0;i=2262"	' | SecondsTillShutdown | Used To warn clients before a server restarts. |
-	Private NODEID_STATE 				As String = "ns=0;i=2295"	' | State | Returns an integer indicating server health (0=Running, 1=Failed). |
-	Private NODEID_BUILDINFO 			As String = "ns=0;i=2261"	' | BuildInfo | Sub-folder holding the firmware manufacturer and engine version details. |
 End Sub
 
 Public Sub Initialize
@@ -197,25 +188,29 @@ End Sub
 Private Sub OpcUaClient_ReadResult (NodeId As String, Value As String)
 	Log($"[OpcUaClient_ReadResult] nodeid=[${NodeId}], value=${Value}"$)
 	Select NodeId
-		Case NODEID_SERVERSTATUS
+		Case OpcUaClient.NODEID_SERVERSTATUS
 			TextAreaNodeIDValue.Text = $"NodeID:${CRLF}${NodeId}${CRLF}Value:${CRLF}${Value}"$
+			' [PyOpcUaClient] RaiseB4jEvent name=opc_read_result, value=ns=0;i=2256 {"is_complex": true, "StartTime": "1970-01-01T00:00:04.207326+00:00", "CurrentTime": "2026-10-14T08:09:35.605942+00:00", "State": "0", "ProductUri": "http://open62541.org", "ManufacturerName": "open62541", "ProductName": "open62541 OPC UA Server", "SoftwareVersion": "1.2.0-rc1-20-g78a6721b-dirty", "BuildNumber": "Oct 13 2026 10:30:35"}
 
-		Case NODEID_CURRENTTIME
+		Case OpcUaClient.NODEID_CURRENTTIME
 			TextAreaNodeIDValue.Text = $"NodeID:${CRLF}${NodeId}${CRLF}Value:${CRLF}${Value}"$
 			' [OpcUaClient_ReadResult] nodeid=[ns=0;i=2258], value=2026-10-12 15:32:10.191665+00:00
 			
-		Case NODEID_STARTTIME
+		Case OpcUaClient.NODEID_STARTTIME
 			TextAreaNodeIDValue.Text = $"NodeID:${CRLF}${NodeId}${CRLF}Value:${CRLF}${Value}"$
 			' [OpcClient_ReadResult] value=0
-		Case NODEID_SECONDSTILLSHUTDOWN
+
+		Case OpcUaClient.NODEID_SECONDSTILLSHUTDOWN
 			TextAreaNodeIDValue.Text = $"NodeID:${CRLF}${NodeId}${CRLF}Value:${CRLF}${Value}"$
-			' [OpcClient_ReadResult] value=http://open62541.org
-		Case NODEID_STATE
+			' [OpcUaClient_ReadResult] nodeid=[ns=0;i=2262], value=http://open62541.org
+
+		Case OpcUaClient.NODEID_STATE
 			TextAreaNodeIDValue.Text = $"NodeID:${CRLF}${NodeId}${CRLF}Value:${CRLF}${Value}"$
-			' [OpcClient_ReadResult] value=null
-		Case NODEID_BUILDINFO
+			' [PyOpcUaClient][E] Read error on ns=0;i=2295: The attribute is not supported for the specified Node.(BadAttributeIdInvalid)
+
+		Case OpcUaClient.NODEID_BUILDINFO
 			TextAreaNodeIDValue.Text = $"NodeID:${CRLF}${NodeId}${CRLF}Value:${CRLF}${Value}"$
-			' [OpcClient_ReadResult] value=ExtensionObject{encoded=ByteString{bytes=[64, -62, 81, -42, -34, -79, -99, 1, -104, -39, 92, -70, -120, 70, -35, 1, 0, 0, 0, 0, 20, 0, 0, 0, 104, 116, 116, 112, 58, 47, 47, 111, 112, 101, 110, 54, 50, 53, 52, 49, 46, 111, 114, 103, 9, 0, 0, 0, 111, 112, 101, 110, 54, 50, 53, 52, 49, 23, 0, 0, 0, 111, 112, 101, 110, 54, 50, 53, 52, 49, 32, 79, 80, 67, 32, 85, 65, 32, 83, 101, 114, 118, 101, 114, 28, 0, 0, 0, 49, 46, 50, 46, 48, 45, 114, 99, 49, 45, 50, 48, 45, 103, 55, 56, 97, 54, 55, 50, 49, 98, 45, 100, 105, 114, 116, 121, 20, 0, 0, 0, 83, 101, 112, 32, 49, 55, 32, 50, 48, 50, 54, 32, 49, 48, 58, 51, 56, 58, 50, 51, 106, 77, 81, -42, -34, -79, -99, 1, 0, 0, 0, 0, 0]}, encodingId=NodeId{ns=0, id=864}}
+			' [OpcUaClient_ReadResult] nodeid=[ns=0;i=2261], value=open62541 OPC UA Server
 	End Select
 End Sub
 #End Region
@@ -246,17 +241,17 @@ End Sub
 Private Sub TileNodeIDs_Click(State As Boolean, Value As String)
 	Select Value
 		Case "ServerStatus"
-			OpcUaClient.Read(NODEID_SERVERSTATUS)
+			OpcUaClient.Read(OpcUaClient.NODEID_SERVERSTATUS)
 		Case "CurrentTime"
-			OpcUaClient.Read(NODEID_CURRENTTIME)
+			OpcUaClient.Read(OpcUaClient.NODEID_CURRENTTIME)
 		Case "StartTime"
-			OpcUaClient.Read(NODEID_STARTTIME)
+			OpcUaClient.Read(OpcUaClient.NODEID_STARTTIME)
 		Case "SecondsTillShutdown"
-			OpcUaClient.Read(NODEID_SECONDSTILLSHUTDOWN)
+			OpcUaClient.Read(OpcUaClient.NODEID_SECONDSTILLSHUTDOWN)
 		Case "State"
-			OpcUaClient.Read(NODEID_STATE)
+			OpcUaClient.Read(OpcUaClient.NODEID_STATE)
 		Case "BuildInfo"
-			OpcUaClient.Read(NODEID_BUILDINFO)
+			OpcUaClient.Read(OpcUaClient.NODEID_BUILDINFO)
 	End Select
 End Sub
 #End Region
