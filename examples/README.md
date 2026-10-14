@@ -2,42 +2,42 @@
 
 The following examples are structured into dedicated sub-folders:
 
-- [**10-EnvSim**](10-EnvSim/) — Ambient industrial temperature and humidity data simulation loop. 
+- [**10-EnvSim**](10-EnvSim/) - Ambient industrial temperature and humidity data simulation loop. 
 	- Demonstrates type-agnostic node interceptors.
 	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
 	- Example 2 B4J with the `PyBridge` framework and Python package `asyncua`, `HMITilesIO` (Dashboard).
-- [**12-Callbacks**](12-Callbacks/) — Trigger & Remote Procedure Call (RPC) execution routing. 
+- [**12-Callbacks**](12-Callbacks/) - Trigger & Remote Procedure Call (RPC) execution routing. 
 	- Demonstrates server-side functions triggered remotely by automation nodes like Node-RED.
 	- Example 1 `Python` with `asyncua` package and additional library `HMITilesIO` (Dashboard).
 	- Example 2 `Node-RED` with `node-red-contrib-opcua` nodes.
-- [**14-InOutput**](14-InOutput/) — Industrial peripheral I/O mapping configurations. 
+- [**14-InOutput**](14-InOutput/) - Industrial peripheral I/O mapping configurations. 
 	- Shows how to dynamically read physical hardware states (Pushbuttons) and drive physical outputs (LEDs).
 	- Example 1 B4J with `PyBridge` framework and Python package `asyncua`, `HMITilesIO` (Dashboard).
-- [**16-NodeIDs**](16-NodeIDs/) — Low-level standard namespace lookup implementations. 
+- [**16-NodeIDs**](16-NodeIDs/) - Low-level standard namespace lookup implementations. 
 	- Demonstrates querying standard Namespace 0 (`ns=0`) system variables and parsing complex structure payloads.
 	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
 	- Example 2 B4J with `PyBridge` framework and Python package `asyncua`, `HMITilesIO` (Dashboard).
 	- Example 3 Node.js with the `node-opcua` stack.
-- [**18-ServoControl**](18-ServoControl/) — Control the position of a servo motor connected to the ESP32S3. 
+- [**18-ServoControl**](18-ServoControl/) - Control the position of a servo motor connected to the ESP32S3. 
 	- Demonstrates using the `Trigger` callback to control an output device servo motor and show its state on Traffic Light LEDs.
 	- Example 1 B4J with additional libraries `SS_OPCUAClient`, `HMITilesIO` (Dashboard).
-- [**20-DHT22**](20-DHT22/) — Read live telemetry sensor data from a DHT22 sensor. 
+- [**20-DHT22**](20-DHT22/) - Read live telemetry sensor data from a DHT22 sensor. 
 	- Example 1 B4J with `PyBridge` framework and Python package `asyncua` and additional library `HMITilesIO` (Dashboard).
 	- Example 2 `Home Assistant`with `Node-RED` and `node-red-contrib-opcua` nodes.
-- [**22-ByteArray**](22-ByteArray/) — Read byte array. 
+- [**22-ByteArray**](22-ByteArray/) - Read byte array. 
 	- Example 1 B4J with `PyBridge` framework and Python package `asyncua` and additional library `HMITilesIO` (Dashboard).
-- [**23-Serializator**](23-Serializator/) — Read serialized byte array with 2 object using the B4RSerializator.
+- [**23-Serializator**](23-Serializator/) - Read serialized byte array with 2 object using the B4RSerializator.
 	- Example 1 B4J with `PyBridge` framework and Python package `asyncua` and additional library `HMITilesIO` (Dashboard).
-- [**24-TankSim**](24-TankSim/) — Simulate 2 tanks levels.
+- [**24-TankSim**](24-TankSim/) - Simulate 2 tanks levels.
 	- Example 1 `Node-RED` and `node-red-contrib-opcua` nodes.
 	- Example 2 `Fuxa`
-- [**80-PythonTests**](80-PythonTests/) — Python tests using package `asyncua`.
+- [**80-PythonTests**](80-PythonTests/) - Python tests using package `asyncua`.
 
 ---
 
 ## Shared Folder
 
-- [**Shared/**](Shared/) — Centralized cross-project asset dependency utilities.
+- [**Shared/**](Shared/) - Centralized cross-project asset dependency utilities.
 	- Contains **`PyOpcUaClient.bas`**, a reusable B4J class module that wraps the `PyBridge` communication layer.
 	- Eliminates boilerplate code across multiple client dashboard applications (like `10-EnvSim`, `14-InOutput`, `20-DHT22`) by standardizing background Python `asyncua` task handling.
 	- Requires a valid Python runtime environment on the host PC with the `asyncua` package installed.
