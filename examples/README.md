@@ -26,9 +26,9 @@ The following examples are structured into dedicated sub-folders:
 	- Example 2 `Home Assistant`with `Node-RED` and `node-red-contrib-opcua` nodes.
 - [**22-ByteArray**](22-ByteArray/) - Read byte array. 
 	- Example 1 B4J with `PyBridge` framework and Python package `asyncua` and additional library `HMITilesIO` (Dashboard).
-- [**23-Serializator**](23-Serializator/) - Read serialized byte array with 2 object using the B4RSerializator.
+- [**24-Serializator**](24-Serializator/) - Read serialized byte array with 2 object using the B4RSerializator.
 	- Example 1 B4J with `PyBridge` framework and Python package `asyncua` and additional library `HMITilesIO` (Dashboard).
-- [**24-TankSim**](24-TankSim/) - Simulate 2 tanks levels.
+- [**26-TankSim**](26-TankSim/) - Simulate 2 tanks levels.
 	- Example 1 `Node-RED` and `node-red-contrib-opcua` nodes.
 	- Example 2 `Fuxa`
 - [**80-PythonTests**](80-PythonTests/) - Python tests using package `asyncua`.
@@ -39,13 +39,15 @@ The following examples are structured into dedicated sub-folders:
 
 - [**Shared/**](Shared/) - Centralized cross-project asset dependency utilities.
 	- Contains **`PyOpcUaClient.bas`**, a reusable B4J class module that wraps the `PyBridge` communication layer.
-	- Eliminates boilerplate code across multiple client dashboard applications (like `10-EnvSim`, `14-InOutput`, `20-DHT22`) by standardizing background Python `asyncua` task handling.
-	- Requires a valid Python runtime environment on the host PC with the `asyncua` package installed.
-	- Contains **`B4RSerializator.bas`**, a reusable B4J class module that send and receive objects instead of bytes.
+		- Eliminates boilerplate code across multiple client dashboard applications (like `10-EnvSim`, `14-InOutput`, `20-DHT22`, amd more) by standardizing background Python `asyncua` task handling.
+		- Requires a valid Python runtime environment on the host PC with the `asyncua` package installed.
+	- Contains **`B4RSerializator.bas`**, a reusable B4J class module that send and receive objects instead of bytes ([info](https://www.b4x.com/android/forum/threads/b4x-b4rserializator-send-and-receive-objects-instead-of-bytes.72404/#content)).
 
 ---
 
 ## Development Tools
+List of development tools with min version required.
+
 - [B4R](https://www.b4x.com/b4r.html) 4.0
 - [B4J](https://www.b4x.com/b4j.html) 10.7
 	- [B4J PyBridge Framework](https://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/) 1.0
@@ -56,5 +58,5 @@ The following examples are structured into dedicated sub-folders:
 - [Node.js node-opcua stack](https://node-opcua.github.io) 2.174.0
 - [Arduino IDE](https://docs.arduino.cc/software/ide/) 2.3.10
 	- [Arduino core for the ESP32 family of SoCs](https://github.com/espressif/arduino-esp32) 3.3.12
-- [Fuxa](https://github.com/frangoteam/fuxa) 1.3.4
 - [opcua-commander](https://github.com/node-opcua/opcua-commander) 0.40.0
+- [Fuxa](https://github.com/frangoteam/fuxa) 1.3.4
