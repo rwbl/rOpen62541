@@ -31,6 +31,7 @@ The following examples are structured into dedicated sub-folders:
 - [**26-TankSim**](26-TankSim/) - Simulate 2 tanks levels.
 	- Example 1 `Node-RED` and `node-red-contrib-opcua` nodes.
 	- Example 2 `Fuxa`
+- [**28-TRead**](28-Read/) - Read node value or attribute.
 - [**80-PythonTests**](80-PythonTests/) - Python tests using package `asyncua`.
 
 ---

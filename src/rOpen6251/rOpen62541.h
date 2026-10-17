@@ -11,8 +11,8 @@
  *       ns=1;s=Factory_Floor.Sensors.Temperature
  *       ns=1;s=Factory_Floor.System.AvailableRAM
  * @version See below version
- * @date 2026-10-12
- * @author Robert W. B. Linn (c) 2026 — MIT License provided with rOpen62541.
+ * @date 2026-10-17
+ * @author Robert W. B. Linn (c) 2026 - MIT License provided with rOpen62541.
  */
 
 // Mandatory B4R
@@ -287,6 +287,26 @@ namespace B4R {
 			 * @return An ArrayByte containing the binary ByteString payload.
 			 */
 			ArrayByte* ReadByteString(B4RString* NodeIdentifier);
+
+			/**
+			 * Debug Diagnostics Service.
+			 * Reads the raw, low-level data structure of a node from the database cache and immediately outputs its value, status code, and both timestamp states directly to the microcontroller's hardware serial monitor interface.
+			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Tank1.Level) (e.g., "ns=1;s=Tank1.Level").
+			 */
+			void ReadDataValue(B4RString* NodeIdentifier);
+
+			/**
+			 * OPC UA Attribute Selective Read Service.
+			 * Reads a specified tracking attribute from the node's internal data container and packs the raw data field bytes directly onto the B4R memory stack.
+			 * @param NodeIdentifier The complete NodeId string, containing the namespace index (ns=1) and the string identifier (s=Tank1.Level) (e.g., "ns=1;s=Tank1.Level").
+			 * @param Attr The attribute category index selection flag:
+			 *             0 = Raw Variable Value (Returns scalar Float, Int32, or Boolean payload bytes)
+			 *             1 = Source Timestamp (Returns 8 bytes of raw 64-bit int64_t microcontroller clock cycles)
+			 *             2 = Server Timestamp (Returns 8 bytes of raw 64-bit int64_t network serialization clock cycles)
+			 *             3 = Status Code (Returns 4 bytes of raw 32-bit uint32_t hardware condition code)
+			 * @return An ArrayByte containing the requested attribute's binary memory footprint payload block.
+			 */
+			ArrayByte* ReadDataAttribute(B4RString* NodeIdentifier, int Attr);
 
 			// ============================================================================
 			// SETTER/GETTER

@@ -1,1 +1,584 @@
-{"devices":{"0":{"id":"0","name":"FUXA Server","type":"FuxaServer","property":{},"polling":1000,"enabled":true,"tags":{"t_edcc36e9-06594e25":{"id":"t_edcc36e9-06594e25","name":"ESP32S3 Connection Status","label":"ESP32S3 Connection Status","type":"number","memaddress":"d_09512484-1a074d63","daq":{"enabled":false,"interval":60,"changed":false,"restored":false},"init":"","sysType":1}}},"d_09512484-1a074d63":{"id":"d_09512484-1a074d63","name":"ESP32S3","enabled":true,"property":{"address":"opc.tcp://192.168.1.175:4840/","port":null,"slot":null,"rack":null,"baudrate":9600,"databits":8,"stopbits":1,"parity":"None","delay":10,"forceFC16":false,"timeout":2000},"type":"OPCUA","polling":500,"tags":{"t_29ccf399-d5f043b8":{"id":"t_29ccf399-d5f043b8","name":"Tank 1 Level","label":"Tank 1 Level","type":"Variant","address":"ns=1;s=Tank1.Level","daq":{"enabled":false,"interval":60,"changed":false,"restored":false},"timestamp":1791721487242},"t_c2f3f20e-019d434e":{"id":"t_c2f3f20e-019d434e","name":"Tank 1 Input Flow","label":"Tank 1 Input Flow","type":"Variant","address":"ns=1;s=Tank1.InputFlow","daq":{"enabled":false,"interval":60,"changed":false,"restored":false},"timestamp":1791721480741},"t_5cf6fc0a-5f43440c":{"id":"t_5cf6fc0a-5f43440c","name":"Tank 1 Output Flow","label":"Tank 1 Output Flow","type":"Variant","address":"ns=1;s=Tank1.OutputFlow","daq":{"enabled":false,"interval":60,"changed":false,"restored":false},"timestamp":1791721487242},"t_cc6ed567-bd58465d":{"id":"t_cc6ed567-bd58465d","name":"Tank 1 Setpoint","label":"Tank 1 Setpoint","type":"Float","address":"ns=1;s=Tank1.Setpoint","daq":{"enabled":false,"restored":false},"timestamp":1791721480741,"format":null,"scale":null,"scaleReadFunction":null,"scaleWriteFunction":null,"unsPath":null,"description":null},"t_c883727f-02504bf9":{"id":"t_c883727f-02504bf9","name":"Tank 2 Level","label":"Tank 2 Level","type":"Variant","address":"ns=1;s=Tank2.Level","daq":{"enabled":false,"interval":60,"changed":false,"restored":false},"timestamp":1791721487242},"t_a7d4cef6-3b174b6e":{"id":"t_a7d4cef6-3b174b6e","name":"Tank 2 Input Flow","label":"Tank 2 Input Flow","type":"Variant","address":"ns=1;s=Tank2.InputFlow","daq":{"enabled":false,"interval":60,"changed":false,"restored":false},"timestamp":1791721487242},"t_c03b4e75-9f1c456b":{"id":"t_c03b4e75-9f1c456b","name":"Tank 2 Output Flow","label":"Tank 2 Output Flow","type":"Variant","address":"ns=1;s=Tank2.OutputFlow","daq":{"enabled":false,"interval":60,"changed":false,"restored":false},"timestamp":1791721482242},"t_c9caf277-04e04e70":{"id":"t_c9caf277-04e04e70","name":"Tank 2 Setpoint","label":"Tank 2 Setpoint","type":"Variant","address":"ns=1;s=Tank2.Setpoint","daq":{"enabled":false,"restored":false},"timestamp":1791721480741,"format":null,"scale":null,"scaleReadFunction":null,"scaleWriteFunction":null,"unsPath":null}}}},"hmi":{"views":[{"id":"v_a12b114981-112813","name":"MainView","profile":{"width":1024,"height":768,"bkcolor":"#ffffffff","margin":10,"align":"topCenter","gridType":"fixed","viewRenderDelay":0},"items":{"SHE_558008ee-4e744f16":{"id":"SHE_558008ee-4e744f16","type":"svg-ext-proceng-tank5","name":"Tank1.Level.Tank","property":{"variableId":"t_29ccf399-d5f043b8","ranges":[{"min":0,"max":100,"color":"#4bacc6ff","type":2,"stroke":""}],"events":[],"actions":[]},"label":"Proc-Eng","hide":false,"lock":false},"SHE_5afaa54d-f53846cc":{"id":"SHE_5afaa54d-f53846cc","type":"svg-ext-proceng-tank5","name":"Tank2.Level.Tank","property":{"variableId":"t_c883727f-02504bf9","ranges":[{"min":0,"max":100,"color":"#4bacc6ff","type":2,"stroke":""}],"events":[],"actions":[],"variableValue":"100"},"label":"Proc-Eng","hide":false,"lock":false},"SHE_8920d1d5-e5164f0c":{"id":"SHE_8920d1d5-e5164f0c","type":"svg-ext-shapes-path","name":"shape_1","property":null,"label":"Shapes","hide":false,"lock":false},"GXP_aa52b3e0-22164495":{"id":"GXP_aa52b3e0-22164495","type":"svg-ext-gauge_progress","name":"Tank1.Level.Progress","property":{"ranges":[{"min":0,"max":100,"color":"#3F4964","type":2,"style":[true,true],"stroke":""}],"events":[],"actions":[],"variableId":"t_29ccf399-d5f043b8"},"label":"HtmlProgress","hide":false,"lock":false},"HXI_604f6958-4cc0471b":{"id":"HXI_604f6958-4cc0471b","type":"svg-ext-html_input","name":"Tank1.Setpoint_Input","property":{"variableId":"t_cc6ed567-bd58465d","events":[],"actions":[],"options":{"updated":true,"numeric":false,"type":"number","maxlength":3,"readonly":false,"selectOnClick":false,"actionOnEsc":"update","updatedEsc":null,"min":0,"max":100}},"label":"HtmlInput","hide":false,"lock":false},"GXP_ddc53728-eb8f4cd4":{"id":"GXP_ddc53728-eb8f4cd4","type":"svg-ext-gauge_progress","name":"Tank2.Level.Progress","property":{"ranges":[{"min":0,"max":100,"color":"#3F4964","type":2,"style":[true,true],"stroke":""}],"events":[],"actions":[],"variableId":"t_c883727f-02504bf9"},"label":"HtmlProgress","hide":false,"lock":false},"A-GXP_eb9857d2-4e9d41d7":{"id":"A-GXP_eb9857d2-4e9d41d7","type":"svg-ext-shapes-rect","name":"shape_2","property":null,"label":"Shapes","hide":false,"lock":false},"B-GXP_83e183c6-1cdf48ee":{"id":"B-GXP_83e183c6-1cdf48ee","type":"svg-ext-shapes-rect","name":"shape_2","property":null,"label":"Shapes","hide":false,"lock":false},"H-GXP_20434a50-772d43da":{"id":"H-GXP_20434a50-772d43da","type":"svg-ext-shapes-select","name":"shape_3","property":{"variableId":"t_c883727f-02504bf9","ranges":[{"min":0,"max":100,"color":"#4bacc6ff","type":2,"stroke":""}],"events":[],"actions":[]},"label":"Shapes","hide":false,"lock":false},"HXC_03d6401d-dcd845ff":{"id":"HXC_03d6401d-dcd845ff","type":"svg-ext-html_chart","name":"Tank1.Level.Chart","property":{"id":"030841812-4115","type":"realtime1","options":{"title":"Title","fontFamily":"Roboto-Regular","legendFontSize":12,"colorBackground":"rgba(255,255,255,0)","legendBackground":"rgba(255,255,255,0)","titleHeight":18,"axisLabelFontSize":12,"labelsDivWidth":0,"axisLineColor":"rgba(0,0,0,1)","axisLabelColor":"rgba(0,0,0,1)","legendMode":"always","series":[],"width":360,"height":200,"decimalsPrecision":2,"realtime":60,"mouseWheelScroll":false,"mouseWheelZoom":false,"staticChart":false,"dateFormat":"MM_DD_YYYY","timeFormat":"hh_mm_ss_AA","scaleY1min":0,"scaleY1max":100,"scaleY2min":0,"scaleY2max":100}},"label":"HtmlChart","hide":false,"lock":false},"HXI_f6b026c5-f7d24df4":{"id":"HXI_f6b026c5-f7d24df4","type":"svg-ext-html_input","name":"Tank2.Level.Setpoint","property":{"variableId":"t_c9caf277-04e04e70","events":[],"actions":[],"options":{"updated":true,"numeric":false,"type":"number","maxlength":3,"readonly":false,"selectOnClick":false,"actionOnEsc":"update","updatedEsc":null,"min":0,"max":100}},"label":"HtmlInput","hide":false,"lock":false},"svg_e4ba5e3b-d6fc4455":{"id":"svg_e4ba5e3b-d6fc4455","type":"svg-ext-shapes-rect","name":"shape_5","property":null,"label":"Shapes","hide":false,"lock":false},"VAL_36bab358-488e4946":{"id":"VAL_36bab358-488e4946","type":"svg-ext-value","name":"Tank1.Level.Outout","property":{"variableId":"t_29ccf399-d5f043b8","ranges":[{"min":20,"max":80,"text":"%","textId":null,"color":"","type":1,"stroke":"","fractionDigitsId":null,"fractionDigits":"0"}],"events":[],"actions":[]},"label":"Value","hide":false,"lock":false},"VAL_477a822c-051246b1":{"id":"VAL_477a822c-051246b1","type":"svg-ext-value","name":"Tank2.Level.Output","property":{"variableId":"t_c883727f-02504bf9","ranges":[{"min":20,"max":80,"text":"%","textId":null,"color":"","type":1,"stroke":"","fractionDigitsId":null,"fractionDigits":"0"}],"events":[],"actions":[]},"label":"Value","hide":false,"lock":false},"VAL_b942cedd-70e64aa1":{"id":"VAL_b942cedd-70e64aa1","type":"svg-ext-shapes-text","name":"shape_6","property":null,"label":"Shapes","hide":false,"lock":false},"svg_9508e064-795e4e65":{"id":"svg_9508e064-795e4e65","type":"svg-ext-shapes-text","name":"Title","property":{"ranges":[{"min":20,"max":80,"color":"","type":2,"stroke":""}],"events":[],"actions":[],"text":"rOpen62541 OPC UA Server Example - Tank Simulator"},"label":"Shapes","hide":false,"lock":false}},"variables":{},"svgcontent":"<svg width=\"1024\" height=\"768\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:svg=\"http://www.w3.org/2000/svg\" xmlns:html=\"http://www.w3.org/1999/xhtml\">\n <filter height=\"200\" width=\"200\" y=\"-3\" x=\"-3\" id=\"blur-filter\">\n  <feGaussianBlur stdDeviation=\"3\"/>\n </filter>\n\n <g>\n  <title>Layer 1</title>\n  <g data-name=\"Tank1.Level.Tank\" id=\"SHE_558008ee-4e744f16\" type=\"svg-ext-proceng-tank5\" fill=\"#FFFFFF\" stroke=\"#000000\" font-size=\"14\" font-family=\"sans-serif\" text-anchor=\"middle\">\n   <path id=\"SHE_06ff9535-26a54038\" d=\"M226.42105,90.49665L226.42105,298.5034C226.42105,309.54592 203.05684,318.50003 174.21052,318.50003C145.3642,318.50003 121.99999,309.54592 121.99999,298.5034L121.99999,90.49665C121.99999,79.45413 145.3642,70.50002 174.21052,70.50002C203.05684,70.50002 226.42105,79.45413 226.42105,90.49665zM121.99999,90.49665L226.42105,90.49665M121.99999,298.5034L226.42105,298.5034\"/>\n  </g>\n  <g data-name=\"Tank2.Level.Tank\" type=\"svg-ext-proceng-tank5\" fill=\"#FFFFFF\" stroke=\"#000000\" font-size=\"14\" font-family=\"sans-serif\" text-anchor=\"middle\" id=\"SHE_5afaa54d-f53846cc\">\n   <path data-name=\"shape_1\" d=\"M371.21054,90.99663L371.21054,299.00337C371.21054,310.0459 347.84633,319.00001 319.00001,319.00001C290.15369,319.00001 266.78948,310.0459 266.78948,299.00337L266.78948,90.99663C266.78948,79.95411 290.15369,71 319.00001,71C347.84633,71 371.21054,79.95411 371.21054,90.99663zM266.78948,90.99663L371.21054,90.99663M266.78948,299.00337L371.21054,299.00337\" id=\"SHE_8920d1d5-e5164f0c\"/>\n  </g>\n  <g data-name=\"Tank1.Level.Progress\" id=\"GXP_aa52b3e0-22164495\" type=\"svg-ext-gauge_progress\" font-size=\"14\" stroke=\"#000000\" font-family=\"sans-serif\">\n   <rect id=\"A-GXP_be2d4a50-0df2438e\" x=\"148\" y=\"114\" width=\"50\" height=\"150\" fill=\"#FFFFFF\" stroke=\"#000000\"/>\n   <rect id=\"B-GXP_4b707f68-93ca4696\" x=\"148\" y=\"114\" width=\"50\" height=\"75\" fill=\"#3F4964\" stroke=\"#000000\"/>\n   <foreignObject x=\"148\" y=\"114\" height=\"150\" width=\"50\" id=\"H-GXP_203f4fbf-d0de4b31\" font-size=\"14\"/>\n  </g>\n  <g data-name=\"Tank1.Setpoint_Input\" id=\"HXI_604f6958-4cc0471b\" type=\"svg-ext-html_input\" fill=\"#FFFFFF\" stroke=\"#000000\">\n   <rect font-size=\"15\" stroke-width=\"0.5\" x=\"117\" y=\"352.99998\" width=\"119\" height=\"46\" id=\"svg_c64b478c-f14b45f2\"/>\n   <foreignObject x=\"117\" y=\"352.99998\" height=\"46\" width=\"119\" id=\"H-HXI_25574bbb-288440ec\" font-size=\"15\">\n    <INPUT style=\"width: calc(100% - 7px); height: calc(100% - 7px); text-align: right; border: unset; font-size: 15px; font-family: sans-serif; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); vector-effect: non-scaling-stroke;\" value=\"#.##\" type=\"text\" id=\"I-HXI_25574bbb-288440ec\"/>\n   </foreignObject>\n  </g>\n  <g id=\"GXP_ddc53728-eb8f4cd4\" data-name=\"Tank2.Level.Progress\" type=\"svg-ext-gauge_progress\" font-size=\"14\" stroke=\"#000000\" font-family=\"sans-serif\">\n   <rect data-name=\"shape_2\" id=\"A-GXP_eb9857d2-4e9d41d7\" x=\"296\" y=\"113\" width=\"50\" height=\"150\" fill=\"#FFFFFF\" stroke=\"#000000\"/>\n   <rect data-name=\"shape_2\" id=\"B-GXP_83e183c6-1cdf48ee\" x=\"296\" y=\"113\" width=\"50\" height=\"150\" fill=\"#3F4964\" stroke=\"#000000\"/>\n   <foreignObject id=\"H-GXP_20434a50-772d43da\" x=\"296\" y=\"113\" height=\"150\" width=\"50\" font-size=\"14\"/>\n  </g>\n  <g data-name=\"Tank1.Level.Chart\" xml:space=\"preserve\" text-anchor=\"right\" font-family=\"sans-serif\" font-size=\"14\" stroke=\"#000000\" fill=\"#FFFFFF\" type=\"svg-ext-html_chart\" id=\"HXC_03d6401d-dcd845ff\">\n   <rect id=\"svg_050c38e7-b5874935\" height=\"240\" width=\"380\" y=\"77\" x=\"395\" stroke-width=\"0\"/>\n   <foreignObject id=\"H-HXC_c31b628f-98a94e5b\" width=\"380\" height=\"240\" y=\"77\" x=\"395\">\n    <DIV style=\"width:100%;height:100%;\" id=\"D-HXC_c31b628f-98a94e5b\">\n     <CHART-UPLOT class=\"ng-star-inserted\">\n      <DIV style=\"background-color: rgba(255, 255, 255, 0);\" class=\"mychart-panel\">\n       <!---->\n       <NGX-UPLOT class=\"mychart-graph\">\n        <DIV>\n         <DIV id=\"Tanks.Level.Chart\" class=\"uplot u-hz\">\n          <DIV style=\"color: rgb(0, 0, 0); font-size: 18px; font-family: Roboto-Regular;\" class=\"u-title\">Tanks.Level.Chart</DIV>\n          <DIV style=\"width: 380px; height: 160px;\" class=\"u-wrap\">\n           <DIV style=\"left: 50px; top: 17px; width: 280px; height: 63px;\" class=\"u-under\"></DIV>\n           <CANVAS height=\"160\" width=\"380\"/>\n           <DIV style=\"left: 50px; top: 17px; width: 280px; height: 63px;\" class=\"u-over\">\n            <DIV style=\"transform: translate(-10px);\" class=\"u-cursor-x u-off\"></DIV>\n            <DIV style=\"transform: translate(0px, -10px);\" class=\"u-cursor-y u-off\"></DIV>\n            <DIV style=\"left: 0px; width: 0px; top: 0px; height: 0px;\" class=\"u-select\"></DIV>\n            <DIV class=\"u-cursor-pt u-off\" style=\"width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; transform: translate(-10px, -10px); background: rgb(68, 132, 239); border-color: rgb(68, 132, 239);\"></DIV>\n            <DIV class=\"u-cursor-pt u-off\" style=\"width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; transform: translate(-10px, -10px); background: rgb(239, 9, 9); border-color: rgb(239, 9, 9);\"></DIV>\n           </DIV>\n           <DIV style=\"top: 80px; height: 50px; left: 50px; width: 280px;\" class=\"u-axis\"></DIV>\n           <DIV style=\"left: 0px; width: 50px; top: 17px; height: 63px;\" class=\"u-axis\"></DIV>\n           <DIV style=\"left: 330px; width: 50px; top: 17px; height: 63px;\" class=\"u-axis\"></DIV>\n           <DIV class=\"u-axis u-off\"></DIV>\n           <DIV class=\"u-axis u-off\"></DIV>\n          </DIV>\n          <TABLE style=\"color: rgb(0, 0, 0); line-height: 0;\" class=\"u-legend u-inline u-live\">\n           <TR class=\"u-series\">\n            <TH>\n             <DIV class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">Time</DIV>\n            </TH>\n            <TD class=\"u-value\">01/01/1970 1:00:00 AM</TD>\n           </TR>\n           <TR class=\"u-series\">\n            <TH>\n             <DIV style=\"border: 2px solid rgb(68, 132, 239);\" class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">Tank 1 Level</DIV>\n            </TH>\n            <TD class=\"u-value\">--</TD>\n           </TR>\n           <TR class=\"u-series\">\n            <TH>\n             <DIV style=\"border: 2px solid rgb(239, 9, 9);\" class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">Tank 2 Level</DIV>\n            </TH>\n            <TD class=\"u-value\">--</TD>\n           </TR>\n          </TABLE>\n         </DIV>\n        </DIV>\n       </NGX-UPLOT>\n       <!---->\n       <!---->\n      </DIV>\n     </CHART-UPLOT>\n    </DIV>\n   </foreignObject>\n  </g>\n  <g id=\"HXI_f6b026c5-f7d24df4\" data-name=\"Tank2.Level.Setpoint\" type=\"svg-ext-html_input\" fill=\"#FFFFFF\" stroke=\"#000000\">\n   <rect data-name=\"shape_5\" id=\"svg_e4ba5e3b-d6fc4455\" font-size=\"15\" stroke-width=\"0.5\" x=\"270.5\" y=\"352.00001\" width=\"119\" height=\"46\"/>\n   <foreignObject id=\"H-HXI_4682804d-dd2744d6\" x=\"270.5\" y=\"352.00001\" height=\"46\" width=\"119\" font-size=\"15\">\n    <INPUT id=\"I-HXI_67600649-b6ae4420\" style=\"width: calc(100% - 7px); height: calc(100% - 7px); text-align: right; border: unset; font-size: 15px; font-family: sans-serif; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); vector-effect: non-scaling-stroke;\" value=\"#.##\" type=\"text\"/>\n   </foreignObject>\n  </g>\n  <g xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"sans-serif\" stroke-width=\"0\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" y=\"403\" x=\"189\" type=\"svg-ext-value\" id=\"VAL_36bab358-488e4946\">\n   <text transform=\"matrix(1.92, 0, 0, 1, -171.6, 0)\" y=\"283\" x=\"180.00833\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"sans-serif\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" id=\"VAL_d5f16b10-cd3c4b12\" stroke-width=\"0\">##.##</text>\n  </g>\n  <g id=\"VAL_477a822c-051246b1\" data-name=\"output_1\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"sans-serif\" stroke-width=\"0\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" y=\"403\" x=\"189\" type=\"svg-ext-value\">\n   <text data-name=\"shape_6\" id=\"VAL_b942cedd-70e64aa1\" transform=\"matrix(1.92, 0, 0, 1, -171.6, 0)\" y=\"284.03125\" x=\"256.5625\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"sans-serif\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" stroke-width=\"0\">##.##</text>\n  </g>\n  <text transform=\"matrix(1.38774, 0, 0, 1.42857, -7.39445, -3.85714)\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"Roboto-Bold\" font-size=\"21\" id=\"svg_9508e064-795e4e65\" y=\"35\" x=\"353\" stroke-width=\"0\" stroke=\"#000000\" fill=\"#000000\">rOpen62541 OPC UA Server Example - Tank Simulator</text>\n </g>\n</svg>","type":"svg"}],"layout":{"autoresize":false,"start":"v_a12b114981-112813","navigation":{"mode":"over","type":"block","bkcolor":"#F4F5F7","fgcolor":"#1D1D1D","logo":false},"header":{"bkcolor":"#ffffff","fgcolor":"#000000","height":46,"buttonHeight":36,"fontSize":13,"itemsAnchor":"left"},"showdev":true,"inputdialog":"false","hidenavigation":false,"theme":"","loginonstart":false,"loginoverlaycolor":"none","show_connection_error":true,"customStyles":""}},"recipes":[],"ar":{"enabled":false,"markers":[]},"version":"1.00","server":{"id":"0","name":"FUXA Server","type":"FuxaServer","property":{}},"charts":[{"id":"030841812-4115","name":"Tanks.Level.Chart","lines":[{"id":"t_29ccf399-d5f043b8","name":"Tank 1 Level","device":"ESP32S3","color":"#4484ef","label":"Tank 1 Level","yaxis":1,"spanGaps":true},{"id":"t_c883727f-02504bf9","name":"Tank 2 Level","device":"ESP32S3","color":"#ef0909","label":"Tank 2 Level","yaxis":1,"spanGaps":true}]}]}
+{
+  "devices": {
+    "0": {
+      "id": "0",
+      "name": "FUXA Server",
+      "type": "FuxaServer",
+      "property": {},
+      "polling": 1000,
+      "enabled": true,
+      "tags": {
+        "t_edcc36e9-06594e25": {
+          "id": "t_edcc36e9-06594e25",
+          "name": "ESP32S3 Connection Status",
+          "label": "ESP32S3 Connection Status",
+          "type": "number",
+          "memaddress": "d_09512484-1a074d63",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "init": "",
+          "sysType": 1
+        }
+      }
+    },
+    "d_09512484-1a074d63": {
+      "id": "d_09512484-1a074d63",
+      "name": "ESP32S3",
+      "enabled": true,
+      "property": {
+        "address": "opc.tcp://192.168.1.175:4840/",
+        "port": null,
+        "slot": null,
+        "rack": null,
+        "baudrate": 9600,
+        "databits": 8,
+        "stopbits": 1,
+        "parity": "None",
+        "delay": 10,
+        "forceFC16": false,
+        "timeout": 2000
+      },
+      "type": "OPCUA",
+      "polling": 500,
+      "tags": {
+        "t_29ccf399-d5f043b8": {
+          "id": "t_29ccf399-d5f043b8",
+          "name": "Tank 1 Level",
+          "label": "Tank 1 Level",
+          "type": "Variant",
+          "address": "ns=1;s=Tank1.Level",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1791721487242
+        },
+        "t_c2f3f20e-019d434e": {
+          "id": "t_c2f3f20e-019d434e",
+          "name": "Tank 1 Input Flow",
+          "label": "Tank 1 Input Flow",
+          "type": "Variant",
+          "address": "ns=1;s=Tank1.InputFlow",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1791721480741
+        },
+        "t_5cf6fc0a-5f43440c": {
+          "id": "t_5cf6fc0a-5f43440c",
+          "name": "Tank 1 Output Flow",
+          "label": "Tank 1 Output Flow",
+          "type": "Variant",
+          "address": "ns=1;s=Tank1.OutputFlow",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1791721487242
+        },
+        "t_cc6ed567-bd58465d": {
+          "id": "t_cc6ed567-bd58465d",
+          "name": "Tank 1 Setpoint",
+          "label": "Tank 1 Setpoint",
+          "type": "Float",
+          "address": "ns=1;s=Tank1.Setpoint",
+          "daq": {
+            "enabled": false,
+            "restored": false
+          },
+          "timestamp": 1791721480741,
+          "format": null,
+          "scale": null,
+          "scaleReadFunction": null,
+          "scaleWriteFunction": null,
+          "unsPath": null,
+          "description": null
+        },
+        "t_c883727f-02504bf9": {
+          "id": "t_c883727f-02504bf9",
+          "name": "Tank 2 Level",
+          "label": "Tank 2 Level",
+          "type": "Variant",
+          "address": "ns=1;s=Tank2.Level",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1791721487242
+        },
+        "t_a7d4cef6-3b174b6e": {
+          "id": "t_a7d4cef6-3b174b6e",
+          "name": "Tank 2 Input Flow",
+          "label": "Tank 2 Input Flow",
+          "type": "Variant",
+          "address": "ns=1;s=Tank2.InputFlow",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1791721487242
+        },
+        "t_c03b4e75-9f1c456b": {
+          "id": "t_c03b4e75-9f1c456b",
+          "name": "Tank 2 Output Flow",
+          "label": "Tank 2 Output Flow",
+          "type": "Variant",
+          "address": "ns=1;s=Tank2.OutputFlow",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1791721482242
+        },
+        "t_c9caf277-04e04e70": {
+          "id": "t_c9caf277-04e04e70",
+          "name": "Tank 2 Setpoint",
+          "label": "Tank 2 Setpoint",
+          "type": "Variant",
+          "address": "ns=1;s=Tank2.Setpoint",
+          "daq": {
+            "enabled": false,
+            "restored": false
+          },
+          "timestamp": 1791721480741,
+          "format": null,
+          "scale": null,
+          "scaleReadFunction": null,
+          "scaleWriteFunction": null,
+          "unsPath": null
+        }
+      }
+    }
+  },
+  "hmi": {
+    "views": [
+      {
+        "id": "v_a12b114981-112813",
+        "name": "MainView",
+        "profile": {
+          "width": 1024,
+          "height": 768,
+          "bkcolor": "#ffffffff",
+          "margin": 10,
+          "align": "topCenter",
+          "gridType": "fixed",
+          "viewRenderDelay": 0
+        },
+        "items": {
+          "SHE_558008ee-4e744f16": {
+            "id": "SHE_558008ee-4e744f16",
+            "type": "svg-ext-proceng-tank5",
+            "name": "Tank1.Level.Tank",
+            "property": {
+              "variableId": "t_29ccf399-d5f043b8",
+              "ranges": [
+                {
+                  "min": 0,
+                  "max": 100,
+                  "color": "#4bacc6ff",
+                  "type": 2,
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Proc-Eng",
+            "hide": false,
+            "lock": false
+          },
+          "SHE_5afaa54d-f53846cc": {
+            "id": "SHE_5afaa54d-f53846cc",
+            "type": "svg-ext-proceng-tank5",
+            "name": "Tank2.Level.Tank",
+            "property": {
+              "variableId": "t_c883727f-02504bf9",
+              "ranges": [
+                {
+                  "min": 0,
+                  "max": 100,
+                  "color": "#4bacc6ff",
+                  "type": 2,
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": [],
+              "variableValue": "100"
+            },
+            "label": "Proc-Eng",
+            "hide": false,
+            "lock": false
+          },
+          "SHE_8920d1d5-e5164f0c": {
+            "id": "SHE_8920d1d5-e5164f0c",
+            "type": "svg-ext-shapes-path",
+            "name": "shape_1",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "GXP_aa52b3e0-22164495": {
+            "id": "GXP_aa52b3e0-22164495",
+            "type": "svg-ext-gauge_progress",
+            "name": "Tank1.Level.Progress",
+            "property": {
+              "ranges": [
+                {
+                  "min": 0,
+                  "max": 100,
+                  "color": "#3F4964",
+                  "type": 2,
+                  "style": [
+                    true,
+                    true
+                  ],
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": [],
+              "variableId": "t_29ccf399-d5f043b8"
+            },
+            "label": "HtmlProgress",
+            "hide": false,
+            "lock": false
+          },
+          "HXI_604f6958-4cc0471b": {
+            "id": "HXI_604f6958-4cc0471b",
+            "type": "svg-ext-html_input",
+            "name": "Tank1.Setpoint_Input",
+            "property": {
+              "variableId": "t_cc6ed567-bd58465d",
+              "events": [],
+              "actions": [],
+              "options": {
+                "updated": true,
+                "numeric": false,
+                "type": "number",
+                "maxlength": 3,
+                "readonly": false,
+                "selectOnClick": false,
+                "actionOnEsc": "update",
+                "updatedEsc": null,
+                "min": 0,
+                "max": 100
+              }
+            },
+            "label": "HtmlInput",
+            "hide": false,
+            "lock": false
+          },
+          "GXP_ddc53728-eb8f4cd4": {
+            "id": "GXP_ddc53728-eb8f4cd4",
+            "type": "svg-ext-gauge_progress",
+            "name": "Tank2.Level.Progress",
+            "property": {
+              "ranges": [
+                {
+                  "min": 0,
+                  "max": 100,
+                  "color": "#3F4964",
+                  "type": 2,
+                  "style": [
+                    true,
+                    true
+                  ],
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": [],
+              "variableId": "t_c883727f-02504bf9"
+            },
+            "label": "HtmlProgress",
+            "hide": false,
+            "lock": false
+          },
+          "A-GXP_eb9857d2-4e9d41d7": {
+            "id": "A-GXP_eb9857d2-4e9d41d7",
+            "type": "svg-ext-shapes-rect",
+            "name": "shape_2",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "B-GXP_83e183c6-1cdf48ee": {
+            "id": "B-GXP_83e183c6-1cdf48ee",
+            "type": "svg-ext-shapes-rect",
+            "name": "shape_2",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "H-GXP_20434a50-772d43da": {
+            "id": "H-GXP_20434a50-772d43da",
+            "type": "svg-ext-shapes-select",
+            "name": "shape_3",
+            "property": {
+              "variableId": "t_c883727f-02504bf9",
+              "ranges": [
+                {
+                  "min": 0,
+                  "max": 100,
+                  "color": "#4bacc6ff",
+                  "type": 2,
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "HXC_03d6401d-dcd845ff": {
+            "id": "HXC_03d6401d-dcd845ff",
+            "type": "svg-ext-html_chart",
+            "name": "Tank1.Level.Chart",
+            "property": {
+              "id": "030841812-4115",
+              "type": "realtime1",
+              "options": {
+                "title": "Title",
+                "fontFamily": "Roboto-Regular",
+                "legendFontSize": 8,
+                "colorBackground": "rgba(255,255,255,0)",
+                "legendBackground": "rgba(255,255,255,0)",
+                "titleHeight": 18,
+                "axisLabelFontSize": 0,
+                "labelsDivWidth": 0,
+                "axisLineColor": "rgba(0,0,0,1)",
+                "axisLabelColor": "rgba(0,0,0,1)",
+                "legendMode": "always",
+                "series": [],
+                "width": 360,
+                "height": 200,
+                "decimalsPrecision": 2,
+                "realtime": 60,
+                "mouseWheelScroll": false,
+                "mouseWheelZoom": false,
+                "staticChart": false,
+                "dateFormat": "MM_DD_YYYY",
+                "timeFormat": "hh_mm_ss_AA",
+                "scaleY1min": 0,
+                "scaleY1max": 100,
+                "scaleY2min": 0,
+                "scaleY2max": 100
+              }
+            },
+            "label": "HtmlChart",
+            "hide": false,
+            "lock": false
+          },
+          "HXI_f6b026c5-f7d24df4": {
+            "id": "HXI_f6b026c5-f7d24df4",
+            "type": "svg-ext-html_input",
+            "name": "Tank2.Level.Setpoint",
+            "property": {
+              "variableId": "t_c9caf277-04e04e70",
+              "events": [],
+              "actions": [],
+              "options": {
+                "updated": true,
+                "numeric": false,
+                "type": "number",
+                "maxlength": 3,
+                "readonly": false,
+                "selectOnClick": false,
+                "actionOnEsc": "update",
+                "updatedEsc": null,
+                "min": 0,
+                "max": 100
+              }
+            },
+            "label": "HtmlInput",
+            "hide": false,
+            "lock": false
+          },
+          "svg_e4ba5e3b-d6fc4455": {
+            "id": "svg_e4ba5e3b-d6fc4455",
+            "type": "svg-ext-shapes-rect",
+            "name": "shape_5",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "VAL_36bab358-488e4946": {
+            "id": "VAL_36bab358-488e4946",
+            "type": "svg-ext-value",
+            "name": "Tank1.Level.Output",
+            "property": {
+              "variableId": "t_29ccf399-d5f043b8",
+              "ranges": [
+                {
+                  "min": 20,
+                  "max": 80,
+                  "text": "%",
+                  "textId": null,
+                  "color": "",
+                  "type": 1,
+                  "stroke": "",
+                  "fractionDigitsId": null,
+                  "fractionDigits": "0"
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Value",
+            "hide": false,
+            "lock": false
+          },
+          "VAL_477a822c-051246b1": {
+            "id": "VAL_477a822c-051246b1",
+            "type": "svg-ext-value",
+            "name": "Tank2.Level.Output",
+            "property": {
+              "variableId": "t_c883727f-02504bf9",
+              "ranges": [
+                {
+                  "min": 20,
+                  "max": 80,
+                  "text": "%",
+                  "textId": null,
+                  "color": "",
+                  "type": 1,
+                  "stroke": "",
+                  "fractionDigitsId": null,
+                  "fractionDigits": "0"
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Value",
+            "hide": false,
+            "lock": false
+          },
+          "VAL_b942cedd-70e64aa1": {
+            "id": "VAL_b942cedd-70e64aa1",
+            "type": "svg-ext-shapes-text",
+            "name": "shape_6",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "svg_9508e064-795e4e65": {
+            "id": "svg_9508e064-795e4e65",
+            "type": "svg-ext-shapes-text",
+            "name": "Title",
+            "property": {
+              "ranges": [
+                {
+                  "min": 20,
+                  "max": 80,
+                  "color": "",
+                  "type": 2,
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": [],
+              "text": "rOpen62541 OPC UA Server Example - Tank Simulator"
+            },
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          }
+        },
+        "variables": {},
+        "svgcontent": "<svg width=\"1024\" height=\"768\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:svg=\"http://www.w3.org/2000/svg\" xmlns:html=\"http://www.w3.org/1999/xhtml\">\n <filter height=\"200\" width=\"200\" y=\"-3\" x=\"-3\" id=\"blur-filter\">\n  <feGaussianBlur stdDeviation=\"3\"/>\n </filter>\n\n <g>\n  <title>Layer 1</title>\n  <g data-name=\"Tank1.Level.Tank\" id=\"SHE_558008ee-4e744f16\" type=\"svg-ext-proceng-tank5\" fill=\"#FFFFFF\" stroke=\"#000000\" font-size=\"14\" font-family=\"sans-serif\" text-anchor=\"middle\">\n   <path id=\"SHE_06ff9535-26a54038\" d=\"M226.42105,90.49665L226.42105,298.5034C226.42105,309.54592 203.05684,318.50003 174.21052,318.50003C145.3642,318.50003 121.99999,309.54592 121.99999,298.5034L121.99999,90.49665C121.99999,79.45413 145.3642,70.50002 174.21052,70.50002C203.05684,70.50002 226.42105,79.45413 226.42105,90.49665zM121.99999,90.49665L226.42105,90.49665M121.99999,298.5034L226.42105,298.5034\"/>\n  </g>\n  <g data-name=\"Tank2.Level.Tank\" type=\"svg-ext-proceng-tank5\" fill=\"#FFFFFF\" stroke=\"#000000\" font-size=\"14\" font-family=\"sans-serif\" text-anchor=\"middle\" id=\"SHE_5afaa54d-f53846cc\">\n   <path data-name=\"shape_1\" d=\"M371.21054,90.99663L371.21054,299.00337C371.21054,310.0459 347.84633,319.00001 319.00001,319.00001C290.15369,319.00001 266.78948,310.0459 266.78948,299.00337L266.78948,90.99663C266.78948,79.95411 290.15369,71 319.00001,71C347.84633,71 371.21054,79.95411 371.21054,90.99663zM266.78948,90.99663L371.21054,90.99663M266.78948,299.00337L371.21054,299.00337\" id=\"SHE_8920d1d5-e5164f0c\"/>\n  </g>\n  <g data-name=\"Tank1.Level.Progress\" id=\"GXP_aa52b3e0-22164495\" type=\"svg-ext-gauge_progress\" font-size=\"14\" stroke=\"#000000\" font-family=\"sans-serif\">\n   <rect id=\"A-GXP_be2d4a50-0df2438e\" x=\"148\" y=\"114\" width=\"50\" height=\"150\" fill=\"#FFFFFF\" stroke=\"#000000\"/>\n   <rect id=\"B-GXP_4b707f68-93ca4696\" x=\"148\" y=\"114\" width=\"50\" height=\"75\" fill=\"#3F4964\" stroke=\"#000000\"/>\n   <foreignObject x=\"148\" y=\"114\" height=\"150\" width=\"50\" id=\"H-GXP_203f4fbf-d0de4b31\" font-size=\"14\"/>\n  </g>\n  <g data-name=\"Tank1.Setpoint_Input\" id=\"HXI_604f6958-4cc0471b\" type=\"svg-ext-html_input\" fill=\"#FFFFFF\" stroke=\"#000000\">\n   <rect font-size=\"15\" stroke-width=\"0.5\" x=\"117\" y=\"352.99998\" width=\"119\" height=\"46\" id=\"svg_c64b478c-f14b45f2\"/>\n   <foreignObject x=\"117\" y=\"352.99998\" height=\"46\" width=\"119\" id=\"H-HXI_25574bbb-288440ec\" font-size=\"15\">\n    <INPUT style=\"width: calc(100% - 7px); height: calc(100% - 7px); text-align: right; border: unset; font-size: 15px; font-family: sans-serif; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); vector-effect: non-scaling-stroke;\" value=\"#.##\" type=\"text\" id=\"I-HXI_25574bbb-288440ec\"/>\n   </foreignObject>\n  </g>\n  <g id=\"GXP_ddc53728-eb8f4cd4\" data-name=\"Tank2.Level.Progress\" type=\"svg-ext-gauge_progress\" font-size=\"14\" stroke=\"#000000\" font-family=\"sans-serif\">\n   <rect data-name=\"shape_2\" id=\"A-GXP_eb9857d2-4e9d41d7\" x=\"296\" y=\"113\" width=\"50\" height=\"150\" fill=\"#FFFFFF\" stroke=\"#000000\"/>\n   <rect data-name=\"shape_2\" id=\"B-GXP_83e183c6-1cdf48ee\" x=\"296\" y=\"113\" width=\"50\" height=\"150\" fill=\"#3F4964\" stroke=\"#000000\"/>\n   <foreignObject id=\"H-GXP_20434a50-772d43da\" x=\"296\" y=\"113\" height=\"150\" width=\"50\" font-size=\"14\"/>\n  </g>\n  <g data-name=\"Tank1.Level.Chart\" xml:space=\"preserve\" text-anchor=\"right\" font-family=\"sans-serif\" font-size=\"14\" stroke=\"#000000\" fill=\"#FFFFFF\" type=\"svg-ext-html_chart\" id=\"HXC_03d6401d-dcd845ff\">\n   <rect id=\"svg_050c38e7-b5874935\" height=\"240\" width=\"380\" y=\"77\" x=\"395\" stroke-width=\"0\"/>\n   <foreignObject id=\"H-HXC_c31b628f-98a94e5b\" width=\"380\" height=\"240\" y=\"77\" x=\"395\">\n    <DIV style=\"width:100%;height:100%;\" id=\"D-HXC_c31b628f-98a94e5b\">\n     <CHART-UPLOT class=\"ng-star-inserted\">\n      <DIV style=\"background-color: rgba(255, 255, 255, 0);\" class=\"mychart-panel\">\n       <!---->\n       <NGX-UPLOT class=\"mychart-graph\">\n        <DIV>\n         <DIV id=\"Tanks.Level.Chart\" class=\"uplot u-hz\">\n          <DIV style=\"color: rgb(0, 0, 0); font-size: 18px; font-family: Roboto-Regular;\" class=\"u-title\">Tanks.Level.Chart</DIV>\n          <DIV style=\"width: 380px; height: 160px;\" class=\"u-wrap\">\n           <DIV style=\"left: 50px; top: 17px; width: 280px; height: 63px;\" class=\"u-under\"></DIV>\n           <CANVAS height=\"160\" width=\"380\"/>\n           <DIV style=\"left: 50px; top: 17px; width: 280px; height: 63px;\" class=\"u-over\">\n            <DIV style=\"transform: translate(-10px);\" class=\"u-cursor-x u-off\"></DIV>\n            <DIV style=\"transform: translate(0px, -10px);\" class=\"u-cursor-y u-off\"></DIV>\n            <DIV style=\"left: 0px; width: 0px; top: 0px; height: 0px;\" class=\"u-select\"></DIV>\n            <DIV class=\"u-cursor-pt u-off\" style=\"width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; transform: translate(-10px, -10px); background: rgb(68, 132, 239); border-color: rgb(68, 132, 239);\"></DIV>\n            <DIV class=\"u-cursor-pt u-off\" style=\"width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; transform: translate(-10px, -10px); background: rgb(239, 9, 9); border-color: rgb(239, 9, 9);\"></DIV>\n           </DIV>\n           <DIV style=\"top: 80px; height: 50px; left: 50px; width: 280px;\" class=\"u-axis\"></DIV>\n           <DIV style=\"left: 0px; width: 50px; top: 17px; height: 63px;\" class=\"u-axis\"></DIV>\n           <DIV style=\"left: 330px; width: 50px; top: 17px; height: 63px;\" class=\"u-axis\"></DIV>\n           <DIV class=\"u-axis u-off\"></DIV>\n           <DIV class=\"u-axis u-off\"></DIV>\n          </DIV>\n          <TABLE style=\"color: rgb(0, 0, 0); line-height: 0;\" class=\"u-legend u-inline u-live\">\n           <TR class=\"u-series\">\n            <TH>\n             <DIV class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">Time</DIV>\n            </TH>\n            <TD class=\"u-value\"></TD>\n           </TR>\n           <TR class=\"u-series\">\n            <TH>\n             <DIV style=\"border: 2px solid rgb(68, 132, 239);\" class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">Tank 1 Level</DIV>\n            </TH>\n            <TD class=\"u-value\">--</TD>\n           </TR>\n           <TR class=\"u-series\">\n            <TH>\n             <DIV style=\"border: 2px solid rgb(239, 9, 9);\" class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">Tank 2 Level</DIV>\n            </TH>\n            <TD class=\"u-value\">--</TD>\n           </TR>\n          </TABLE>\n         </DIV>\n        </DIV>\n       </NGX-UPLOT>\n       <!---->\n       <!---->\n      </DIV>\n     </CHART-UPLOT>\n    </DIV>\n   </foreignObject>\n  </g>\n  <g id=\"HXI_f6b026c5-f7d24df4\" data-name=\"Tank2.Level.Setpoint\" type=\"svg-ext-html_input\" fill=\"#FFFFFF\" stroke=\"#000000\">\n   <rect data-name=\"shape_5\" id=\"svg_e4ba5e3b-d6fc4455\" font-size=\"15\" stroke-width=\"0.5\" x=\"270.5\" y=\"352.00001\" width=\"119\" height=\"46\"/>\n   <foreignObject id=\"H-HXI_4682804d-dd2744d6\" x=\"270.5\" y=\"352.00001\" height=\"46\" width=\"119\" font-size=\"15\">\n    <INPUT id=\"I-HXI_67600649-b6ae4420\" style=\"width: calc(100% - 7px); height: calc(100% - 7px); text-align: right; border: unset; font-size: 15px; font-family: sans-serif; background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); vector-effect: non-scaling-stroke;\" value=\"#.##\" type=\"text\"/>\n   </foreignObject>\n  </g>\n  <g xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"sans-serif\" stroke-width=\"0\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" y=\"403\" x=\"189\" type=\"svg-ext-value\" id=\"VAL_36bab358-488e4946\">\n   <text transform=\"matrix(1.92, 0, 0, 1, -171.6, 0)\" y=\"283\" x=\"180.00833\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"sans-serif\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" id=\"VAL_d5f16b10-cd3c4b12\" stroke-width=\"0\">##.##</text>\n  </g>\n  <g id=\"VAL_477a822c-051246b1\" data-name=\"output_1\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"sans-serif\" stroke-width=\"0\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" y=\"403\" x=\"189\" type=\"svg-ext-value\">\n   <text data-name=\"shape_6\" id=\"VAL_b942cedd-70e64aa1\" transform=\"matrix(1.92, 0, 0, 1, -171.6, 0)\" y=\"284.03125\" x=\"256.5625\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"sans-serif\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" stroke-width=\"0\">##.##</text>\n  </g>\n  <text transform=\"matrix(1.38774, 0, 0, 1.42857, -7.39445, -3.85714)\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"Roboto-Bold\" font-size=\"21\" id=\"svg_9508e064-795e4e65\" y=\"35\" x=\"353\" stroke-width=\"0\" stroke=\"#000000\" fill=\"#000000\">rOpen62541 OPC UA Server Example - Tank Simulator</text>\n </g>\n</svg>",
+        "type": "svg"
+      }
+    ],
+    "layout": {
+      "autoresize": false,
+      "start": "v_a12b114981-112813",
+      "navigation": {
+        "mode": "over",
+        "type": "block",
+        "bkcolor": "#F4F5F7",
+        "fgcolor": "#1D1D1D",
+        "logo": false
+      },
+      "header": {
+        "bkcolor": "#ffffff",
+        "fgcolor": "#000000",
+        "height": 46,
+        "buttonHeight": 36,
+        "fontSize": 13,
+        "itemsAnchor": "left"
+      },
+      "showdev": true,
+      "inputdialog": "false",
+      "hidenavigation": false,
+      "theme": "",
+      "loginonstart": false,
+      "loginoverlaycolor": "none",
+      "show_connection_error": true,
+      "customStyles": ""
+    }
+  },
+  "recipes": [],
+  "ar": {
+    "enabled": false,
+    "markers": []
+  },
+  "version": "1.00",
+  "server": {
+    "id": "0",
+    "name": "FUXA Server",
+    "type": "FuxaServer",
+    "property": {}
+  },
+  "charts": [
+    {
+      "id": "030841812-4115",
+      "name": "Tanks.Level.Chart",
+      "lines": [
+        {
+          "id": "t_29ccf399-d5f043b8",
+          "name": "Tank 1 Level",
+          "device": "ESP32S3",
+          "color": "#4484ef",
+          "label": "Tank 1 Level",
+          "yaxis": 1,
+          "spanGaps": true
+        },
+        {
+          "id": "t_c883727f-02504bf9",
+          "name": "Tank 2 Level",
+          "device": "ESP32S3",
+          "color": "#ef0909",
+          "label": "Tank 2 Level",
+          "yaxis": 1,
+          "spanGaps": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-﻿Build1=Default,B4RDev
+﻿Build1=Default,B4RDev,ESP32
 Group=Default Group
 Library1=rconvert
 Library2=rcore
@@ -13,9 +13,8 @@ Version=4
 '==============================================
 ' Project:		rOpen62541
 ' Brief:		Example simulating two Tanks and listening to client callback.
-' Date:			2026-10-11
-' Author: 		Robert W.B. Linn
-' License:		MIT — see LICENSE file.
+' Date:			See process_globals VERSION.
+' Author: 		Robert W.B. Linn (c) 2026 MIT - see LICENSE file.
 ' Description:	
 ' Hardware:		ESP32-S3-N16R8
 '				Board settings:
@@ -34,11 +33,11 @@ Version=4
 #Region Project Attributes
 	#AutoFlushLogs: True
 	#CheckArrayBounds: True
-	#StackBufferSize: 3000
+	#StackBufferSize: 600
 #End Region
 
 Sub Process_Globals
-	Private VERSION 			As String = "rOpen62541 TankSim v20261011"
+	Private VERSION 			As String = "rOpen62541 TankSim v20261016"
 
 	' Communication
 	Public Serial1 				As Serial
@@ -51,9 +50,17 @@ Sub Process_Globals
 	Private PORT 				As Int = 4840
 
 	' Visual Indicator Setup
-	Private Pin_StatusLED As Pin
-	Private LED_PIN As Byte = 2
+	' LED
+	Private LedStatusPin As Pin
+	Private LED_STATUS_PIN_NR 	As Byte = 12
+	Private LedStatusState 		As Boolean							' Keep the ledstate set by the button or opc
+	
+	' Buttons
+	Private ButtonPin 			As Pin
+	Private BUTTON_PIN_NR 		As Byte = 14
+	Private FirstTime As Boolean = False
 
+	' Simulator
 	Private SetpointChanged_T1 As Boolean = False
 	Private SetpointChanged_T2 As Boolean = False
 	Private TuningChanged As Boolean = False
@@ -113,6 +120,7 @@ Sub Process_Globals
 	Private NODEID_T1_KD 		As String = "ns=1;s=Tank1.Kd"
 	Private NODEID_T1_ALARM_HH	As String = "ns=1;s=Tank1.Alarm_HH"
 	Private NODEID_T1_ALARM_LL	As String = "ns=1;s=Tank1.Alarm_LL"
+	Private NODEID_T1_PUMP		As String = "ns=1;s=Tank1.Pump"
     
 	' Tank 2 Identifiers
 	Private NODEID_T2_LEVEL 	As String = "ns=1;s=Tank2.Level"
@@ -147,6 +155,14 @@ Sub AppStart
 	Serial1.Initialize(115200)
 	Log(CRLF, "[AppStart] ", VERSION)
 
+	' Init Input and Output
+	LedStatusPin.Initialize(LED_STATUS_PIN_NR, LedStatusPin.MODE_OUTPUT)
+	LedStatusState = False
+	LedStatusPin.DigitalWrite(LedStatusState)
+
+	ButtonPin.Initialize(BUTTON_PIN_NR, ButtonPin.MODE_INPUT_PULLUP)
+	ButtonPin.AddListener("Button_StateChanged")
+	
 	' Init app timer to generate env data
 	SimTimer.Initialize("SimTimer_Tick", SIMTIMER_INTERVAL)
 	SimTimer.Enabled = False
@@ -157,7 +173,7 @@ Sub AppStart
 
 		' Disable Wi-Fi sleep mode (First major current step-up)
 		RunNative("DisableWiFiSleep", Null)
-		RunNative("InitSystemClock", Null)
+		RunNative("SetSystemClock", Null)
 		
 		' Let the power line settle after forcing the radio transmitter fully active.
 		Delay(2000)
@@ -178,6 +194,29 @@ Sub AppStart
 		Log("[AppStart][E] WiFi connection failed")
 	End If
 End Sub
+
+#Region Button
+'Handle button state changed. 
+'This is a pushbutton, means when pressing the button the LED will be turned on, when releasing again the LED is turned OFF.
+Sub Button_StateChanged (State As Boolean)
+	' Disable firsttime else led is turned on
+	If FirstTime Then
+		FirstTime = Not(FirstTime)
+		Return
+	End If
+	Log("[Button_StateChanged] Button state: ", State)
+	
+	' The state will be false when the button is clicked because of the PULLUP mode.
+	If Not(State) Then
+		' Set Led state
+		LedStatusState = Not(LedStatusState)
+		LedStatusPin.DigitalWrite(LedStatusState)
+		
+		' Update the opc ua node
+		' OPCUAServer.WriteBoolean(NODEID_LED_STATE, LedState)
+	End If
+End Sub
+#End Region
 
 ' InitOPCUAServer
 ' Steps:
@@ -246,6 +285,8 @@ Private Sub CreateNodes
 	OPCUAServer.AddFloatNode(NODEID_T1_ALARM_HH, "Tank 1 High-High Alarm", Convert.BoolToByte(T1_Alarm_HH))
 	OPCUAServer.AddFloatNode(NODEID_T1_ALARM_LL, "Tank 1 Low-Low Alarm", Convert.BoolToByte(T1_Alarm_LL))
 
+	OPCUAServer.AddBooleanNode(NODEID_T1_PUMP, "Tank1 Pump", False)
+
 	' =========================================================================
 	' TANK 2 NODE REGISTRATION
 	' =========================================================================
@@ -275,15 +316,15 @@ Sub SimTimer_Tick
 	
     ' Handle Visual Signaling Events 
     If SetpointChanged_T1 Or SetpointChanged_T2 Then
-        Pin_StatusLED.DigitalWrite(True)
+		LedStatusPin.DigitalWrite(True)
         SetpointChanged_T1 = False
         SetpointChanged_T2 = False
     Else If TuningChanged Then
-		Log("[SimTimer]PID Coefficients runtime modified via remote SCADA client.")
+		Log("[SimTimer] PID Coefficients runtime modified via remote SCADA client.")
         TuningChanged = False
-		Pin_StatusLED.DigitalWrite(True)
+		LedStatusPin.DigitalWrite(True)
     Else
-		Pin_StatusLED.DigitalWrite(False)
+		LedStatusPin.DigitalWrite(False)
     End If
 
     ' Automated Load Disturbance Injector Step 
@@ -387,11 +428,8 @@ Private Sub WriteNodes
 	
 	' Log("[WriteNodes] ram=", AvailableRAM)
 
-	Log("[SimTimer] Tank1 level=", Tank1_Level, ", input=", Tank1_InFlow, ", output=", Tank1_ActualOutFlow)
-	Log("[SimTimer] Tank2 level=", Tank2_Level, ", input=", Tank2_InFlow, ", output=", Tank2_OutFlow)
-	
-	' Example reading system time.
-	' Log(OPCUAServer.ReadNumeric("ns=0;i=2258"))
+	Log("[SimTimer] Tank1 level=", Tank1_Level, ", setpoint=", Tank1_Setpoint, ", input=", Tank1_InFlow, ", output=", Tank1_ActualOutFlow)
+	Log("[SimTimer] Tank2 level=", Tank2_Level, ", setpoint=", Tank2_Setpoint, ", input=", Tank2_InFlow, ", output=", Tank2_OutFlow)
 End Sub
 
 '==============================================
@@ -534,8 +572,8 @@ void DisableWiFiSleep(B4R::Object* o) {
     ::Serial.println("[Hardware Engine] Wi-Fi Modem-Sleep forcefully disabled! Radio set to high-performance mode.");
 }
 
-// RunNative("InitSystemClock", Null)
-void InitSystemClock(B4R::Object* o) {
+// RunNative("SetSystemClock", Null)
+void SetSystemClock(B4R::Object* o) {
     // Configures the system to poll pool.ntp.org with a standard global UTC offset
     // Adjust the 3600 (seconds) based on your target local timezone offset (e.g. 3600 = UTC+1)
     configTime(3600, 0, "pool.ntp.org", "time.nist.gov");

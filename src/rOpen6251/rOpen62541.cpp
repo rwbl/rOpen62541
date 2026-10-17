@@ -270,7 +270,7 @@ namespace B4R {
         // from collapsing when hammered by aggressive tools like opcua-commander.
         config->maxReferencesPerNode = 20;
         config->maxNodesPerBrowse = 10;
-                
+        
         // DYNAMIC SECURITY POLICY MANAGEMENT
         if (useAuthentication) {
             static UA_UsernamePasswordLogin loginCredentials;
@@ -521,7 +521,7 @@ namespace B4R {
             vAttr.displayName = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
 			vAttr.description = UA_LOCALIZEDTEXT("en-US", (char*)DisplayName->data);
             vAttr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
-            
+                       
 			UA_NodeId targetNodeId = CreateNodeId(NodeIdentifier);
 			const char* stringIdentifier = GetStringIdentifier(NodeIdentifier);
 			
@@ -532,7 +532,7 @@ namespace B4R {
                                       UA_QUALIFIEDNAME(1, (char*)stringIdentifier), 
                                       UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), 
                                       vAttr, NULL, NULL);
-                            
+           
 			UA_Server_setVariableNode_valueCallback(server, targetNodeId, *(new UA_ValueCallback{NULL, onDataWrite}));
      				
             xSemaphoreGive(open62541Mutex);
@@ -817,12 +817,34 @@ namespace B4R {
 		if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
 			int ns; const char* id; ParseNodeId(NodeIdentifier, ns, id);
 			UA_NodeId targetNodeId = UA_NODEID_STRING(ns, (char*)id);
-			UA_Variant myVar; UA_Variant_init(&myVar);
-			UA_Variant_setScalar(&myVar, &NewValue, &UA_TYPES[UA_TYPES_FLOAT]);
 			
-			isOnDataWrite = false; // Lower flag
-			UA_Server_writeValue(server, targetNodeId, myVar);
-			isOnDataWrite = true;  // Raise flag
+			// Initialize a full DataValue container instead of just a Variant
+			UA_DataValue myDataValue;
+			UA_DataValue_init(&myDataValue);
+			
+			// Set float value inside the container's variant
+			UA_Variant_setScalar(&myDataValue.value, &NewValue, &UA_TYPES[UA_TYPES_FLOAT]);
+			myDataValue.hasValue = true;
+			
+			// Fetch current system time
+			UA_DateTime nowTime = UA_DateTime_now();
+		
+			// Inject the current server timestamp (real time) into the payload
+			myDataValue.sourceTimestamp = nowTime;
+			myDataValue.hasSourceTimestamp = true;
+
+			// Set the Server Timestamp 
+			myDataValue.serverTimestamp = nowTime;
+			myDataValue.hasServerTimestamp = true;
+        
+			// Lower flag
+			isOnDataWrite = false;
+			
+			// Use writeDataValue to pass the combined structure (Value + Timestamp)
+			UA_Server_writeDataValue(server, targetNodeId, myDataValue);
+			
+			// Raise flag
+			isOnDataWrite = true;
 			
 			xSemaphoreGive(open62541Mutex);
 		}
@@ -834,13 +856,20 @@ namespace B4R {
 			int ns; const char* id; ParseNodeId(NodeIdentifier, ns, id);
 			UA_NodeId targetNodeId = UA_NODEID_STRING(ns, (char*)id);
 			
-			// Extract B4R Int (short) into an explicit open62541 Int32 memory block
 			int32_t iVal = (int32_t)NewValue;
-			UA_Variant myVar; UA_Variant_init(&myVar);
-			UA_Variant_setScalar(&myVar, &iVal, &UA_TYPES[UA_TYPES_INT32]);
 			
+			UA_DataValue myDataValue;
+			UA_DataValue_init(&myDataValue);
+			UA_Variant_setScalar(&myDataValue.value, &iVal, &UA_TYPES[UA_TYPES_INT32]);
+			myDataValue.hasValue = true;
+			UA_DateTime nowTime = UA_DateTime_now();
+			myDataValue.sourceTimestamp = nowTime;
+			myDataValue.hasSourceTimestamp = true;
+			myDataValue.serverTimestamp = nowTime;
+			myDataValue.hasServerTimestamp = true;
+        			
 			isOnDataWrite = false;
-			UA_Server_writeValue(server, targetNodeId, myVar);
+			UA_Server_writeDataValue(server, targetNodeId, myDataValue);
 			isOnDataWrite = true;
 			
 			xSemaphoreGive(open62541Mutex);
@@ -853,13 +882,17 @@ namespace B4R {
 			int ns; const char* id; ParseNodeId(NodeIdentifier, ns, id);
 			UA_NodeId targetNodeId = UA_NODEID_STRING(ns, (char*)id);
 			
-			// Extract B4R UInt into an explicit open62541 UInt32 memory block
 			uint32_t uiVal = (uint32_t)NewValue;
-			UA_Variant myVar; UA_Variant_init(&myVar);
-			UA_Variant_setScalar(&myVar, &uiVal, &UA_TYPES[UA_TYPES_UINT32]);
+			
+			UA_DataValue myDataValue;
+			UA_DataValue_init(&myDataValue);
+			UA_Variant_setScalar(&myDataValue.value, &uiVal, &UA_TYPES[UA_TYPES_UINT32]);
+			myDataValue.hasValue = true;
+			myDataValue.sourceTimestamp = UA_DateTime_now();
+			myDataValue.hasSourceTimestamp = true;
 			
 			isOnDataWrite = false;
-			UA_Server_writeValue(server, targetNodeId, myVar);
+			UA_Server_writeDataValue(server, targetNodeId, myDataValue);
 			isOnDataWrite = true;
 			
 			xSemaphoreGive(open62541Mutex);
@@ -871,12 +904,18 @@ namespace B4R {
 		if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
 			int ns; const char* id; ParseNodeId(NodeIdentifier, ns, id);
 			UA_NodeId targetNodeId = UA_NODEID_STRING(ns, (char*)id);
-			UA_Variant myVar; UA_Variant_init(&myVar);
+			
 			UA_Boolean bVal = NewValue;
-			UA_Variant_setScalar(&myVar, &bVal, &UA_TYPES[UA_TYPES_BOOLEAN]);
+			
+			UA_DataValue myDataValue;
+			UA_DataValue_init(&myDataValue);
+			UA_Variant_setScalar(&myDataValue.value, &bVal, &UA_TYPES[UA_TYPES_BOOLEAN]);
+			myDataValue.hasValue = true;
+			myDataValue.sourceTimestamp = UA_DateTime_now();
+			myDataValue.hasSourceTimestamp = true;
 			
 			isOnDataWrite = false;
-			UA_Server_writeValue(server, targetNodeId, myVar);
+			UA_Server_writeDataValue(server, targetNodeId, myDataValue);
 			isOnDataWrite = true;
 			
 			xSemaphoreGive(open62541Mutex);
@@ -889,13 +928,17 @@ namespace B4R {
 			int ns; const char* id; ParseNodeId(NodeIdentifier, ns, id);
 			UA_NodeId targetNodeId = UA_NODEID_STRING(ns, (char*)id);
 			
-			// Extract B4R Long into an explicit open62541 Int64 memory block
 			int64_t lVal = (int64_t)NewValue;
-			UA_Variant myVar; UA_Variant_init(&myVar);
-			UA_Variant_setScalar(&myVar, &lVal, &UA_TYPES[UA_TYPES_INT64]);
+			
+			UA_DataValue myDataValue;
+			UA_DataValue_init(&myDataValue);
+			UA_Variant_setScalar(&myDataValue.value, &lVal, &UA_TYPES[UA_TYPES_INT64]);
+			myDataValue.hasValue = true;
+			myDataValue.sourceTimestamp = UA_DateTime_now();
+			myDataValue.hasSourceTimestamp = true;
 			
 			isOnDataWrite = false;
-			UA_Server_writeValue(server, targetNodeId, myVar);
+			UA_Server_writeDataValue(server, targetNodeId, myDataValue);
 			isOnDataWrite = true;
 			
 			xSemaphoreGive(open62541Mutex);
@@ -908,13 +951,17 @@ namespace B4R {
 			int ns; const char* id; ParseNodeId(NodeIdentifier, ns, id);
 			UA_NodeId targetNodeId = UA_NODEID_STRING(ns, (char*)id);
 			
-			// Extract B4R ULong into an explicit open62541 UInt64 memory block
 			uint64_t ulVal = (uint64_t)NewValue;
-			UA_Variant myVar; UA_Variant_init(&myVar);
-			UA_Variant_setScalar(&myVar, &ulVal, &UA_TYPES[UA_TYPES_UINT64]);
+			
+			UA_DataValue myDataValue;
+			UA_DataValue_init(&myDataValue);
+			UA_Variant_setScalar(&myDataValue.value, &ulVal, &UA_TYPES[UA_TYPES_UINT64]);
+			myDataValue.hasValue = true;
+			myDataValue.sourceTimestamp = UA_DateTime_now();
+			myDataValue.hasSourceTimestamp = true;
 			
 			isOnDataWrite = false;
-			UA_Server_writeValue(server, targetNodeId, myVar);
+			UA_Server_writeDataValue(server, targetNodeId, myDataValue);
 			isOnDataWrite = true;
 			
 			xSemaphoreGive(open62541Mutex);
@@ -935,15 +982,18 @@ namespace B4R {
             
             if (UA_Server_readValue(server, targetNodeId, &currentValue) == UA_STATUSCODE_GOOD) {
                 if (currentValue.type == &UA_TYPES[UA_TYPES_STRING]) {
-                    UA_Variant myVar;
-                    UA_Variant_init(&myVar);
-                    
                     UA_String uaStr;
                     uaStr.length = strlen((char*)NewValue->data);
                     uaStr.data = (UA_Byte*)NewValue->data;
                     
-                    UA_Variant_setScalar(&myVar, &uaStr, &UA_TYPES[UA_TYPES_STRING]);
-                    UA_Server_writeValue(server, targetNodeId, myVar);
+                    UA_DataValue myDataValue;
+                    UA_DataValue_init(&myDataValue);
+                    UA_Variant_setScalar(&myDataValue.value, &uaStr, &UA_TYPES[UA_TYPES_STRING]);
+                    myDataValue.hasValue = true;
+                    myDataValue.sourceTimestamp = UA_DateTime_now();
+                    myDataValue.hasSourceTimestamp = true;
+                    
+                    UA_Server_writeDataValue(server, targetNodeId, myDataValue);
                 }
             }
             UA_Variant_clear(&currentValue);
@@ -965,13 +1015,18 @@ namespace B4R {
 			byteString.length = Data->length;
 			byteString.data = (UA_Byte*)Data->data;
 
-			UA_Variant value;
-			UA_Variant_init(&value);
+			UA_DataValue myDataValue;
+			UA_DataValue_init(&myDataValue);
+			
+			// Note: setScalarCopy handles deep allocation safely for internal byte ranges
+			UA_Variant_setScalarCopy(&myDataValue.value, &byteString, &UA_TYPES[UA_TYPES_BYTESTRING]);
+			myDataValue.hasValue = true;
+			myDataValue.sourceTimestamp = UA_DateTime_now();
+			myDataValue.hasSourceTimestamp = true;
 
-			UA_Variant_setScalarCopy(&value, &byteString, &UA_TYPES[UA_TYPES_BYTESTRING]);
-			UA_Server_writeValue(server, targetNodeId, value);
+			UA_Server_writeDataValue(server, targetNodeId, myDataValue);
 
-			UA_Variant_clear(&value);
+			UA_Variant_clear(&myDataValue.value);
 
 			xSemaphoreGive(open62541Mutex);
 		}
@@ -1094,6 +1149,181 @@ namespace B4R {
 
 		return result;
 	}
+
+	void B4ROPEN62541::ReadDataValue(B4RString* NodeIdentifier) {
+		if (server == NULL) {
+			::Serial.println("ReadDataValue Error: Server is NULL");
+			return;
+		}
+
+		if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
+			int NamespaceIndex;
+			const char* Identifier;
+			ParseNodeId(NodeIdentifier, NamespaceIndex, Identifier);
+
+			UA_NodeId targetNodeId = UA_NODEID_STRING(NamespaceIndex, (char*)Identifier);
+			
+			// 1. Configure a standard read item criteria targeting the VALUE attribute space
+			UA_ReadValueId rvi;
+			UA_ReadValueId_init(&rvi);
+			rvi.nodeId = targetNodeId;
+			rvi.attributeId = UA_ATTRIBUTEID_VALUE;
+			
+			// 2. Perform a low-level direct read, explicitly requesting BOTH timestamp blocks
+			UA_DataValue dbSnapshot = UA_Server_read(server, &rvi, UA_TIMESTAMPSTORETURN_BOTH);
+			
+			::Serial.println("=========== LOCAL DATABASE CACHE SNAPSHOT ===========");
+			::Serial.print("Node Identifier: "); ::Serial.println(Identifier);
+			
+			// FIX: Changed .statusCode to .status to match your open62541 version struct layout
+			::Serial.print("Status Code:     0x"); ::Serial.println(dbSnapshot.status, HEX);
+			
+			// 3. Extract and display the raw variant value matching your ReadString logic
+			if (dbSnapshot.hasValue && UA_Variant_isScalar(&dbSnapshot.value)) {
+				char numericBuffer[64];
+				memset(numericBuffer, 0, sizeof(numericBuffer));
+				
+				if (dbSnapshot.value.type == &UA_TYPES[UA_TYPES_FLOAT]) {
+					dtostrf(*(UA_Float*)dbSnapshot.value.data, 1, 4, numericBuffer);
+					::Serial.print("Current Value:   "); ::Serial.println(numericBuffer);
+				}
+				else if (dbSnapshot.value.type == &UA_TYPES[UA_TYPES_INT32]) {
+					itoa(*(UA_Int32*)dbSnapshot.value.data, numericBuffer, 10);
+					::Serial.print("Current Value:   "); ::Serial.println(numericBuffer);
+				}
+				else if (dbSnapshot.value.type == &UA_TYPES[UA_TYPES_BOOLEAN]) {
+					::Serial.print("Current Value:   "); ::Serial.println(*(UA_Boolean*)dbSnapshot.value.data ? "True" : "False");
+				}
+				else if (dbSnapshot.value.type == &UA_TYPES[UA_TYPES_STRING]) {
+					UA_String* uaStr = (UA_String*)dbSnapshot.value.data;
+					::Serial.print("Current Value:   ");
+					for (size_t i = 0; i < uaStr->length; i++) ::Serial.print((char)uaStr->data[i]);
+					::Serial.println();
+				}
+			} else {
+				::Serial.println("Current Value:   [Empty or Null]");
+			}
+			
+			// 4. Decode and check the Source Timestamp profile status flags
+			::Serial.print("hasSourceTime:   "); ::Serial.println((int)dbSnapshot.hasSourceTimestamp);
+			if (dbSnapshot.hasSourceTimestamp) {
+				uint64_t srcTimeRaw = (uint64_t)dbSnapshot.sourceTimestamp;
+				uint32_t hiSrc = (uint32_t)(srcTimeRaw >> 32); 
+				uint32_t loSrc = (uint32_t)(srcTimeRaw & 0xFFFFFFFF);
+				char hexSrc[32]; sprintf(hexSrc, "0x%08X%08X", hiSrc, loSrc);
+				::Serial.print("SourceTime Hex:  "); ::Serial.println(hexSrc);
+			}
+			
+			// 5. Decode and check the Server Timestamp profile status flags
+			::Serial.print("hasServerTime:   "); ::Serial.println((int)dbSnapshot.hasServerTimestamp);
+			if (dbSnapshot.hasServerTimestamp) {
+				uint64_t srvTimeRaw = (uint64_t)dbSnapshot.serverTimestamp;
+				uint32_t hiSrv = (uint32_t)(srvTimeRaw >> 32); 
+				uint32_t loSrv = (uint32_t)(srvTimeRaw & 0xFFFFFFFF);
+				char hexSrv[32]; sprintf(hexSrv, "0x%08X%08X", hiSrv, loSrv);
+				::Serial.print("ServerTime Hex:  "); ::Serial.println(hexSrv);
+			}
+			::Serial.println("=====================================================");
+			
+			// 6. Clean the allocated structure resource container
+			UA_DataValue_clear(&dbSnapshot);
+			xSemaphoreGive(open62541Mutex);
+		}
+	}
+
+    B4R::ArrayByte* B4ROPEN62541::ReadDataAttribute(B4RString* NodeIdentifier, int Attr) {
+        // Instantiate the B4R byte array wrapper utilizing your exact macro pattern
+        B4R::ArrayByte* result = NULL;
+        result = CreateStackMemoryObject(ArrayByte);
+        result->data = NULL;
+        result->length = 0;
+        
+        if (server == NULL || !globalIsReady) {
+            return result;
+        }
+
+        bool dataPacked = false;
+
+        if (xSemaphoreTake(open62541Mutex, portMAX_DELAY) == pdTRUE) {
+            int ns; const char* id; ParseNodeId(NodeIdentifier, ns, id);
+            UA_NodeId targetNodeId = UA_NODEID_STRING(ns, (char*)id);
+            
+            // 1. Fetch full data model snapshot straight from the cache address space
+            UA_ReadValueId rvi;
+            UA_ReadValueId_init(&rvi);
+            rvi.nodeId = targetNodeId;
+            rvi.attributeId = UA_ATTRIBUTEID_VALUE;
+            UA_DataValue dbSnapshot = UA_Server_read(server, &rvi, UA_TIMESTAMPSTORETURN_BOTH);
+            
+            if (dbSnapshot.status == UA_STATUSCODE_GOOD) {
+                // TYPE 0: Extract the raw Variable value payload
+                if (Attr == 0 && dbSnapshot.hasValue && UA_Variant_isScalar(&dbSnapshot.value)) {
+                    if (dbSnapshot.value.type == &UA_TYPES[UA_TYPES_FLOAT]) {
+                        result->length = sizeof(float);
+                        // Allocate the raw memory payload block inside B4R Stack Memory space
+                        result->data = (Byte*)B4R::StackMemory::buffer + B4R::StackMemory::cp;
+                        B4R::StackMemory::cp += result->length;
+                        
+                        memcpy(result->data, dbSnapshot.value.data, result->length);
+                        dataPacked = true;
+                    }
+                    else if (dbSnapshot.value.type == &UA_TYPES[UA_TYPES_INT32]) {
+                        result->length = sizeof(int32_t);
+                        result->data = (Byte*)B4R::StackMemory::buffer + B4R::StackMemory::cp;
+                        B4R::StackMemory::cp += result->length;
+                        
+                        memcpy(result->data, dbSnapshot.value.data, result->length);
+                        dataPacked = true;
+                    }
+                    else if (dbSnapshot.value.type == &UA_TYPES[UA_TYPES_BOOLEAN]) {
+                        result->length = sizeof(UA_Boolean);
+                        result->data = (Byte*)B4R::StackMemory::buffer + B4R::StackMemory::cp;
+                        B4R::StackMemory::cp += result->length;
+                        
+                        memcpy(result->data, dbSnapshot.value.data, result->length);
+                        dataPacked = true;
+                    }
+                }
+                // TYPE 1: Extract 64-bit Source Timestamp (8 bytes)
+                else if (Attr == 1 && dbSnapshot.hasSourceTimestamp) {
+                    result->length = sizeof(UA_DateTime);
+                    result->data = (Byte*)B4R::StackMemory::buffer + B4R::StackMemory::cp;
+                    B4R::StackMemory::cp += result->length;
+                    
+                    memcpy(result->data, &dbSnapshot.sourceTimestamp, result->length);
+                    dataPacked = true;
+                }
+                // TYPE 2: Extract 64-bit Server Timestamp (8 bytes)
+                else if (Attr == 2 && dbSnapshot.hasServerTimestamp) {
+                    result->length = sizeof(UA_DateTime);
+                    result->data = (Byte*)B4R::StackMemory::buffer + B4R::StackMemory::cp;
+                    B4R::StackMemory::cp += result->length;
+                    
+                    memcpy(result->data, &dbSnapshot.serverTimestamp, result->length);
+                    dataPacked = true;
+                }
+                // TYPE 3: Extract 32-bit Status Register Code (4 bytes)
+                else if (Attr == 3) {
+                    result->length = sizeof(UA_StatusCode);
+                    result->data = (Byte*)B4R::StackMemory::buffer + B4R::StackMemory::cp;
+                    B4R::StackMemory::cp += result->length;
+                    
+                    memcpy(result->data, &dbSnapshot.status, result->length);
+                    dataPacked = true;
+                }
+            }
+            
+            UA_DataValue_clear(&dbSnapshot);
+            xSemaphoreGive(open62541Mutex);
+        }
+        
+        // Reset properties cleanly if lookup criteria fails
+        if (!dataPacked) {
+            result->data = NULL;
+            result->length = 0;
+        }
+        return result;
+    }
 
     // ============================================================================
     // OPC UA Callbacks & Event Handling
