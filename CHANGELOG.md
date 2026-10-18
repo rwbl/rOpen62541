@@ -18,18 +18,6 @@
 - NEW: Example `Read` to demonstrate reading node value or node attributes (value, source timestamp, server timestamp, status).
 - NEW: Example `TankSim` to demonstrate rOpen62541 with a) OPC UA server with [FUXA](http://github.com/frangoteam/fuxa) and b) B4J with the `PyOpcUaClient` class.
 
-### Development Status
-[B4R](https://www.b4x.com/b4r.html)-facing OPC UA server API implements:
-- OPC UA Server Core Configuration: Complete initialization handling with clean IsReady state reporting.
-- Robust Security Profiles: Supports both full Anonymous Access and strict Username/Password authentication.
-- Dual-Core Asymmetric Processing: High-performance ESP32 FreeRTOS background server task architecture (Core 0 networking / Core 1 B4R control logic).
-- Dynamic Node Profiling: On-the-fly allocation of Float, Int, Boolean, String, and Polymorphic Trigger/ByteString nodes under a shared structural root asset folder.
-- Thread-Safe Memory Management: Full Semaphore mutex protection wrapping all low-level open62541 memory map access routines.
-- Qualified Data Space Tracking: Full support for mandatory namespace-aware string NodeIds (ns=X;s=...) across both server mapping and client communication.
-- Bi-Directional SCADA Interception: High-speed generic data-write callbacks (OnDataWrite) that instantly execute B4R subroutines on remote client network updates.
-- Type-Explicit Application Writes: Dedicated hardware-aligned write API (WriteFloat, WriteInt, WriteUInt, etc.) utilizing thread-isolated flag suppression (isOnDataWrite) to allow silent internal sensor/RAM loops.
-- Remote Procedure Calls (RPC): Native Method node creation with multi-context data routing and synchronous input/output payload array response handling.
-
 ## v0.95 (Build 20261011)
 **Focus: Bi-Directional SCADA Control, Type-Explicit Write API & Multi-Method Architecture Optimization**
 - NEW: Introduced a type-explicit internal Write API (`WriteFloat`, `WriteInt`, `WriteUInt`, `WriteBoolean`, `WriteLong`, `WriteULong`) that directly aligns with native B4R types (`Float`, `Int`, `UInt`, `Long`, `ULong`). This bypasses unstable 64-bit floating-point `double` casting, ensuring exact bit-level matching inside open62541 memory registers.
