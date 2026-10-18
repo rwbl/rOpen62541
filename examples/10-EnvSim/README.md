@@ -4,7 +4,12 @@
 This project demonstrates a bi-directional industrial environmental simulator running on the ESP32-S3-N16R8.  
 It acts as an autonomous OPC UA Server, securely exposing live simulated telemetry to networks while intercepting inbound control override parameters from clients (like B4J or Node-RED).
 
-------------------------------
+---
+
+## Screenshot
+<img src="example-envsim-opcua-cli-client.png" alt="rOpen62541 EnvSim" width="400" />
+
+---
 
 ## Operational Pipeline
 

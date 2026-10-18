@@ -6,14 +6,14 @@ Version=9.85
 @EndOfDesignText@
 #Region Class Info
 ' Project:		rOpen62541 (OPC UA Server)
-' Brief:		OPC UA client the Tank Simulator Example.
+' Brief:		OPC UA client for the Tank Simulator Example.
 ' Date:			See class_globals VERSION.
 ' Author:		Robert W.B. Linn (c) 2026 - MIT
-' Description:	
+' Description:	Demonstrate reading and writing to OPC UA server nodes.
 ' OPC UA Nodes:	See README.md
 ' DependsOn:	PyBridge (http://www.b4x.com/android/forum/threads/pybridge-the-very-basics.165654/)
 '				Python package asyncua (https://pypi.org) v2.0.1
-'				HMITilesIO 0.70 (https://www.b4x.com/android/forum/threads/HMITilesIO.171863/)
+'				HMITilesIO 0.90 (https://www.b4x.com/android/forum/threads/HMITilesIO.171863/)
 ' Hardware:		ESP32-S3-N16R8	(minimal requirement)
 ' Software:		B4J 10.70
 #End Region
@@ -22,7 +22,7 @@ Version=9.85
 #Macro: Title, Export B4XPages, ide://run?File=%B4X%\Zipper.jar&Args=%PROJECT_NAME%.zip
 
 Sub Class_Globals
-	Private VERSION As String = "rOpen62541 TankSim v20261016"
+	Private VERSION As String = "rOpen62541 TankSim v20261018"
 	' UI
 	Private xui As XUI
 	Private Root As B4XView

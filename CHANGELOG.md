@@ -13,7 +13,7 @@
 - NEW: `PyOpcUaClient` is a B4J class module that provides an OPC UA client interface through **PyBridge** and Python's `asyncua` package.
 - NEW: Example `ByteString` with standard byte array and serialized byte array (`B4RSerializator`).
 - NEW: Example `Read` to demonstrate reading node value or node attributes (value, source timestamp, server timestamp, status).
-- NEW: Example `TankSim` to demonstrate the rOpen62541 OPC UA server with [FUXA](http://github.com/frangoteam/fuxa).
+- NEW: Example `TankSim` to demonstrate rOpen62541 with a) OPC UA server with [FUXA](http://github.com/frangoteam/fuxa) and b) B4J with the `PyOpcUaClient` class.
 
 ### Development Status
 [B4R](https://www.b4x.com/b4r.html)-facing OPC UA server API implements:
