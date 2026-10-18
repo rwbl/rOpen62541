@@ -8,7 +8,10 @@ This project demonstrates controling the position of a servo motor connected to 
 * A push-button (input) can also be used to open or close the gate.
 * The OPC UA client sends the trigger message `ns=1;s=Trigger` with string values `gateopen` or `gateclose`.
 
-------------------------------
+## Example
+<img src="example-servo-motor.png" alt="rOpen62541 Servo Motor" width="400" />
+
+---
 
 ## Operational Pipeline
 
