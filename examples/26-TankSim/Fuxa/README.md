@@ -4,9 +4,13 @@
 
 This guide provides the exact configuration parameters and installation procedures for binding the FUXA HMI/SCADA platform to the `rOpen62541` ESP32-S3 Server.
 
+---
+
 ## Screenshot
-Before starting the guide, lets show a Fuxa example:
+Before starting the guide, lets show a FUXA example:   
 <img src="fuxa-tanksim.png" alt="rOpen62541 Example Tank Simulator Fuxa" width="300" />
+
+---
 
 ## Installation & Updates on Windows 11
 
