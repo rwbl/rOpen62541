@@ -464,5 +464,5 @@ Reads a specified tracking attribute from the node's internal data container and
             <returntype>ULong</returntype>
         </field>
     </class>
-    <version>0.96</version>
+    <version>1</version>
 </root>

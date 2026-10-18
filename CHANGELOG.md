@@ -1,6 +1,9 @@
 # CHANGELOG
 
-## v0.96 BETA (Build 20261018)
+## v1.00 (Build 20261018)
+- NEW: First final release.
+
+## v0.96 BETA (Build 20261017)
 **Focus: Finalizing API & Tests**
 - FIX: Dynamic Flag Toggles Retained: The isOnDataWrite intercept boundaries are completely preserved to avoid collision problems with synchronous data callbacks elsewhere in the project framework.
 - FIX: Internal Memory Management: For WriteByteString and WriteString, structures match the clean writeDataValue lifecycle correctly, meaning variables won't cause memory leakage on tiny RTOS heap allocations.

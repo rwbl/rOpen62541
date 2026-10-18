@@ -11,7 +11,7 @@
  *       ns=1;s=Factory_Floor.Sensors.Temperature
  *       ns=1;s=Factory_Floor.System.AvailableRAM
  * @version See below version
- * @date 2026-10-17
+ * @date 2026-10-18
  * @author Robert W. B. Linn (c) 2026 - MIT License provided with rOpen62541.
  */
 
@@ -21,7 +21,7 @@
 // Open 62541 library stored locally
 #include "open62541.h"
 
-//~version: 0.96
+//~version: 1.00
 namespace B4R {
 	//~shortname: Open62541
 	

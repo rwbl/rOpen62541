@@ -1,9 +1,5 @@
 # rOpen62541
 
-> [!WARNING]
-> **Final Testing & Documentation In Progress**  
-> The core server functionality is implemented and the API is approaching stability. Final testing, documentation, and project examples are still in progress, and minor API changes may occur before the v1.0.0 release.
-
 **rOpen62541** is an open-source [B4R](https://www.b4x.com/b4r.html) library wrapper for the industrial open62541 OPC UA protocol stack, specifically optimized for the ESP32-S3 Dual-Core architecture.  
 It provides thread-safe cross-core communication, dynamic string-node creation with a flat hierarchy, and type-agnostic runtime write diagnostics.
 
@@ -108,15 +104,15 @@ The repository includes complete, ready-to-run environment folders demonstrating
 
 The examples are designed to test the fundamental communication directions between the physical device, the OPC UA server, and external clients, like
 
-* **LED** → OPC UA client → server → physical output
-* **Push-button** → physical input → server → OPC UA client
-* **DHT22** → real sensor data → server → OPC UA client → Home Assistant
+* **LED** -> OPC UA client -> OPC UA server -> physical output
+* **Push-button** -> physical input -> OPC UA server -> OPC UA client
+* **DHT22** -> real sensor data -> OPC UA server -> OPC UA client -> Home Assistant
 
 ---
 
 ## Project Screenshot Example
 
-![InOut](images/ropen62541-b4j-inout-pybridge.png)
+![InOut](images/inoutput-b4j-pybridge.png)
 
 ---
 
@@ -148,8 +144,9 @@ For detailed tutorials, API blueprints, and environment configurations, please v
 - All product names, logos, protocols, and brands are property of their respective owners.
 - This B4R library is an independent open-source wrapper tracking standard open62541 architectures.
 	- It is neither officially endorsed nor maintained by the primary open62541 project core maintainers.
-- This codebase represents a strict standalone proof-of-concept / learning exercise and is explicitly **not intended for professional, commercial, or critical industrial application**.
 - This wrapper, its cross-core FreeRTOS mutex mappings, and its data type interceptor routines were designed and polished with the specialized interactive assistance of an AI engineering collaborator, achieving optimal compatibility with the B4R pre-compiler stack.
+**IMPORTANT**
+- This codebase represents a strict standalone proof-of-concept / learning exercise and is explicitly **not intended for professional, commercial, or critical industrial application**.
 
 ---
 
