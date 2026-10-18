@@ -1,18 +1,19 @@
 # CHANGELOG
 
-## v0.96 BETA (Build 20261017)
+## v0.96 BETA (Build 20261018)
 **Focus: Finalizing API & Tests**
-- FIX: Dynamic Flag Toggles Retained: The isOnDataWrite intercept boundaries are completely preserved to avoid collision problems with synchronous data callbacks elsewhere in your project framework.
+- FIX: Dynamic Flag Toggles Retained: The isOnDataWrite intercept boundaries are completely preserved to avoid collision problems with synchronous data callbacks elsewhere in the project framework.
 - FIX: Internal Memory Management: For WriteByteString and WriteString, structures match the clean writeDataValue lifecycle correctly, meaning variables won't cause memory leakage on tiny RTOS heap allocations.
 - UPD: Removed Temporary UA_Variant myVar: The variant nested inside the data value structure (myDataValue.value) is directly assigned via UA_Variant_setScalar, optimizing RAM overhead.
-- NEW: Integrated Automated Source Timestamps: Upgraded all `Write` methods from `UA_Server_writeValue` to `UA_Server_writeDataValue` using `UA_DateTime_now()` to natively feed exact event time metrics to FUXA charts and external logging clients.
+- NEW: Integrated Automated Source Timestamps: Upgraded all `Write` methods from `UA_Server_writeValue` to `UA_Server_writeDataValue` using `UA_DateTime_now()` to natively feed exact event time metrics to external logging clients.
 - NEW: Universal `OnDataWrite` background routing callback engine added `ByteString` and increased to max 64-byte raw value payload array.
 - NEW: Added `ReadDataValue` diagnostic method to pull full low-level node cache data structures (Value, Status, and dual 64-bit Hex Timestamps) directly out of the Address Space to the native C++ hardware serial line.
 - NEW: Added `ReadDataAttribute` selector function providing direct access to specific data bytes (Value, Source Timestamp, Server Timestamp, Status Code) packaged safely inside standard B4R `ArrayByte` stack containers.
-- NEW: Folder `examples/Shared` with [B4J](https://www.b4x.com/b4j.html) helper classes and code modules.
+- NEW: Folder `examples/Shared` with [B4J](https://www.b4x.com/b4j.html) helper classes, like `PyOpcUaClient` and code modules.
 - NEW: `PyOpcUaClient` is a B4J class module that provides an OPC UA client interface through **PyBridge** and Python's `asyncua` package.
 - NEW: Example `ByteString` with standard byte array and serialized byte array (`B4RSerializator`).
 - NEW: Example `Read` to demonstrate reading node value or node attributes (value, source timestamp, server timestamp, status).
+- NEW: Example `TankSim` to demonstrate the rOpen62541 OPC UA server with [FUXA](http://github.com/frangoteam/fuxa).
 
 ### Development Status
 [B4R](https://www.b4x.com/b4r.html)-facing OPC UA server API implements:

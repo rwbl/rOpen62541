@@ -1,0 +1,866 @@
+{
+  "devices": {
+    "0": {
+      "id": "0",
+      "name": "FUXA Server",
+      "type": "FuxaServer",
+      "property": {},
+      "polling": 1000,
+      "enabled": true,
+      "tags": {
+        "t_edcc36e9-06594e25": {
+          "id": "t_edcc36e9-06594e25",
+          "name": "ESP32S3 Connection Status",
+          "label": "ESP32S3 Connection Status",
+          "type": "number",
+          "memaddress": "d_09512484-1a074d63",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "init": "",
+          "sysType": 1
+        }
+      }
+    },
+    "d_09512484-1a074d63": {
+      "id": "d_09512484-1a074d63",
+      "name": "ESP32S3",
+      "enabled": true,
+      "property": {
+        "address": "opc.tcp://192.168.1.176:4840/",
+        "port": null,
+        "slot": null,
+        "rack": null,
+        "baudrate": 9600,
+        "databits": 8,
+        "stopbits": 1,
+        "parity": "None",
+        "delay": 10,
+        "forceFC16": false,
+        "timeout": 2000
+      },
+      "type": "OPCUA",
+      "polling": 500,
+      "tags": {
+        "t_29ccf399-d5f043b8": {
+          "id": "t_29ccf399-d5f043b8",
+          "name": "Tank 1 Level",
+          "label": "Tank 1 Level",
+          "type": "Variant",
+          "address": "ns=1;s=Tank1.Level",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1792244242474
+        },
+        "t_c2f3f20e-019d434e": {
+          "id": "t_c2f3f20e-019d434e",
+          "name": "Tank 1 Input Flow",
+          "label": "Tank 1 Input Flow",
+          "type": "Variant",
+          "address": "ns=1;s=Tank1.InputFlow",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1792244227475
+        },
+        "t_5cf6fc0a-5f43440c": {
+          "id": "t_5cf6fc0a-5f43440c",
+          "name": "Tank 1 Output Flow",
+          "label": "Tank 1 Output Flow",
+          "type": "Variant",
+          "address": "ns=1;s=Tank1.OutputFlow",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1792244242474
+        },
+        "t_cc6ed567-bd58465d": {
+          "id": "t_cc6ed567-bd58465d",
+          "name": "Tank 1 Setpoint",
+          "label": "Tank 1 Setpoint",
+          "type": "Float",
+          "address": "ns=1;s=Tank1.Setpoint",
+          "daq": {
+            "enabled": false,
+            "restored": false
+          },
+          "timestamp": 1792244224473,
+          "format": null,
+          "scale": null,
+          "scaleReadFunction": null,
+          "scaleWriteFunction": null,
+          "unsPath": null,
+          "description": null
+        },
+        "t_c883727f-02504bf9": {
+          "id": "t_c883727f-02504bf9",
+          "name": "Tank 2 Level",
+          "label": "Tank 2 Level",
+          "type": "Variant",
+          "address": "ns=1;s=Tank2.Level",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1792244242474
+        },
+        "t_a7d4cef6-3b174b6e": {
+          "id": "t_a7d4cef6-3b174b6e",
+          "name": "Tank 2 Input Flow",
+          "label": "Tank 2 Input Flow",
+          "type": "Variant",
+          "address": "ns=1;s=Tank2.InputFlow",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1792244242474
+        },
+        "t_c03b4e75-9f1c456b": {
+          "id": "t_c03b4e75-9f1c456b",
+          "name": "Tank 2 Output Flow",
+          "label": "Tank 2 Output Flow",
+          "type": "Variant",
+          "address": "ns=1;s=Tank2.OutputFlow",
+          "daq": {
+            "enabled": false,
+            "interval": 60,
+            "changed": false,
+            "restored": false
+          },
+          "timestamp": 1792244242474
+        },
+        "t_c9caf277-04e04e70": {
+          "id": "t_c9caf277-04e04e70",
+          "name": "Tank 2 Setpoint",
+          "label": "Tank 2 Setpoint",
+          "type": "Float",
+          "address": "ns=1;s=Tank2.Setpoint",
+          "daq": {
+            "enabled": false,
+            "restored": false
+          },
+          "timestamp": 1792244224473,
+          "format": null,
+          "scale": null,
+          "scaleReadFunction": null,
+          "scaleWriteFunction": null,
+          "unsPath": null,
+          "description": null
+        }
+      }
+    }
+  },
+  "hmi": {
+    "views": [
+      {
+        "id": "v_a12b114981-112813",
+        "name": "MainView",
+        "profile": {
+          "width": 1024,
+          "height": 768,
+          "bkcolor": "#ffffffff",
+          "margin": 10,
+          "align": "topCenter",
+          "gridType": "fixed",
+          "viewRenderDelay": 0
+        },
+        "items": {
+          "SHE_558008ee-4e744f16": {
+            "id": "SHE_558008ee-4e744f16",
+            "type": "svg-ext-proceng-tank5",
+            "name": "Tank1.Level.Tank",
+            "property": {
+              "variableId": "t_29ccf399-d5f043b8",
+              "ranges": [
+                {
+                  "min": 0,
+                  "max": 100,
+                  "color": "#4bacc6ff",
+                  "type": 2,
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Proc-Eng",
+            "hide": false,
+            "lock": false
+          },
+          "SHE_5afaa54d-f53846cc": {
+            "id": "SHE_5afaa54d-f53846cc",
+            "type": "svg-ext-proceng-tank5",
+            "name": "Tank2.Level.Tank",
+            "property": {
+              "variableId": "t_c883727f-02504bf9",
+              "ranges": [
+                {
+                  "min": 0,
+                  "max": 100,
+                  "color": "#4bacc6ff",
+                  "type": 2,
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": [],
+              "variableValue": "100"
+            },
+            "label": "Proc-Eng",
+            "hide": false,
+            "lock": false
+          },
+          "SHE_8920d1d5-e5164f0c": {
+            "id": "SHE_8920d1d5-e5164f0c",
+            "type": "svg-ext-shapes-path",
+            "name": "shape_1",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "GXP_aa52b3e0-22164495": {
+            "id": "GXP_aa52b3e0-22164495",
+            "type": "svg-ext-gauge_progress",
+            "name": "Tank1.Level.Progress",
+            "property": {
+              "ranges": [
+                {
+                  "min": 0,
+                  "max": 100,
+                  "color": "#3F4964",
+                  "type": 2,
+                  "style": [
+                    true,
+                    true
+                  ],
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": [],
+              "variableId": "t_29ccf399-d5f043b8"
+            },
+            "label": "HtmlProgress",
+            "hide": false,
+            "lock": false
+          },
+          "GXP_ddc53728-eb8f4cd4": {
+            "id": "GXP_ddc53728-eb8f4cd4",
+            "type": "svg-ext-gauge_progress",
+            "name": "Tank2.Level.Progress",
+            "property": {
+              "ranges": [
+                {
+                  "min": 0,
+                  "max": 100,
+                  "color": "#3F4964",
+                  "type": 2,
+                  "style": [
+                    true,
+                    true
+                  ],
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": [],
+              "variableId": "t_c883727f-02504bf9"
+            },
+            "label": "HtmlProgress",
+            "hide": false,
+            "lock": false
+          },
+          "A-GXP_eb9857d2-4e9d41d7": {
+            "id": "A-GXP_eb9857d2-4e9d41d7",
+            "type": "svg-ext-shapes-rect",
+            "name": "shape_2",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "B-GXP_83e183c6-1cdf48ee": {
+            "id": "B-GXP_83e183c6-1cdf48ee",
+            "type": "svg-ext-shapes-rect",
+            "name": "shape_2",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "H-GXP_20434a50-772d43da": {
+            "id": "H-GXP_20434a50-772d43da",
+            "type": "svg-ext-shapes-select",
+            "name": "shape_3",
+            "property": {
+              "variableId": "t_c883727f-02504bf9",
+              "ranges": [
+                {
+                  "min": 0,
+                  "max": 100,
+                  "color": "#4bacc6ff",
+                  "type": 2,
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "HXC_03d6401d-dcd845ff": {
+            "id": "HXC_03d6401d-dcd845ff",
+            "type": "svg-ext-html_chart",
+            "name": "Tank1.Level.Chart",
+            "property": {
+              "id": "030841812-4115",
+              "type": "realtime1",
+              "options": {
+                "title": "Levels",
+                "fontFamily": "Roboto-Regular",
+                "legendFontSize": 6,
+                "colorBackground": "rgba(255,255,255,0)",
+                "legendBackground": "rgba(255,255,255,0)",
+                "titleHeight": 16,
+                "axisLabelFontSize": 8,
+                "labelsDivWidth": 0,
+                "axisLineColor": "rgba(0,0,0,1)",
+                "axisLabelColor": "rgba(0,0,0,1)",
+                "legendMode": "always",
+                "series": [],
+                "width": 360,
+                "height": 200,
+                "decimalsPrecision": 0,
+                "realtime": 5,
+                "mouseWheelScroll": false,
+                "mouseWheelZoom": false,
+                "staticChart": false,
+                "dateFormat": "MM_DD_YYYY",
+                "timeFormat": "hh_mm_ss_AA",
+                "scaleY1min": 0,
+                "scaleY1max": 100,
+                "scaleY2min": 0,
+                "scaleY2max": 100,
+                "axisLabelY1": "%"
+              }
+            },
+            "label": "HtmlChart",
+            "hide": false,
+            "lock": false
+          },
+          "VAL_36bab358-488e4946": {
+            "id": "VAL_36bab358-488e4946",
+            "type": "svg-ext-value",
+            "name": "Tank1.Level.Output",
+            "property": {
+              "variableId": "t_29ccf399-d5f043b8",
+              "ranges": [
+                {
+                  "min": 20,
+                  "max": 80,
+                  "text": "%",
+                  "textId": null,
+                  "color": "",
+                  "type": 1,
+                  "stroke": "",
+                  "fractionDigitsId": null,
+                  "fractionDigits": "0"
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Value",
+            "hide": false,
+            "lock": false
+          },
+          "VAL_477a822c-051246b1": {
+            "id": "VAL_477a822c-051246b1",
+            "type": "svg-ext-value",
+            "name": "Tank2.Level.Output",
+            "property": {
+              "variableId": "t_c883727f-02504bf9",
+              "ranges": [
+                {
+                  "min": 20,
+                  "max": 80,
+                  "text": "%",
+                  "textId": null,
+                  "color": "",
+                  "type": 1,
+                  "stroke": "",
+                  "fractionDigitsId": null,
+                  "fractionDigits": "0"
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Value",
+            "hide": false,
+            "lock": false
+          },
+          "VAL_b942cedd-70e64aa1": {
+            "id": "VAL_b942cedd-70e64aa1",
+            "type": "svg-ext-shapes-text",
+            "name": "shape_6",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "svg_9508e064-795e4e65": {
+            "id": "svg_9508e064-795e4e65",
+            "type": "svg-ext-shapes-text",
+            "name": "Title",
+            "property": {
+              "ranges": [
+                {
+                  "min": 20,
+                  "max": 80,
+                  "color": "",
+                  "type": 2,
+                  "stroke": ""
+                }
+              ],
+              "events": [],
+              "actions": [],
+              "text": "rOpen62541 OPC UA Server Example - Two Tank Simulator"
+            },
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "VAL_270616c4-fb104f22": {
+            "id": "VAL_270616c4-fb104f22",
+            "type": "svg-ext-value",
+            "name": "output_1",
+            "property": {
+              "variableId": "t_c2f3f20e-019d434e",
+              "ranges": [
+                {
+                  "min": 20,
+                  "max": 80,
+                  "textId": null,
+                  "color": "",
+                  "type": 1,
+                  "stroke": "",
+                  "fractionDigitsId": null,
+                  "fractionDigits": "0",
+                  "text": "m3/hr"
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Value",
+            "hide": false,
+            "lock": false
+          },
+          "VAL_e5a7d066-73bd479e": {
+            "id": "VAL_e5a7d066-73bd479e",
+            "type": "svg-ext-value",
+            "name": "output_2",
+            "property": {
+              "variableId": "t_5cf6fc0a-5f43440c",
+              "ranges": [
+                {
+                  "min": 20,
+                  "max": 80,
+                  "textId": null,
+                  "color": "",
+                  "type": 1,
+                  "stroke": "",
+                  "fractionDigitsId": null,
+                  "text": "m3/hr",
+                  "fractionDigits": "0"
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Value",
+            "hide": false,
+            "lock": false
+          },
+          "VAL_60145bc5-dea7451e": {
+            "id": "VAL_60145bc5-dea7451e",
+            "type": "svg-ext-value",
+            "name": "output_3",
+            "property": {
+              "variableId": "t_c03b4e75-9f1c456b",
+              "ranges": [
+                {
+                  "min": 20,
+                  "max": 80,
+                  "textId": null,
+                  "color": "",
+                  "type": 1,
+                  "stroke": "",
+                  "fractionDigitsId": null,
+                  "text": "m3/hr",
+                  "fractionDigits": "0"
+                }
+              ],
+              "events": [],
+              "actions": []
+            },
+            "label": "Value",
+            "hide": false,
+            "lock": false
+          },
+          "PIE_6241b68b-8e274358": {
+            "id": "PIE_6241b68b-8e274358",
+            "type": "svg-ext-pipe",
+            "name": "pipe_1",
+            "property": {
+              "events": [],
+              "actions": [],
+              "options": {
+                "border": "#3F4964",
+                "borderWidth": 11,
+                "pipe": "#E79180",
+                "pipeWidth": 6,
+                "content": "#DADADA",
+                "contentWidth": 6,
+                "contentSpace": 20
+              }
+            },
+            "label": "Pipe",
+            "hide": false,
+            "lock": false
+          },
+          "PIE_cd162442-c443477c": {
+            "id": "PIE_cd162442-c443477c",
+            "type": "svg-ext-pipe",
+            "name": "",
+            "property": null,
+            "label": "Pipe",
+            "hide": false,
+            "lock": false
+          },
+          "PIE_a17667f6-c280415a": {
+            "id": "PIE_a17667f6-c280415a",
+            "type": "svg-ext-pipe",
+            "name": "",
+            "property": null,
+            "label": "Pipe",
+            "hide": false,
+            "lock": false
+          },
+          "SLI_b2f2ba23-0b7d4b9f": {
+            "id": "SLI_b2f2ba23-0b7d4b9f",
+            "type": "svg-ext-html_slider",
+            "name": "slider_1",
+            "property": {
+              "events": [],
+              "actions": [],
+              "options": {
+                "orientation": "vertical",
+                "direction": "rtl",
+                "fontFamily": "Sans-serif",
+                "shape": {
+                  "baseColor": "#cdcdcd",
+                  "connectColor": "#262c3b",
+                  "handleColor": "#3f4964",
+                  "barWidth": 16,
+                  "handleWidth": 28,
+                  "handleHeight": 34
+                },
+                "marker": {
+                  "color": "#222222",
+                  "subWidth": 5,
+                  "subHeight": 1,
+                  "fontSize": 12,
+                  "divHeight": 2,
+                  "divWidth": 12
+                },
+                "range": {
+                  "min": 0,
+                  "max": 100
+                },
+                "step": 1,
+                "pips": {
+                  "mode": "values",
+                  "values": [
+                    0,
+                    50,
+                    100
+                  ],
+                  "density": 4
+                },
+                "tooltip": {
+                  "type": "none",
+                  "decimals": 0,
+                  "background": "#FFF",
+                  "color": "#000",
+                  "fontSize": 12
+                }
+              },
+              "variableId": "t_cc6ed567-bd58465d"
+            },
+            "label": "HtmlSlider",
+            "hide": false,
+            "lock": false
+          },
+          "SLI_f00eb77c-0b804c18": {
+            "id": "SLI_f00eb77c-0b804c18",
+            "type": "svg-ext-html_slider",
+            "name": "slider_2",
+            "property": {
+              "events": [],
+              "actions": [],
+              "options": {
+                "orientation": "vertical",
+                "direction": "rtl",
+                "fontFamily": "Sans-serif",
+                "shape": {
+                  "baseColor": "#cdcdcd",
+                  "connectColor": "#262c3b",
+                  "handleColor": "#3f4964",
+                  "barWidth": 16,
+                  "handleWidth": 28,
+                  "handleHeight": 34
+                },
+                "marker": {
+                  "color": "#222222",
+                  "subWidth": 5,
+                  "subHeight": 1,
+                  "fontSize": 12,
+                  "divHeight": 2,
+                  "divWidth": 12
+                },
+                "range": {
+                  "min": 0,
+                  "max": 100
+                },
+                "step": 1,
+                "pips": {
+                  "mode": "values",
+                  "values": [
+                    0,
+                    50,
+                    100
+                  ],
+                  "density": 4
+                },
+                "tooltip": {
+                  "type": "none",
+                  "decimals": 0,
+                  "background": "#FFF",
+                  "color": "#000",
+                  "fontSize": 12
+                }
+              },
+              "variableId": "t_c9caf277-04e04e70"
+            },
+            "label": "HtmlSlider",
+            "hide": false,
+            "lock": false
+          },
+          "svg_95aefc95-e9de4fab": {
+            "id": "svg_95aefc95-e9de4fab",
+            "type": "svg-ext-shapes-rect",
+            "name": "shape_5",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          },
+          "HXC_a6c3aaae-342f4e84": {
+            "id": "HXC_a6c3aaae-342f4e84",
+            "type": "svg-ext-html_chart",
+            "name": "Tanks.Flow.Chart",
+            "property": {
+              "id": "18a049811-6a13a",
+              "type": "realtime1",
+              "options": {
+                "title": "Flows",
+                "fontFamily": "Roboto-Regular",
+                "legendFontSize": 6,
+                "colorBackground": "rgba(255,255,255,0)",
+                "legendBackground": "rgba(255,255,255,0)",
+                "titleHeight": 16,
+                "axisLabelFontSize": 8,
+                "labelsDivWidth": 0,
+                "axisLineColor": "rgba(0,0,0,1)",
+                "axisLabelColor": "rgba(0,0,0,1)",
+                "legendMode": "always",
+                "series": [],
+                "width": 360,
+                "height": 200,
+                "decimalsPrecision": 0,
+                "realtime": 5,
+                "mouseWheelScroll": false,
+                "mouseWheelZoom": false,
+                "staticChart": false,
+                "dateFormat": "MM_DD_YYYY",
+                "timeFormat": "hh_mm_ss_AA",
+                "scaleY1min": 0,
+                "scaleY1max": 20,
+                "scaleY2min": 0,
+                "scaleY2max": 20,
+                "axisLabelY1": "m3/hr"
+              }
+            },
+            "label": "HtmlChart",
+            "hide": false,
+            "lock": false
+          },
+          "svg_e3cd4bc0-ab1a4eb5": {
+            "id": "svg_e3cd4bc0-ab1a4eb5",
+            "type": "svg-ext-shapes-rect",
+            "name": "shape_4",
+            "property": null,
+            "label": "Shapes",
+            "hide": false,
+            "lock": false
+          }
+        },
+        "variables": {},
+        "svgcontent": "<svg width=\"1024\" height=\"768\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:svg=\"http://www.w3.org/2000/svg\" xmlns:html=\"http://www.w3.org/1999/xhtml\">\n <filter height=\"200\" width=\"200\" y=\"-3\" x=\"-3\" id=\"blur-filter\">\n  <feGaussianBlur stdDeviation=\"3\"/>\n </filter>\n\n <g>\n  <title>Layer 1</title>\n  <g type=\"svg-ext-pipe\" id=\"PIE_cd162442-c443477c\">\n   <path fill=\"none\" stroke=\"#3F4964\" d=\"M296,364L296,424L496,425C496,425 496,95 496,96C496,97 587,97 587,97C587,97 587,117 587,117\" id=\"bPIE_1ea8d1a2-4cab438d\" stroke-width=\"11\"/>\n   <path fill=\"none\" stroke=\"#E79180\" d=\"M296,364L296,424L496,425C496,425 496,95 496,96C496,97 587,97 587,97C587,97 587,117 587,117\" id=\"pPIE_e0c57a7f-3c184ffd\" stroke-width=\"6\"/>\n   <path fill=\"none\" stroke=\"#DADADA\" d=\"M296,364L296,424L496,425C496,425 496,95 496,96C496,97 587,97 587,97C587,97 587,117 587,117\" id=\"cPIE_870618d7-e0fd4e10\" stroke-dasharray=\"20 20\" stroke-width=\"6\"/>\n  </g>\n  <g data-name=\"slider_1\" text-anchor=\"right\" font-family=\"sans-serif\" font-size=\"14\" stroke=\"#000000\" fill=\"#FFFFFF\" type=\"svg-ext-html_slider\" id=\"SLI_b2f2ba23-0b7d4b9f\">\n   <rect id=\"svg_3e5cb3ec-0c4c4800\" height=\"247\" width=\"107\" y=\"121\" x=\"351.00001\" stroke-width=\"0\"/>\n   <foreignObject id=\"H-SLI_2e3d206d-c8a8468f\" width=\"107\" height=\"247\" y=\"121\" x=\"351.00001\">\n    <DIV style=\"width: 100%; height: 100%; vector-effect: non-scaling-stroke;\" id=\"D-SLI_2e3d206d-c8a8468f\">\n     <NGX-NOUISLIDER class=\"ng-star-inserted\">\n      <DIV style=\"margin: 40px; font-family: sans-serif;\">\n       <DIV style=\"height: 167px; width: 16px;\" class=\"myslider-container noUi-target noUi-rtl noUi-vertical noUi-txt-dir-ltr\" id=\"mySlider\">\n        <DIV class=\"noUi-base\">\n         <DIV style=\"background: rgb(205, 205, 205);\" class=\"noUi-connects\">\n          <DIV style=\"background: rgb(38, 44, 59); transform: translate(0px, 50%) scale(1, 0.5);\" class=\"noUi-connect\"></DIV>\n         </DIV>\n         <DIV style=\"transform: translate(0px, 50%); z-index: 4;\" class=\"noUi-origin\">\n          <DIV aria-valuetext=\"50\" aria-valuenow=\"50\" aria-valuemax=\"100\" aria-valuemin=\"0\" aria-orientation=\"vertical\" role=\"slider\" tabindex=\"0\" data-handle=\"0\" style=\"background: rgb(63, 73, 100); width: 28px; height: 34px; right: -6px; bottom: -17px;\" class=\"noUi-handle noUi-handle-lower\">\n           <DIV class=\"noUi-touch-area\"></DIV>\n          </DIV>\n         </DIV>\n        </DIV>\n        <DIV class=\"noUi-pips noUi-pips-vertical\">\n         <DIV style=\"bottom: 0%; background: rgb(34, 34, 34); width: 12px; height: 2px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-large\"></DIV>\n         <DIV style=\"bottom: 0%; color: rgb(34, 34, 34); padding-left: 15px; font-size: 12px;\" data-value=\"0\" class=\"noUi-value noUi-value-vertical noUi-value-large\">0</DIV>\n         <DIV style=\"bottom: 3.84615%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 7.69231%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 11.5385%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 15.3846%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 19.2308%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 23.0769%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 26.9231%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 30.7692%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 34.6154%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 38.4615%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 42.3077%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 46.1539%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 50%; background: rgb(34, 34, 34); width: 12px; height: 2px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-large\"></DIV>\n         <DIV style=\"bottom: 50%; color: rgb(34, 34, 34); padding-left: 15px; font-size: 12px;\" data-value=\"50\" class=\"noUi-value noUi-value-vertical noUi-value-large\">50</DIV>\n         <DIV style=\"bottom: 53.8462%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 57.6923%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 61.5385%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 65.3846%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 69.2308%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 73.0769%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 76.9231%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 80.7692%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 84.6154%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 88.4615%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 92.3077%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 96.1539%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 100%; background: rgb(34, 34, 34); width: 12px; height: 2px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-large\"></DIV>\n         <DIV style=\"bottom: 100%; color: rgb(34, 34, 34); padding-left: 15px; font-size: 12px;\" data-value=\"100\" class=\"noUi-value noUi-value-vertical noUi-value-large\">100</DIV>\n        </DIV>\n       </DIV>\n      </DIV>\n     </NGX-NOUISLIDER>\n    </DIV>\n   </foreignObject>\n  </g>\n  <g data-name=\"Tank1.Level.Tank\" id=\"SHE_558008ee-4e744f16\" type=\"svg-ext-proceng-tank5\" fill=\"#FFFFFF\" stroke=\"#000000\" font-size=\"14\" font-family=\"sans-serif\" text-anchor=\"middle\">\n   <path id=\"SHE_06ff9535-26a54038\" d=\"M348.42105,135.49665L348.42105,343.5034C348.42105,354.54592 325.05684,363.50003 296.21052,363.50003C267.3642,363.50003 243.99999,354.54592 243.99999,343.5034L243.99999,135.49665C243.99999,124.45413 267.3642,115.50002 296.21052,115.50002C325.05684,115.50002 348.42105,124.45413 348.42105,135.49665zM243.99999,135.49665L348.42105,135.49665M243.99999,343.5034L348.42105,343.5034\"/>\n  </g>\n  <g data-name=\"Tank2.Level.Tank\" type=\"svg-ext-proceng-tank5\" fill=\"#FFFFFF\" stroke=\"#000000\" font-size=\"14\" font-family=\"sans-serif\" text-anchor=\"middle\" id=\"SHE_5afaa54d-f53846cc\">\n   <path data-name=\"shape_1\" d=\"M640.21054,136.99663L640.21054,345.00337C640.21054,356.0459 616.84633,365.00001 588.00001,365.00001C559.15369,365.00001 535.78948,356.0459 535.78948,345.00337L535.78948,136.99663C535.78948,125.95411 559.15369,117 588.00001,117C616.84633,117 640.21054,125.95411 640.21054,136.99663zM535.78948,136.99663L640.21054,136.99663M535.78948,345.00337L640.21054,345.00337\" id=\"SHE_8920d1d5-e5164f0c\"/>\n  </g>\n  <g data-name=\"Tank1.Level.Progress\" id=\"GXP_aa52b3e0-22164495\" type=\"svg-ext-gauge_progress\" font-size=\"14\" stroke=\"#000000\" font-family=\"sans-serif\">\n   <rect id=\"A-GXP_be2d4a50-0df2438e\" x=\"271\" y=\"159\" width=\"50\" height=\"150\" fill=\"#FFFFFF\" stroke=\"#000000\"/>\n   <rect id=\"B-GXP_4b707f68-93ca4696\" x=\"271\" y=\"159\" width=\"50\" height=\"75\" fill=\"#3F4964\" stroke=\"#000000\"/>\n   <foreignObject x=\"271\" y=\"159\" height=\"150\" width=\"50\" id=\"H-GXP_203f4fbf-d0de4b31\" font-size=\"14\"/>\n  </g>\n  <g data-name=\"Tank2.Level.Progress\" id=\"GXP_ddc53728-eb8f4cd4\" type=\"svg-ext-gauge_progress\" font-size=\"14\" stroke=\"#000000\" font-family=\"sans-serif\">\n   <rect data-name=\"shape_2\" id=\"A-GXP_eb9857d2-4e9d41d7\" x=\"565\" y=\"159\" width=\"50\" height=\"150\" fill=\"#FFFFFF\" stroke=\"#000000\"/>\n   <rect data-name=\"shape_2\" id=\"B-GXP_83e183c6-1cdf48ee\" x=\"565\" y=\"159\" width=\"50\" height=\"150\" fill=\"#3F4964\" stroke=\"#000000\"/>\n   <foreignObject data-name=\"shape_3\" id=\"H-GXP_20434a50-772d43da\" x=\"565\" y=\"159\" height=\"150\" width=\"50\" font-size=\"14\"/>\n  </g>\n  <g data-name=\"Tank1.Level.Chart\" text-anchor=\"right\" font-family=\"sans-serif\" font-size=\"14\" stroke=\"#000000\" fill=\"#FFFFFF\" type=\"svg-ext-html_chart\" id=\"HXC_03d6401d-dcd845ff\">\n   <rect id=\"svg_050c38e7-b5874935\" height=\"240\" width=\"380\" y=\"458\" x=\"422\" stroke-width=\"0\"/>\n   <foreignObject id=\"H-HXC_c31b628f-98a94e5b\" width=\"380\" height=\"240\" y=\"458\" x=\"422\">\n    <DIV style=\"width:100%;height:100%;\" id=\"D-HXC_c31b628f-98a94e5b\">\n     <CHART-UPLOT class=\"ng-star-inserted\">\n      <DIV style=\"background-color: rgba(255, 255, 255, 0);\" class=\"mychart-panel\">\n       <!---->\n       <NGX-UPLOT class=\"mychart-graph\">\n        <DIV>\n         <DIV id=\"Tanks.Level.Chart\" class=\"uplot u-hz\">\n          <DIV style=\"color: rgb(0, 0, 0); font-size: 16px; font-family: Roboto-Regular;\" class=\"u-title\">Tanks.Level.Chart</DIV>\n          <DIV style=\"width: 380px; height: 168px;\" class=\"u-wrap\">\n           <DIV style=\"left: 80px; top: 17px; width: 250px; height: 71px;\" class=\"u-under\"></DIV>\n           <CANVAS height=\"168\" width=\"380\"/>\n           <DIV style=\"left: 80px; top: 17px; width: 250px; height: 71px;\" class=\"u-over\">\n            <DIV class=\"u-cursor-x\"></DIV>\n            <DIV class=\"u-cursor-y\"></DIV>\n            <DIV style=\"left: 0px; width: 0px; top: 0px; height: 0px;\" class=\"u-select\"></DIV>\n            <DIV class=\"u-cursor-pt u-off\" style=\"width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; transform: translate(-10px, -10px);\"></DIV>\n            <DIV class=\"u-cursor-pt u-off\" style=\"width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; transform: translate(-10px, -10px);\"></DIV>\n           </DIV>\n           <DIV style=\"top: 88px; height: 50px; left: 80px; width: 250px;\" class=\"u-axis\"></DIV>\n           <DIV style=\"left: 30px; width: 50px; top: 17px; height: 71px;\" class=\"u-axis\"></DIV>\n           <DIV style=\"left: 330px; width: 50px; top: 17px; height: 71px;\" class=\"u-axis\"></DIV>\n           <DIV class=\"u-axis u-off\"></DIV>\n           <DIV class=\"u-axis u-off\"></DIV>\n          </DIV>\n          <TABLE style=\"color: rgb(0, 0, 0); line-height: 0;\" class=\"u-legend u-inline u-live\">\n           <TR class=\"u-series\">\n            <TH>\n             <DIV class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">Time</DIV>\n            </TH>\n            <TD class=\"u-value\">01/01/1970 1:00:00 AM</TD>\n           </TR>\n           <TR class=\"u-series\">\n            <TH>\n             <DIV style=\"border: 2px solid rgb(68, 132, 239);\" class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">T1 Level</DIV>\n            </TH>\n            <TD class=\"u-value\">--</TD>\n           </TR>\n           <TR class=\"u-series\">\n            <TH>\n             <DIV style=\"border: 2px solid rgb(239, 9, 9);\" class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">T2 Level</DIV>\n            </TH>\n            <TD class=\"u-value\">--</TD>\n           </TR>\n          </TABLE>\n         </DIV>\n        </DIV>\n       </NGX-UPLOT>\n       <!---->\n       <!---->\n      </DIV>\n     </CHART-UPLOT>\n    </DIV>\n   </foreignObject>\n  </g>\n  <g data-name=\"Tank1.Level.Output\" text-anchor=\"middle\" font-family=\"sans-serif\" stroke-width=\"0\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" type=\"svg-ext-value\" id=\"VAL_36bab358-488e4946\">\n   <text transform=\"matrix(1.92, 0, 0, 1, -171.6, 0)\" y=\"330.22916\" x=\"242.50833\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"sans-serif\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" id=\"VAL_d5f16b10-cd3c4b12\" stroke-width=\"0\">##.##</text>\n  </g>\n  <g data-name=\"Tank2.Level.Output\" id=\"VAL_477a822c-051246b1\" text-anchor=\"middle\" font-family=\"sans-serif\" stroke-width=\"0\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" type=\"svg-ext-value\">\n   <text data-name=\"shape_6\" id=\"VAL_b942cedd-70e64aa1\" transform=\"matrix(1.92, 0, 0, 1, -171.6, 0)\" y=\"330.22916\" x=\"396.66667\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"sans-serif\" font-size=\"20\" stroke=\"#000000\" fill=\"#000000\" stroke-width=\"0\">##.##</text>\n  </g>\n  <text data-name=\"Title\" transform=\"matrix(1.38774, 0, 0, 1.42857, -7.39445, -3.85714)\" xml:space=\"preserve\" text-anchor=\"middle\" font-family=\"Roboto-Bold\" font-size=\"21\" id=\"svg_9508e064-795e4e65\" y=\"35\" x=\"353\" stroke-width=\"0\" stroke=\"#000000\" fill=\"#000000\">rOpen62541 OPC UA Server Example - Tank Simulator</text>\n  <path type=\"svg-ext-pipe\" id=\"PIE_f53c26ff-4d8f4df6\" d=\"M746,426\" opacity=\"0.5\" stroke-width=\"10\" stroke=\"rgba(41,171,226,1)\" fill=\"rgba(0,0,0,0)\"/>\n  <path type=\"svg-ext-pipe\" id=\"PIE_15723630-5cf846f0\" d=\"M214,89\" opacity=\"0.5\" stroke-width=\"10\" stroke=\"rgba(41,171,226,1)\" fill=\"rgba(0,0,0,0)\"/>\n  <path type=\"svg-ext-pipe\" id=\"PIE_e95e66b8-6c60444c\" d=\"M30,425\" opacity=\"0.5\" stroke-width=\"10\" stroke=\"rgba(41,171,226,1)\" fill=\"rgba(0,0,0,0)\"/>\n  <g data-name=\"output_1\" text-anchor=\"start\" font-family=\"sans-serif\" stroke-width=\"0\" font-size=\"14\" stroke=\"#000000\" fill=\"#000000\" type=\"svg-ext-value\" id=\"VAL_270616c4-fb104f22\">\n   <text y=\"401\" x=\"63\" xml:space=\"preserve\" text-anchor=\"start\" font-family=\"sans-serif\" font-size=\"14\" stroke=\"#000000\" fill=\"#000000\" id=\"VAL_dfc859a8-6c0d4a0a\" stroke-width=\"0\">##.##</text>\n  </g>\n  <g data-name=\"output_2\" text-anchor=\"start\" font-family=\"sans-serif\" stroke-width=\"0\" font-size=\"14\" stroke=\"#000000\" fill=\"#000000\" type=\"svg-ext-value\" id=\"VAL_e5a7d066-73bd479e\">\n   <text y=\"401\" x=\"338\" xml:space=\"preserve\" text-anchor=\"start\" font-family=\"sans-serif\" font-size=\"14\" stroke=\"#000000\" fill=\"#000000\" id=\"VAL_9e8dd088-94ab47d4\" stroke-width=\"0\">##.##</text>\n  </g>\n  <g data-name=\"output_3\" text-anchor=\"start\" font-family=\"sans-serif\" stroke-width=\"0\" font-size=\"14\" stroke=\"#000000\" fill=\"#000000\" type=\"svg-ext-value\" id=\"VAL_60145bc5-dea7451e\">\n   <text y=\"401\" x=\"627\" xml:space=\"preserve\" text-anchor=\"start\" font-family=\"sans-serif\" font-size=\"14\" stroke=\"#000000\" fill=\"#000000\" id=\"VAL_1f13ed13-d1bf4237\" stroke-width=\"0\">##.##</text>\n  </g>\n  <g type=\"svg-ext-pipe\" id=\"PIE_6241b68b-8e274358\">\n   <path fill=\"none\" stroke=\"#3F4964\" d=\"M294,115L294,91L180,91L179,427L30,426\" id=\"bPIE_19a0fd5b-82ce43e8\" stroke-width=\"11\"/>\n   <path fill=\"none\" stroke=\"#E79180\" d=\"M294,115L294,91L180,91L179,427L30,426\" id=\"pPIE_e67b5ce8-cb6f4539\" stroke-width=\"6\"/>\n   <path fill=\"none\" stroke=\"#DADADA\" d=\"M294,115L294,91L180,91L179,427L30,426\" id=\"cPIE_49a2739c-99e44738\" stroke-dasharray=\"20 20\" stroke-width=\"6\"/>\n  </g>\n  <g type=\"svg-ext-pipe\" id=\"PIE_a17667f6-c280415a\">\n   <path fill=\"none\" stroke=\"#3F4964\" d=\"M588,363L588,426L746,426\" id=\"bPIE_96dd72b9-e9804a05\" stroke-width=\"11\"/>\n   <path fill=\"none\" stroke=\"#E79180\" d=\"M588,363L588,426L746,426\" id=\"pPIE_2dfac542-d4c64ed5\" stroke-width=\"6\"/>\n   <path fill=\"none\" stroke=\"#DADADA\" d=\"M588,363L588,426L746,426\" id=\"cPIE_c41c6fd0-599040a2\" stroke-dasharray=\"20 20\" stroke-width=\"6\"/>\n  </g>\n  <g data-name=\"slider_2\" id=\"SLI_f00eb77c-0b804c18\" text-anchor=\"right\" font-family=\"sans-serif\" font-size=\"14\" stroke=\"#000000\" fill=\"#FFFFFF\" type=\"svg-ext-html_slider\">\n   <rect data-name=\"shape_5\" id=\"svg_95aefc95-e9de4fab\" height=\"245\" width=\"107\" y=\"120\" x=\"643.50001\" stroke-width=\"0\"/>\n   <foreignObject id=\"H-SLI_500d1360-d6cc4852\" width=\"107\" height=\"245\" y=\"120\" x=\"643.50001\">\n    <DIV id=\"D-SLI_8e86e846-32374ee1\" style=\"width: 100%; height: 100%; vector-effect: non-scaling-stroke;\">\n     <NGX-NOUISLIDER class=\"ng-star-inserted\">\n      <DIV style=\"margin: 40px; font-family: sans-serif;\">\n       <DIV style=\"height: 165px; width: 16px;\" class=\"myslider-container noUi-target noUi-rtl noUi-vertical noUi-txt-dir-ltr\" id=\"mySlider\">\n        <DIV class=\"noUi-base\">\n         <DIV style=\"background: rgb(205, 205, 205);\" class=\"noUi-connects\">\n          <DIV style=\"background: rgb(38, 44, 59); transform: translate(0px, 50%) scale(1, 0.5);\" class=\"noUi-connect\"></DIV>\n         </DIV>\n         <DIV style=\"transform: translate(0px, 50%); z-index: 4;\" class=\"noUi-origin\">\n          <DIV aria-valuetext=\"50\" aria-valuenow=\"50\" aria-valuemax=\"100\" aria-valuemin=\"0\" aria-orientation=\"vertical\" role=\"slider\" tabindex=\"0\" data-handle=\"0\" style=\"background: rgb(63, 73, 100); width: 28px; height: 34px; right: -6px; bottom: -17px;\" class=\"noUi-handle noUi-handle-lower\">\n           <DIV class=\"noUi-touch-area\"></DIV>\n          </DIV>\n         </DIV>\n        </DIV>\n        <DIV class=\"noUi-pips noUi-pips-vertical\">\n         <DIV style=\"bottom: 0%; background: rgb(34, 34, 34); width: 12px; height: 2px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-large\"></DIV>\n         <DIV style=\"bottom: 0%; color: rgb(34, 34, 34); padding-left: 15px; font-size: 12px;\" data-value=\"0\" class=\"noUi-value noUi-value-vertical noUi-value-large\">0</DIV>\n         <DIV style=\"bottom: 3.84615%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 7.69231%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 11.5385%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 15.3846%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 19.2308%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 23.0769%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 26.9231%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 30.7692%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 34.6154%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 38.4615%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 42.3077%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 46.1539%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 50%; background: rgb(34, 34, 34); width: 12px; height: 2px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-large\"></DIV>\n         <DIV style=\"bottom: 50%; color: rgb(34, 34, 34); padding-left: 15px; font-size: 12px;\" data-value=\"50\" class=\"noUi-value noUi-value-vertical noUi-value-large\">50</DIV>\n         <DIV style=\"bottom: 53.8462%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 57.6923%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 61.5385%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 65.3846%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 69.2308%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 73.0769%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 76.9231%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 80.7692%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 84.6154%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 88.4615%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 92.3077%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 96.1539%; background: rgb(34, 34, 34); width: 5px; height: 1px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-normal\"></DIV>\n         <DIV style=\"bottom: 100%; background: rgb(34, 34, 34); width: 12px; height: 2px;\" class=\"noUi-marker noUi-marker-vertical noUi-marker-large\"></DIV>\n         <DIV style=\"bottom: 100%; color: rgb(34, 34, 34); padding-left: 15px; font-size: 12px;\" data-value=\"100\" class=\"noUi-value noUi-value-vertical noUi-value-large\">100</DIV>\n        </DIV>\n       </DIV>\n      </DIV>\n     </NGX-NOUISLIDER>\n    </DIV>\n   </foreignObject>\n  </g>\n  <g data-name=\"Tanks.Flow.Chart\" id=\"HXC_a6c3aaae-342f4e84\" text-anchor=\"right\" font-family=\"sans-serif\" font-size=\"14\" stroke=\"#000000\" fill=\"#FFFFFF\" type=\"svg-ext-html_chart\">\n   <rect data-name=\"shape_4\" id=\"svg_e3cd4bc0-ab1a4eb5\" height=\"240\" width=\"380\" y=\"457\" x=\"34\" stroke-width=\"0\"/>\n   <foreignObject id=\"H-HXC_6964dc5d-b1a544c3\" width=\"380\" height=\"240\" y=\"457\" x=\"34\">\n    <DIV id=\"D-HXC_9122c384-66ba4268\" style=\"width:100%;height:100%;\">\n     <CHART-UPLOT class=\"ng-star-inserted\">\n      <DIV style=\"background-color: rgba(255, 255, 255, 0);\" class=\"mychart-panel\">\n       <!---->\n       <NGX-UPLOT class=\"mychart-graph\">\n        <DIV>\n         <DIV id=\"Tanks.Flow.Chart\" class=\"uplot u-hz\">\n          <DIV style=\"color: rgb(0, 0, 0); font-size: 16px; font-family: Roboto-Regular;\" class=\"u-title\">Tanks.Flow.Chart</DIV>\n          <DIV style=\"width: 380px; height: 168px;\" class=\"u-wrap\">\n           <DIV style=\"left: 80px; top: 17px; width: 250px; height: 71px;\" class=\"u-under\"></DIV>\n           <CANVAS height=\"168\" width=\"380\"/>\n           <DIV style=\"left: 80px; top: 17px; width: 250px; height: 71px;\" class=\"u-over\">\n            <DIV class=\"u-cursor-x\"></DIV>\n            <DIV class=\"u-cursor-y\"></DIV>\n            <DIV style=\"left: 0px; width: 0px; top: 0px; height: 0px;\" class=\"u-select\"></DIV>\n            <DIV class=\"u-cursor-pt u-off\" style=\"width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; transform: translate(-10px, -10px);\"></DIV>\n            <DIV class=\"u-cursor-pt u-off\" style=\"width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; transform: translate(-10px, -10px);\"></DIV>\n            <DIV class=\"u-cursor-pt u-off\" style=\"width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; transform: translate(-10px, -10px);\"></DIV>\n            <DIV class=\"u-cursor-pt u-off\" style=\"width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; transform: translate(-10px, -10px);\"></DIV>\n           </DIV>\n           <DIV style=\"top: 88px; height: 50px; left: 80px; width: 250px;\" class=\"u-axis\"></DIV>\n           <DIV style=\"left: 30px; width: 50px; top: 17px; height: 71px;\" class=\"u-axis\"></DIV>\n           <DIV style=\"left: 330px; width: 50px; top: 17px; height: 71px;\" class=\"u-axis\"></DIV>\n           <DIV class=\"u-axis u-off\"></DIV>\n           <DIV class=\"u-axis u-off\"></DIV>\n          </DIV>\n          <TABLE style=\"color: rgb(0, 0, 0); line-height: 0;\" class=\"u-legend u-inline u-live\">\n           <TR class=\"u-series\">\n            <TH>\n             <DIV class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">Time</DIV>\n            </TH>\n            <TD class=\"u-value\">01/01/1970 1:00:00 AM</TD>\n           </TR>\n           <TR class=\"u-series\">\n            <TH>\n             <DIV style=\"border: 2px solid rgb(68, 132, 239);\" class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">T1 InFlow</DIV>\n            </TH>\n            <TD class=\"u-value\">--</TD>\n           </TR>\n           <TR class=\"u-series\">\n            <TH>\n             <DIV style=\"border: 2px solid rgb(239, 9, 9);\" class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">T1 OutFlow</DIV>\n            </TH>\n            <TD class=\"u-value\">--</TD>\n           </TR>\n           <TR class=\"u-series\">\n            <TH>\n             <DIV style=\"border: 2px solid rgb(0, 176, 80);\" class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">T2 InFlow</DIV>\n            </TH>\n            <TD class=\"u-value\">--</TD>\n           </TR>\n           <TR class=\"u-series\">\n            <TH>\n             <DIV style=\"border: 2px solid rgb(255, 208, 74);\" class=\"u-marker\"></DIV>\n             <DIV class=\"u-label\">T2 OutFlow</DIV>\n            </TH>\n            <TD class=\"u-value\">--</TD>\n           </TR>\n          </TABLE>\n         </DIV>\n        </DIV>\n       </NGX-UPLOT>\n       <!---->\n       <!---->\n      </DIV>\n     </CHART-UPLOT>\n    </DIV>\n   </foreignObject>\n  </g>\n </g>\n</svg>",
+        "type": "svg"
+      }
+    ],
+    "layout": {
+      "autoresize": false,
+      "start": "v_a12b114981-112813",
+      "navigation": {
+        "mode": "over",
+        "type": "block",
+        "bkcolor": "#F4F5F7",
+        "fgcolor": "#1D1D1D",
+        "logo": false
+      },
+      "header": {
+        "bkcolor": "#ffffff",
+        "fgcolor": "#000000",
+        "height": 46,
+        "buttonHeight": 36,
+        "fontSize": 13,
+        "itemsAnchor": "left"
+      },
+      "showdev": true,
+      "inputdialog": "false",
+      "hidenavigation": false,
+      "theme": "",
+      "loginonstart": false,
+      "loginoverlaycolor": "none",
+      "show_connection_error": true,
+      "customStyles": ""
+    }
+  },
+  "recipes": [],
+  "ar": {
+    "enabled": false,
+    "markers": []
+  },
+  "version": "1.00",
+  "charts": [
+    {
+      "id": "030841812-4115",
+      "name": "Tanks.Level.Chart",
+      "lines": [
+        {
+          "id": "t_29ccf399-d5f043b8",
+          "name": "Tank 1 Level",
+          "device": "ESP32S3",
+          "color": "#4484ef",
+          "label": "T1 Level",
+          "yaxis": 1,
+          "spanGaps": true,
+          "lineInterpolation": null,
+          "lineWidth": null
+        },
+        {
+          "id": "t_c883727f-02504bf9",
+          "name": "Tank 2 Level",
+          "device": "ESP32S3",
+          "color": "#ef0909",
+          "label": "T2 Level",
+          "yaxis": 1,
+          "spanGaps": true,
+          "lineInterpolation": null,
+          "lineWidth": null
+        }
+      ]
+    },
+    {
+      "id": "18a049811-6a13a",
+      "name": "Tanks.Flow.Chart",
+      "lines": [
+        {
+          "id": "t_c2f3f20e-019d434e",
+          "name": "Tank 1 Input Flow",
+          "device": "ESP32S3",
+          "color": "#4484ef",
+          "label": "T1 InFlow",
+          "yaxis": 1,
+          "spanGaps": true,
+          "lineInterpolation": null,
+          "lineWidth": null
+        },
+        {
+          "id": "t_5cf6fc0a-5f43440c",
+          "name": "Tank 1 Output Flow",
+          "device": "ESP32S3",
+          "color": "#ef0909",
+          "label": "T1 OutFlow",
+          "yaxis": 1,
+          "spanGaps": true,
+          "lineInterpolation": null,
+          "lineWidth": null
+        },
+        {
+          "id": "t_a7d4cef6-3b174b6e",
+          "name": "Tank 2 Input Flow",
+          "device": "ESP32S3",
+          "color": "#00b050",
+          "label": "T2 InFlow",
+          "yaxis": 1,
+          "spanGaps": true,
+          "lineInterpolation": null,
+          "lineWidth": null
+        },
+        {
+          "id": "t_c03b4e75-9f1c456b",
+          "name": "Tank 2 Output Flow",
+          "device": "ESP32S3",
+          "color": "#ffd04a",
+          "label": "T2 OutFlow",
+          "yaxis": 1,
+          "spanGaps": true,
+          "lineInterpolation": null,
+          "lineWidth": null
+        }
+      ]
+    }
+  ],
+  "server": {
+    "id": "0",
+    "name": "FUXA Server",
+    "type": "FuxaServer",
+    "property": {}
+  }
+}
