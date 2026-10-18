@@ -6,9 +6,9 @@ This guide provides the exact configuration parameters and installation procedur
 
 ---
 
-## Screenshot
-Before starting the guide, lets show a FUXA example:   
-<img src="fuxa-tanksim.png" alt="rOpen62541 Example Tank Simulator Fuxa" width="300" />
+## Example
+Before starting the guide, lets show a screenshot of the FUXA example `TankSim`:   
+<img src="fuxa-tanksim.png" alt="rOpen62541 Example Tank Simulator Fuxa" width="400" />
 
 ---
 
@@ -30,10 +30,17 @@ npm install -g fuxa
 
 ### Running FUXA
 
-Once installed, start the server backend by typing:
+Once installed, start the server backend:
+```
+cd c:\<installation folder>\FUXA\server
+npm start
+```
+or
+
 ```powershell
 fuxa
 ```
+followed by:
 - Editor URL: Open a browser and navigate to http://localhost:1881 to design the dashboard.
 - Runtime View URL: Access the live operator panel at http://localhost:1881/view.
 
